@@ -36,6 +36,22 @@
   --cpeptide: #f2f6ff;
   --hot: #ff8a3d;
   --tagk: #38b6ff;
+  --g1: #4fd6a8;
+  --sphase: #5fa8ff;
+  --g2: #b18cff;
+  --mphase: #ff9b52;
+  --gate: #ff4d5e;
+  --chrom-a: #ff79c6;
+  --chrom-b: #5fc8ff;
+  --spindle: #d9e6b8;
+  --strand-a: #5fa8ff;
+  --strand-b: #b18cff;
+  --lesion: #ff6a3d;
+  --radical: #ffe45e;
+  --fix: #6ee7a0;
+  --sister: #4fd6c8;
+  --senescent: #8c8fb8;
+  --dead: #3a4456;
   --tag-m: #ff4fd8;
   --tag-k: #38b6ff;
   --carbon: #8793a5;
@@ -309,3 +325,25 @@ table.ledger { border-collapse: collapse; width: 100%; font-size: 13px; font-var
 .organ dd { margin: 0; color: #cdd6e2; }
 .chapter a { color: var(--accent); }
 .ledger.wrap th, .ledger.wrap td { white-space: normal; }
+
+/* ---------- division & radiation module ---------- */
+.range { display: flex; flex-direction: column; gap: 6px; }
+.range b { color: var(--fg); font-size: 13px; }
+.range input { width: 100%; accent-color: var(--accent); }
+.steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; color: #cdd6e2; }
+.lq { width: 100%; height: auto; display: block; }
+.lq text { fill: var(--muted); font: 10px var(--f-mono); }
+.lq .grid-line { stroke: var(--line); stroke-width: 1; }
+.lq path { fill: none; stroke-width: 2.2; }
+.lq .single { stroke: var(--lesion); }
+.lq .split { stroke: var(--accent); }
+.lq-key { display: flex; flex-wrap: wrap; gap: 6px 14px; font: 400 11px/1.3 var(--f-mono); color: var(--muted); }
+.lq-key span::before { content: ""; display: inline-block; width: 14px; height: 3px; background: var(--c); margin-right: 6px; vertical-align: middle; }
+.organ.rs { grid-template-columns: 104px minmax(0, 1fr); }
+.dose-list { display: flex; flex-direction: column; gap: 10px; }
+.dose-list > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 10px; font-size: 13.5px; }
+.dose-list b { font: 500 12.5px/1.5 var(--f-mono); color: var(--atp); text-align: right; font-variant-numeric: tabular-nums; }
+.dose-list .track { grid-column: 1 / -1; height: 6px; background: var(--surface); border-radius: 3px; overflow: hidden; }
+.dose-list .track i { display: block; height: 100%; background: var(--atp); border-radius: 3px; }
+.dose-list small { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); }
+.eq.wrapeq { white-space: normal; }
