@@ -104,7 +104,7 @@ const CHAPTERS = [
     title: 'A city the size of a speck of dust',
     legend: [['nucleus', 'Nucleus'], ['membrane', 'Membrane & ER'], ['golgi', 'Golgi'], ['mito', 'Mitochondria'], ['lyso', 'Lysosomes']],
     html: () => `
-      <p class="lede">Every one of your roughly 30 trillion cells runs like a small industrial city. It has an archive, production lines, a shipping depot, recycling and, most important for this story, power plants.</p>
+      <p class="lede">Every one of your roughly <a href="https://doi.org/10.1371/journal.pbio.1002533" target="_blank" rel="noopener">30 trillion cells</a> runs like a small industrial city. It has an archive, production lines, a shipping depot, recycling and, most important for this story, power plants.</p>
       <p class="muted">Pick a district to fly to it. Then follow a single glucose molecule from your last meal all the way to ATP, the energy currency every district spends.</p>
       <div class="orgs" id="orgs">${ORGANELLES.map(o => `
         <button class="org" type="button" data-id="${o.id}" style="--c:var(--${o.c})"><i></i><span><b>${o.name}</b><small>${o.role}</small></span></button>`).join('')}
@@ -180,7 +180,7 @@ const CHAPTERS = [
       <div class="eq">${m('pyruvate', 'pyruvate')} + CoA + NAD⁺ → ${m('acetyl-CoA', 'acetyl')} + ${m('CO₂', 'co2')} + ${m('NADH', 'nadh')}</div>
       <ul class="facts">
         <li>This is the first CO₂ you breathe out from that meal. It happens twice per glucose.</li>
-        <li>The enzyme complex needs vitamins B1 (thiamine), B2, B3 and B5 plus lipoic acid. Thiamine deficiency stalls it, which is part of why Wernicke encephalopathy hits the glucose-hungry brain.</li>
+        <li>The enzyme complex needs vitamins B1 (thiamine), B2, B3 and B5 plus lipoic acid. Thiamine deficiency stalls it, which is part of why Wernicke encephalopathy hits the glucose-hungry brain (<a href="https://doi.org/10.1016/S1474-4422(07)70104-7" target="_blank" rel="noopener">review</a>).</li>
         <li>Acetyl-CoA is the hub: glucose, fats and many amino acids all funnel into it before the Krebs cycle.</li>
       </ul>`,
   },
@@ -255,7 +255,7 @@ const CHAPTERS = [
       <ul class="facts">
         <li>The figure is about 30 when NADH from glycolysis enters the mitochondrion by the glycerol-phosphate shuttle, which hands its electrons to FAD instead.</li>
         <li>All six carbons of glucose leave as the CO₂ you exhale. The oxygen you inhale ends up as water.</li>
-        <li>ATP is spent almost as fast as it is made. You recycle roughly your own body weight of it every day.</li>
+        <li>ATP is spent almost as fast as it is made. An average person uses and remakes about <b>50 kg</b> of it a day (Bolsover et al., <i>Cell Biology</i>, 2004).</li>
       </ul>
       <div class="eq">C₆H₁₂O₆ + 6 O₂ → 6 ${m('CO₂', 'co2')} + 6 H₂O + ≈32 ${m('ATP', 'atp')}</div>`,
   },

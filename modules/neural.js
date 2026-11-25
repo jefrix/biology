@@ -210,6 +210,11 @@ const SRC = {
   adc: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC2772048/', 'ADC time course in stroke'),
   dwi: link('https://radiopaedia.org/articles/diffusion-weighted-mri-in-acute-stroke-2', 'Radiopaedia, DWI in acute stroke'),
   ms: link('https://my.clevelandclinic.org/departments/neurological/depts/multiple-sclerosis/ms-approaches/diagnosing-ms-using-the-2024-mcdonald-criteria', '2024 McDonald criteria overview'),
+  mcd: link('https://doi.org/10.1016/S1474-4422(25)00270-4', 'Montalban et al. 2025, McDonald criteria 2024 revision'),
+  msrad: link('https://doi.org/10.2214/AJR.25.33997', 'Rai et al. 2026, the 2024 update for radiologists'),
+  cdcstroke: link('https://www.cdc.gov/stroke/signs-symptoms/index.html', 'CDC, stroke signs and symptoms'),
+  dwineg: link('https://doi.org/10.1212/WNL.0000000000004120', 'Edlow et al. 2017, DWI-negative stroke'),
+  ions: link('https://doi.org/10.1016/j.jstrokecerebrovasdis.2017.09.011', 'Hu and Song 2017, ion balance in ischaemic stroke'),
 };
 
 const CHAPTERS = [
@@ -270,8 +275,8 @@ const CHAPTERS = [
         <li>Myelin raises the membrane’s resistance and lowers its capacitance, so current spreads farther and charges the next patch quickly.</li>
         <li><b>Oligodendrocytes</b> make it in the brain and spinal cord, <b>Schwann cells</b> in peripheral nerves.</li>
       </ul>
-      <div class="callout"><span class="eyebrow">Radiology link: multiple sclerosis</span><p>MS involves inflammatory demyelination in the central nervous system. On MRI, <b>T2/FLAIR-bright</b> lesions in typical places, such as around the ventricles, next to or in the cortex, in the brainstem or cerebellum, and in the spinal cord, help show <b>spread in space</b>. The 2024 McDonald criteria added the optic nerve. <b>Gadolinium enhancement</b> has helped show <b>spread in time</b>. A bright spot is not specific: it can reflect oedema, inflammation, demyelination, gliosis or axon loss, and has many other causes. Diagnosis needs the full clinical picture.</p></div>
-      ${sources([luo('pp. 53–55'), SRC.ms], 'Playback speeds are illustrative and the difference is understated.')}`,
+      <div class="callout"><span class="eyebrow">Radiology link: multiple sclerosis</span><p>MS involves inflammatory demyelination in the central nervous system. On MRI, <b>T2/FLAIR-bright</b> lesions in typical places, such as around the ventricles, next to or in the cortex, in the brainstem or cerebellum, and in the spinal cord, help show <b>spread in space</b>. The 2024 McDonald criteria added the optic nerve as a fifth location. <b>Gadolinium enhancement</b> has helped show <b>spread in time</b>. The 2024 revision also recognises another spinal fluid marker (kappa free light chains) that can substitute for it, and adds optional MRI signs: the central vein sign and paramagnetic rim lesions. A bright spot is not specific: it can reflect oedema, inflammation, demyelination, gliosis or axon loss, and has many other causes. Diagnosis needs the full clinical picture.</p></div>
+      ${sources([luo('pp. 53–55'), SRC.ms, SRC.mcd, SRC.msrad], 'Playback speeds are illustrative and the difference is understated.')}`,
   },
   {
     id: 'synapse', short: 'Synapse', where: 'A chemical synapse · gap about 20 nm',
@@ -330,12 +335,12 @@ const CHAPTERS = [
       <ul class="facts">
         <li>Diffusion-weighted imaging is <b>more sensitive early</b> than CT or ordinary T2 MRI. Ordinary sequences may show nothing for the first hours.</li>
         <li><b>ADC</b> falls early, with the greatest drop reported around days 1–4, then returns through normal (<b>pseudonormalisation</b>) at roughly one to two weeks. Timing varies between patients and studies.</li>
-        <li>A normal DWI does not rule out stroke: some early, small or brainstem and cerebellar strokes are missed.</li>
+        <li>A normal DWI does not rule out stroke: some early, small or brainstem and cerebellar strokes are missed. A pooled analysis found about <b>7%</b> of acute ischaemic strokes were DWI-negative, with higher odds in the <b>posterior circulation</b>.</li>
         <li>Early CT signs can include darker tissue, loss of the gray–white boundary and effaced sulci.</li>
       </ul>
-      <div class="callout"><span class="eyebrow">Emergency</span><p>Sudden face drooping, weakness, or trouble speaking can be a stroke. <b>Call emergency services at once</b>, even if the symptoms go away. Treatment depends on time.</p></div>
+      <div class="callout"><span class="eyebrow">Emergency</span><p>Remember <b>BE FAST</b>: <b>B</b>alance lost, <b>E</b>yesight trouble, <b>F</b>ace drooping, <b>A</b>rm weakness, <b>S</b>peech difficulty, <b>T</b>ime to call. Sudden numbness or weakness (especially on one side), confusion, or a severe headache with no known cause also count. <b>Call 911 or your local emergency number right away.</b> Do not drive yourself to hospital or have someone else drive you. If symptoms go away, it may have been a mini-stroke (TIA): tell a health care team right away. Treatment depends on time.</p></div>
       <p class="muted">Do neurons run on lactate handed over by astrocytes? This “astrocyte–neuron lactate shuttle” is still debated, so it is not shown.</p>
-      ${sources([SRC.energy, SRC.eanm, SRC.dwi, SRC.adc, SRC.anls], 'The 3D tissue is schematic and is not a scan. For learning, not diagnosis.')}`,
+      ${sources([SRC.energy, SRC.eanm, SRC.dwi, SRC.dwineg, SRC.adc, SRC.ions, SRC.cdcstroke, SRC.anls], 'The 3D tissue is schematic and is not a scan. For learning, not diagnosis.')}`,
   },
 ];
 

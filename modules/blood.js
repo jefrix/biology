@@ -6,25 +6,28 @@
 const BLOOD = [
   { id: 'rbc', name: 'Red blood cell', short: 'Red cell', tag: 'Erythrocyte · oxygen courier', size: 'about 7–8 µm across, 2 µm thick',
     look: 'A biconcave disc with no nucleus. The dimple adds surface area and lets it fold through capillaries narrower than itself.',
-    job: 'Carries oxygen on roughly 270 million haemoglobin molecules, and helps carry CO₂ back to the lungs.',
+    job: 'Carries oxygen on roughly 270 million haemoglobin molecules (references give about 250–300 million), and helps carry CO₂ back to the lungs.',
     life: 'About 120 days. Worn-out cells are eaten by macrophages, mainly in the spleen and liver.',
     energy: '<b>No mitochondria</b>, so it runs on glycolysis alone and releases lactate. It uses none of the oxygen it delivers. A side branch makes 2,3-BPG, which helps haemoglobin let go of oxygen, at the cost of some ATP. The pentose phosphate pathway makes NADPH to protect against oxidation, which is why G6PD deficiency can cause haemolysis.',
     action: 'Oxygen loads (haemoglobin turns bright red), the cell folds to squeeze through a capillary, then unloads and darkens.',
     rad: 'A <b>Tc-99m tagged red cell scan</b> follows your own labelled cells to find bleeding that comes and goes, as in the gut. On unenhanced CT, the density of blood comes mostly from haemoglobin (flowing blood is about 40 HU), so anaemic blood looks darker. On MRI, the state of haemoglobin helps date a bleed:',
-    mri: true },
+    mri: true,
+    refs: [['https://doi.org/10.1007/s00330-020-07497-y', 'blood density on CT and anaemia (Zopfs et al. 2021)'], ['https://faculty.washington.edu/jeff8rob/trauma-radiology-reference-resource/1-cns/mri-appearance-of-intracranial-hemorrhage', 'University of Washington, MRI of intracranial haemorrhage, after Bradley 1993']] },
   { id: 'neut', name: 'Neutrophil', short: 'Neutrophil', tag: 'Granulocyte · first responder', pct: [40, 60], size: 'about 12–15 µm',
     look: 'A nucleus in 2 to 5 lobes joined by fine threads, with fine pale-lilac granules. Young <i>band</i> forms in the blood suggest a “left shift”. Six or more lobes points toward B12 or folate deficiency.',
     job: 'Arrives first at bacterial infection, swallows microbes and kills them with enzymes and reactive oxygen. It can also throw out DNA nets. Dead neutrophils are a major part of pus.',
     life: 'Only hours in the blood, longer once in tissue. Estimates differ between methods.',
     energy: 'Has few mitochondria and leans heavily on <b>glycolysis</b>. For its “respiratory burst”, the enzyme NADPH oxidase turns oxygen into microbe-killing oxidants. When that enzyme fails, the result is chronic granulomatous disease.',
     action: 'Bacteria are engulfed into a phagosome. Granules converge and an oxidative burst destroys them.',
-    rad: 'In <b>labelled white cell scans</b> (In-111 oxine or Tc-99m HMPAO), labelled cells, many of them neutrophils, migrate to infection. In-111 is favoured in the abdomen because HMPAO activity reaches the bowel. After <b>G-CSF</b>, marrow can light up diffusely on FDG-PET, often with the spleen. Diffuse uptake favours the drug effect and focal uptake raises concern for disease, but the pattern is not definitive.' },
+    rad: 'In <b>labelled white cell scans</b> (In-111 oxine or Tc-99m HMPAO), labelled cells, many of them neutrophils, migrate to infection. They behave differently in the abdomen, where HMPAO activity can appear in normal bowel. Which is preferred depends on the clinical question and image timing. After <b>G-CSF</b>, marrow can light up diffusely on FDG-PET, often with the spleen. Diffuse uptake favours the drug effect and focal uptake raises concern for disease, but the pattern is not definitive.',
+    refs: [['https://doi.org/10.1097/MNM.0b013e32832fa254', 'diffuse splenic FDG uptake (Liu 2009)'], ['https://doi.org/10.3109/00365529409091389', 'labelled white cells in abdominal infection (Lantto 1994)']] },
   { id: 'lymph', name: 'Lymphocytes', short: 'Lymphocyte', tag: 'Agranulocyte · targeted defence and memory', pct: [20, 40], size: 'about 7–8 µm when small, up to about 15 µm',
     look: 'A large, round, dense nucleus with a thin rim of cytoplasm. A resting small lymphocyte is close to a red cell in size. B and T cells cannot be reliably told apart by eye; laboratories use surface markers.',
     job: '', life: 'From weeks to many years. Memory cells are why immunity lasts.',
     energy: 'Resting cells tick over mostly on mitochondrial respiration. On activation, effector cells sharply increase <b>glycolysis even with oxygen available</b>, which supplies ATP and building blocks for rapid division.',
     action: '',
     rad: 'Activated lymphocytes take up more glucose, so <b>reactive lymph nodes can be FDG-avid</b> and mimic cancer, for example after vaccination or during infection. FDG PET/CT is also central to staging and response assessment in many lymphomas, which are cancers of lymphocytes.',
+    refs: [['https://doi.org/10.1097/MNM.0000000000002041', 'reactive lymph nodes after COVID-19 vaccination (Adin et al. 2025)']],
     subs: [
       { id: 'b', label: 'B cell', job: '<b>B cells</b> make antibodies. When activated they can become plasma cells, which are antibody factories packed with rough ER, as well as long-lived memory cells.', action: 'An activated B cell, acting as a plasma cell, releases Y-shaped antibodies that coat a virus.' },
       { id: 't', label: 'T cell', job: '<b>T cells</b> are most of the lymphocytes in blood. Helper (CD4) T cells coordinate other immune cells. Cytotoxic (CD8) T cells kill infected or abnormal cells that display a matching antigen. Regulatory T cells restrain the response. HIV targets CD4 cells.', action: 'A cytotoxic T cell docks on an infected cell and delivers perforin and granzymes. The target dies by apoptosis.' },
@@ -43,14 +46,16 @@ const BLOOD = [
     life: 'Hours in the blood, then days in tissues such as the gut lining.',
     energy: 'Uses glycolysis and has more capacity for mitochondrial respiration than a neutrophil.',
     action: 'Granules are released onto a parasite that is far too big to engulf.',
-    rad: 'In <b>chronic eosinophilic pneumonia</b>, peripheral, upper-lobe-predominant consolidation is classic: the “photographic negative” of pulmonary oedema. Not every patient shows it.' },
+    rad: 'In <b>chronic eosinophilic pneumonia</b>, peripheral, upper-lobe-predominant consolidation is classic: the “photographic negative” of pulmonary oedema. Not every patient shows it.',
+    refs: [['https://doi.org/10.1056/NEJMicm2216444', 'the photographic negative sign, a case report (Ali and Mason 2023)']] },
   { id: 'baso', name: 'Basophil', short: 'Basophil', tag: 'Granulocyte · the alarm', pct: [0.5, 1], size: 'about 10–15 µm',
     look: 'Large, dark blue-purple granules that often hide the two-lobed or irregular nucleus. The rarest white cell.',
     job: 'Carries IgE on its surface. When an allergen cross-links it, the cell releases histamine and other signals. Granules also hold heparin. Tissue mast cells behave similarly but are a separate cell type. A persistent rise can point to a myeloproliferative disease such as CML.',
     life: 'Short: roughly hours to a few days.',
     energy: 'Less studied than the others. It relies on glucose, and its energy use changes when activated.',
     action: 'An allergen links two IgE antibodies on the surface, and the cell dumps its granules of histamine.',
-    rad: 'Immediate reactions to <b>contrast agents</b> involve mediator release from mast cells and basophils. Many occur without proven IgE sensitisation, so a reaction can happen on first exposure. Emergency treatment of anaphylaxis centres on adrenaline.' },
+    rad: 'Immediate reactions to <b>contrast agents</b> involve mediator release from mast cells and basophils. Many occur without proven IgE sensitisation, so a reaction can happen on first exposure. Emergency treatment of anaphylaxis centres on adrenaline.',
+    refs: [['https://doi.org/10.1016/j.iac.2026.01.009', 'iodinated contrast and anaphylaxis (Lang et al. 2026)']] },
 ];
 const bloodState = { id: null, sub: 'b' };
 let bloodView = null;                              // set by the 3D scene when WebGL is available
@@ -75,7 +80,7 @@ function bloodCardHTML() {
       <dt>Energy</dt><dd>${c.energy}</dd>
     </dl>
     <p><span class="eyebrow">In the 3D view</span><br>${sub ? sub.action : c.action}</p>
-    <div class="callout"><span class="eyebrow">Radiology link</span><p>${c.rad}</p></div>${mri}`;
+    <div class="callout"><span class="eyebrow">Radiology link</span><p>${c.rad}</p></div>${mri}${c.refs ? `<p class="credit">Radiology references: ${c.refs.map(([u, t]) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`).join(' · ')}.</p>` : ''}`;
 }
 function selectBlood(id, scroll) {
   bloodState.id = id;

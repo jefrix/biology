@@ -200,7 +200,10 @@ const SRC = {
   repair: link('https://www.nature.com/articles/cr2007111', 'double-strand break repair review'),
   choice: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC4862604', 'repair pathway choice'),
   parp: link('https://www.jci.org/articles/view/181062', 'PARP inhibitor review'),
-  iarc: link('https://publications.iarc.who.int/_publications/media/download/5144/873513eab98aabf71a88ebfe7e2a02fb5c36a424.pdf', 'IARC publication (break yields)'),
+  yields: link('https://www.env.go.jp/en/chemi/rhm/basic-info/2018/pdf/basic-1st-03-02-04.pdf', 'Ministry of the Environment, Japan: DNA damage per 1 mGy of X-rays (citing Morgan, NCRP 2008)'),
+  acog: link('https://doi.org/10.1097/AOG.0000000000002355', 'ACOG Committee Opinion 723, imaging in pregnancy and lactation (2017), abstract'),
+  lens: link('https://doi.org/10.1667/RADE-23-00030.1', 'Hamada 2023, radiation and cataract thresholds'),
+  btlaw: link('https://doi.org/10.3109/09553002.2012.717732', 'Vogin and Foray 2013, on the law of Bergonié and Tribondeau'),
   doses: link('https://www.radiologyinfo.org/en/info/safety-xray', 'RadiologyInfo dose table, reviewed 15 April 2025'),
   ars: link('https://www.cdc.gov/radiation-emergencies/hcp/clinical-guidance/ars.html', 'CDC acute radiation syndrome guidance'),
   icrp: link('https://pubmed.ncbi.nlm.nih.gov/25816265/', 'ICRP tissue-reaction thresholds in imaging'),
@@ -247,11 +250,11 @@ const CHAPTERS = [
       <ul class="facts">
         <li>For X-rays, roughly <b>two-thirds</b> of DNA damage is often attributed to indirect action. Estimates differ.</li>
         <li><b>LET</b> (linear energy transfer) is the energy left behind per length of track. Higher LET means denser, more clustered damage.</li>
-        <li>Per cell, <b>1 Gy</b> of low-LET radiation makes on the order of 1,000 single-strand breaks but only about <b>20–40 double-strand breaks</b>.</li>
+        <li>Per cell, <b>1 Gy</b> of X-rays makes on the order of 1,000 single-strand breaks but only about <b>40 double-strand breaks</b>. These are rounded estimates, scaled up from figures per milligray.</li>
         <li>Double-strand and clustered lesions matter most for whether a cell survives.</li>
         <li>Your cells also repair large amounts of damage from ordinary metabolism, including oxygen radicals from the <a href="#etc">electron transport chain</a>.</li>
       </ul>
-      ${sources([SRC.iarc], 'The scene shows far more damage on one short stretch than a real exposure would, so you can see each kind. It is not a simulation of dose.')}`,
+      ${sources([SRC.yields], 'The scene shows far more damage on one short stretch than a real exposure would, so you can see each kind. It is not a simulation of dose.')}`,
   },
   {
     id: 'repair', short: 'Repair', where: 'The cell’s DNA repair crews',
@@ -302,7 +305,8 @@ const CHAPTERS = [
         <dt>Reoxygenation</dt><dd>Hypoxic tumour areas can regain oxygen, becoming easier to kill.</dd>
         <dt>Radio&shy;sensitivity</dt><dd>Cell types differ in their built-in sensitivity.</dd>
       </dl>
-      <div class="callout"><span class="eyebrow">Bergonié and Tribondeau, 1906</span><p>Their classic rule: cells are generally more radiosensitive when they divide often, have many divisions ahead and are less specialised. Marrow stem cells and gut crypt cells fit it. Lymphocytes are the famous exception: highly sensitive without actively dividing.</p></div>
+      <div class="callout"><span class="eyebrow">Bergonié and Tribondeau, 1906</span><p>Their classic rule: cells are generally more radiosensitive when they divide often, have many divisions ahead and are less specialised. Marrow stem cells and gut crypt cells fit it. Lymphocytes are the famous exception: highly sensitive without actively dividing. Treat the rule as a first approximation.</p></div>
+      ${sources([SRC.btlaw])}
       <p class="credit">A teaching model only. The α and β values are illustrative (0.30 and 0.03; 0.15 and 0.05), so absolute survival and comparisons between the two curves’ heights are not meaningful. The model is less certain at large doses per fraction and ignores overall treatment time. <b>Never use this to plan or change treatment.</b></p>`,
   },
   {
@@ -320,9 +324,11 @@ const CHAPTERS = [
       <p class="muted">Bars use a logarithmic scale. These are typical values for an average-sized adult and actual dose can vary substantially. Average natural background in the US is about 3 mSv a year.</p>
       <h3>Two kinds of effect</h3>
       <ul class="facts">
-        <li><b>Tissue reactions</b> (deterministic) appear above a threshold and worsen with dose, such as skin injury or cataract. ICRP puts the lens threshold at <b>0.5 Gy</b>.</li>
+        <li><b>Tissue reactions</b> (deterministic) appear above a threshold and worsen with dose, such as skin injury or cataract. ICRP’s nominal threshold for lens cataract is <b>0.5 Gy</b>. Some newer studies report risk below that.</li>
         <li><b>Stochastic effects</b>, chiefly cancer, become more likely rather than more severe as dose rises. Protection practice assumes no safe threshold (linear no-threshold). The size of risk at very low doses is uncertain.</li>
-        <li><b>Pregnancy:</b> ACOG guidance, as quoted by RSNA, is that there is no evidence a procedure under <b>50 mGy</b> with routine parameters causes miscarriage or developmental abnormalities. This statement does not address cancer risk.</li>
+        <li><b>Pregnancy:</b> RSNA, citing ACOG, says that when the fetus is in the field of view there is no evidence a routine procedure (under <b>50 mGy</b>) at any stage causes miscarriage or developmental abnormalities.</li>
+        <li><b>Cancer risk in pregnancy is a separate question.</b> RSNA, citing ICRP, says that through most of pregnancy the fetus is assumed to be at about the same risk as a child. With the fetus in view, such as in a pelvic CT, the actual risk is unknown but thought to be very low.</li>
+        <li>ACOG’s summary: ultrasound and MRI are preferred when they can answer the question. With few exceptions, X-ray, CT and nuclear medicine doses are well below those linked to fetal harm, and a needed exam should not be withheld.</li>
         <li><b>Acute radiation syndrome</b> follows large whole-body doses over a short time. CDC: the marrow syndrome usually appears above about <b>0.7 Gy</b>, the gut syndrome above about <b>10 Gy</b> (some symptoms from 6), and the cardiovascular and nervous system syndrome above about <b>50 Gy</b> (some from 20). Other sources give lower figures for the last. <a href="#blood">Lymphocyte counts</a> fall early.</li>
       </ul>
       <h3>Time, distance, shielding</h3>
@@ -332,7 +338,7 @@ const CHAPTERS = [
         <li>The inverse-square rule holds for a small source. Large sources, scatter and nearby surfaces change it.</li>
       </ul>
       <div class="callout"><span class="eyebrow">For patients</span><p>Don’t refuse or delay a needed exam because of this page. Ask your doctor or radiology team why it is recommended, whether there is an alternative, and tell them if you could be pregnant.</p></div>
-      ${sources([SRC.doses, SRC.icrp, SRC.preg, SRC.ars], 'For learning only, not for estimating anyone’s dose or managing an exposure.')}`,
+      ${sources([SRC.doses, SRC.icrp, SRC.lens, SRC.preg, SRC.acog, SRC.ars], 'For learning only, not for estimating anyone’s dose or managing an exposure.')}`,
   },
 ];
 

@@ -127,6 +127,10 @@ const SRC = {
   t2ex: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC9277643', 'exercise in type 2 diabetes'),
   ada: link('https://diabetesjournals.org/care/article/49/Supplement_1/S27/163926/2-Diagnosis-and-Classification-of-Diabetes', 'ADA Standards of Care 2026, section 2'),
   eanm: link('https://doi.org/10.1007/s00259-014-2961-x', 'EANM FDG PET/CT tumour imaging guideline, version 2.0 (2015)'),
+  eanm3: link('https://doi.org/10.1016/j.eanmj.2025.100006', 'EANM guideline version 3.0 (2025), not reviewed for this page'),
+  ajr: link('https://doi.org/10.2214/AJR.26.34744', 'AJR Expert Panel review on FDG-PET preparation (2026), abstract only'),
+  niddk: link('https://www.niddk.nih.gov/health-information/diabetes/overview/tests-diagnosis', 'NIDDK, diabetes tests and diagnosis (reviewed 2022)'),
+  gck: link('https://doi.org/10.2337/dc14-2769', 'Chakera et al. 2015, glucokinase (GCK) diabetes'),
   viability: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC6000987', 'myocardial FDG viability imaging'),
   exendin: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC5227553', 'exendin PET for insulinoma'),
 };
@@ -220,7 +224,7 @@ const CHAPTERS = [
         <li><b>How some medicines act:</b> metformin mainly lowers the liver’s glucose output. Sulfonylureas push the beta cell to release insulin. GLP-1 agonists amplify glucose-driven release and lower glucagon. Insulin replaces or adds to the body’s own.</li>
         <li>There are other types too, including gestational diabetes and single-gene forms. Faults in glucokinase can cause a mild, stable high fasting glucose that often needs no drug treatment outside pregnancy.</li>
       </ul>
-      ${sources([SRC.ada], 'Thresholds can be revised, so check the current standard. This is not a tool for diagnosing yourself or anyone else.')}`,
+      ${sources([SRC.ada, SRC.niddk, SRC.gck], 'Thresholds can be revised, so check the current standard. This is not a tool for diagnosing yourself or anyone else.')}`,
   },
   {
     id: 'petprep', short: 'PET prep', where: 'Radiology · FDG biodistribution (schematic)',
@@ -230,6 +234,7 @@ const CHAPTERS = [
       <p class="lede">FDG enters cells through glucose transporters. Anything that opens GLUT4 doors in muscle, or makes other tissue hungry, pulls tracer away from what you want to see.</p>
       ${panel('petprep', 'pet')}
       <div class="callout"><span class="eyebrow">For patients</span><p>Follow your imaging centre’s instructions. <b>Never change your insulin or diabetes medicine because of this page.</b> Centres use their own current protocols, which may differ from the older guideline summarised here.</p></div>
+      <div class="callout"><span class="eyebrow">Newer guidance exists</span><p>The list below comes from EANM <b>version 2.0 (2015)</b>. A <b>version 3.0</b> was published in <b>2025</b> and was not reviewed for this page. A <b>2026 AJR expert panel review</b> notes that guidelines differ on glucose limits, insulin timing and pumps, with limited guidance on SGLT2 inhibitors, GLP-1 and related drugs, and automated insulin delivery. The panel favours facility protocols, <b>keeping insulin pumps in basal mode</b> (version 2.0 had pumps off for at least 4 hours), avoiding correction doses of insulin just before imaging, and fairly permissive glucose limits.</p></div>
       <h3>Adult oncology preparation, EANM 2015</h3>
       <ul class="facts">
         <li><b>Fasting:</b> no food or drink except plain water for at least 4 hours before injection (for people without diabetes). Intravenous fluids containing glucose also stop.</li>
@@ -238,7 +243,7 @@ const CHAPTERS = [
         <li><b>Warmth and quiet:</b> keep warm from 30–60 minutes before injection, then sit or lie still and quiet during uptake.</li>
         <li><b>Glucose, clinical scans:</b> below 11 mmol/L (about 200 mg/dL) the study can proceed. At or above that, it is rescheduled or the patient excluded, depending on circumstances. A level below about 4 mmol/L (70 mg/dL) is too low.</li>
         <li><b>Glucose, research:</b> protocols may set a stricter limit of 7–8.3 mmol/L (126–150 mg/dL).</li>
-        <li><b>Insulin timing:</b> inject FDG no sooner than 4 hours after subcutaneous rapid-acting insulin, or 6 hours after short-acting. Same-day FDG is not recommended after intermediate or long-acting insulin. The guideline has further scheduling detail, including for pumps.</li>
+        <li><b>Insulin timing:</b> inject FDG no sooner than 4 hours after subcutaneous rapid-acting insulin, or 6 hours after short-acting. Same-day FDG is not recommended after intermediate or long-acting insulin. Version 2.0 has further scheduling detail. Advice on insulin pumps has since diverged, as noted above.</li>
         <li><b>Uptake time:</b> 60 minutes, with 55–75 acceptable. Repeat scans should match closely so SUV values can be compared.</li>
         <li><b>Marrow growth factors:</b> G-CSF effects on marrow uptake generally last more than 2 weeks after the last dose. See <a href="#blood">Blood</a>.</li>
         <li><b>Lesions near the heart:</b> a low-carbohydrate diet beforehand can reduce heart muscle uptake.</li>
@@ -247,7 +252,7 @@ const CHAPTERS = [
         <p><b>Heart viability imaging wants the opposite.</b> Glucose loading or an insulin clamp is used so that living heart muscle takes up FDG.</p>
         <p><b>Finding an insulinoma</b> can use a different target. PET tracers based on exendin bind the GLP-1 receptor, which most benign insulinomas express strongly. The evidence comes mainly from small studies.</p>
       </div>
-      ${sources([SRC.eanm, SRC.viability, SRC.exendin], 'The 3D figure is an illustration with made-up relative brightness. It is not patient data and cannot be used to read scans.')}`,
+      ${sources([SRC.eanm, SRC.eanm3, SRC.ajr, SRC.viability, SRC.exendin], 'The 3D figure is an illustration with made-up relative brightness. It is not patient data and cannot be used to read scans.')}`,
   },
 ];
 
