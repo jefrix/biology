@@ -37,6 +37,17 @@
   --hot: #ff8a3d;
   --tagk: #38b6ff;
   --g1: #4fd6a8;
+  --rnapol: #c9a6ff;
+  --rna: #ffd9a0;
+  --exon: #4fd6c8;
+  --intron: #7a8499;
+  --sig: #ff8a3d;
+  --bchain: #5fa8ff;
+  --achain: #6ee7a0;
+  --cut: #ff4d5e;
+  --disulf: #ffe45e;
+  --zinc: #e4d9ff;
+  --ribo: #c7a27a;
   --sphase: #5fa8ff;
   --g2: #b18cff;
   --mphase: #ff9b52;
@@ -347,3 +358,21 @@ table.ledger { border-collapse: collapse; width: 100%; font-size: 13px; font-var
 .dose-list .track i { display: block; height: 100%; background: var(--atp); border-radius: 3px; }
 .dose-list small { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); }
 .eq.wrapeq { white-space: normal; }
+
+/* ---------- protein factory module ---------- */
+.genemap { width: 100%; height: auto; display: block; margin-top: 8px; }
+.genemap .ex { fill: var(--exon); }
+.genemap .in { fill: var(--intron); }
+.genemap .cod { stroke: var(--atp); stroke-width: 3; fill: none; }
+.genemap text { fill: var(--muted); font: 9.5px var(--f-mono); }
+.mono { font-family: var(--f-mono); font-size: 12px !important; }
+.mono b { color: var(--atp); }
+.codons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.codon { font: 500 14px/1 var(--f-mono); text-align: center; padding: 9px 0; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); letter-spacing: .08em; }
+.codon.now { color: #06101a; background: var(--rna); border-color: var(--rna); }
+.codon.past { opacity: .55; }
+.codon.empty { opacity: .25; }
+.aa-strip { display: flex; flex-wrap: wrap; gap: 2px; }
+.aa-strip i { font: 500 10.5px/1 var(--f-mono); font-style: normal; width: 15px; height: 17px; display: grid; place-items: center; border-radius: 3px; color: #06101a; background: var(--c); }
+.aa-strip i.new { outline: 2px solid var(--fg); outline-offset: 1px; }
+.journey { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #cdd6e2; }
