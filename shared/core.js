@@ -409,7 +409,7 @@ function showHome() {
   moduleKey = null; chapterIndex = -1;
   $('#home').hidden = false;
   $('.app').inert = true;
-  document.title = 'Inside the Cell City';
+  document.title = 'Cellular Biology';
 }
 
 function setHash(id) {
@@ -432,7 +432,7 @@ function showChapter(i) {
   $('#nextName').textContent = n ? n.short : 'All modules';
   $('#legend').innerHTML = ch.legend.map(([c, t]) => `<span style="--c:var(--${c})"><i></i>${t}</span>`).join('');
   setHash(ch.id);
-  document.title = `${ch.short} · Inside the Cell City`;
+  document.title = `${ch.short} · Cellular Biology`;
   $('#panel').scrollTop = 0;
   if (G3) G3.enterStage(ch.id);
 }

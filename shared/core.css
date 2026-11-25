@@ -376,3 +376,12 @@ table.ledger { border-collapse: collapse; width: 100%; font-size: 13px; font-var
 .aa-strip i { font: 500 10.5px/1 var(--f-mono); font-style: normal; width: 15px; height: 17px; display: grid; place-items: center; border-radius: 3px; color: #06101a; background: var(--c); }
 .aa-strip i.new { outline: 2px solid var(--fg); outline-offset: 1px; }
 .journey { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #cdd6e2; }
+
+/* ---------- title row with maker's mark at the opposite margin ---------- */
+.brand-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 16px; }
+.maker { margin-left: auto; white-space: nowrap; font: 700 15px/1.2 var(--f-display); letter-spacing: -.005em; color: var(--fg); }
+.maker .rix { color: var(--accent); }
+.maker .soft { color: var(--muted); font-weight: 500; }
+.home .maker { font-size: 18px; }
+@media (max-width: 860px) { .maker, .home .maker { font-size: 13.5px; } }
+
