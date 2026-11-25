@@ -55,6 +55,9 @@ const MANIFEST = [
   { key: 'division', name: 'Division & radiation', c: 'sphase', eyebrow: 'Cell division, DNA and radiation', title: 'Copying the city’s archive safely',
     blurb: 'Follow the cell cycle and mitosis, see how radiation damages DNA and how cells repair it, then explore fractionation and dose in radiology.',
     ids: ['cycle', 'mitosis', 'damage', 'repair', 'fate', 'survival', 'dose'], names: ['Cycle', 'Mitosis', 'Damage', 'Repair', 'Fate', 'Survival', 'Dose'] },
+  { key: 'neural', name: 'Neural cells', c: 'dendrite', eyebrow: 'Neurons and glia', title: 'The city’s communications network',
+    blurb: 'Meet neurons and glia, run a live action potential simulation, send signals across a synapse, and see how stroke and MS show up on MRI.',
+    ids: ['neurons', 'rest', 'spike', 'myelin', 'synapse', 'integrate', 'axon', 'brain'], names: ['Cells', 'Rest', 'Spike', 'Myelin', 'Synapse', 'Sum', 'Transport', 'Imaging'] },
   { key: 'blood', name: 'Blood', c: 'rbc', eyebrow: 'Blood cells', title: 'Couriers and defenders',
     blurb: 'A to-scale line-up of the red cell, every kind of white cell and platelets. Watch each one at work, with radiology links.',
     ids: ['blood'], names: ['Red cell', 'Neutrophil', 'Lymphocytes', 'Monocyte', 'Eosinophil', 'Basophil'] },
@@ -168,8 +171,7 @@ function initWorld() {
     o.traverse(c => { if (c.isSprite) c.material.dispose(); });
   }
 
-  /* ---------- agents: small animations that run themselves ---------- */
-  let agents = [];
+  /* ---------- agents: small animations that run themselves (the list is shared with module code) ---------- */
   function clearAgents() { agents.forEach(a => a.obj && disposeObj(a.obj)); agents = []; }
   function travel(parent, obj, points, dur, opts = {}) {
     const curve = new THREE.CatmullRomCurve3(points.map(p => p.clone()));
