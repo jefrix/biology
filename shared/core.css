@@ -115,6 +115,7 @@ body { height: 100%; background: var(--bg); color: var(--fg); font-family: var(-
 .lbl.click { pointer-events: auto; cursor: pointer; font: 500 11px/1 var(--f-mono); color: var(--fg); }
 .lbl.click:hover, .lbl.on { border-color: var(--c, var(--accent)); background: rgba(14, 22, 34, .92); }
 .lbl.dim { opacity: .45; }
+.lbl[data-off="1"] { display: none; }
 .lbl small { color: var(--muted); font-size: 10px; }
 
 .hud { position: absolute; display: flex; gap: 8px; align-items: center; pointer-events: none; }
