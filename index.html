@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en">
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Inside the Cell City</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="A 3D walk through the cell, from the food you eat to glucose, glycolysis, the Krebs cycle and ATP.">
@@ -32,6 +33,10 @@
   --fat: #f1e4bd;
   --amino: #ff79c6;
   --fdg: #ff8a3d;
+  --tag-m: #ff4fd8;
+  --tag-k: #38b6ff;
+  --carbon: #8793a5;
+  --oxygen: #ff5a52;
   --mito: #ff6a4d;
   --nucleus: #6a86ff;
   --golgi: #c9a6ff;
@@ -190,6 +195,22 @@ details ol b { font-weight: 600; color: var(--fg); }
 .mnemonic { font-size: 13px; color: var(--muted); }
 .mnemonic b { color: var(--fg); font-weight: 600; }
 
+/* carbon tracer */
+.tracer { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.tr-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.tr-head .btn { padding: 7px 10px; font-size: 12px; }
+.strip { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+.carbon { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 40px; }
+.carbon i { width: 26px; height: 26px; border-radius: 50%; background: var(--c); display: grid; place-items: center; font: 500 11px/1 var(--f-mono); font-style: normal; color: #06101a; }
+.carbon.hot i { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--c), 0 0 12px var(--c); }
+.carbon small { font: 400 10px/1.1 var(--f-mono); color: var(--muted); }
+.tracer p { font-size: 13.5px; color: #d4dde8; min-height: 4.8em; }
+.fates { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fates div { border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; font: 400 11px/1.35 var(--f-mono); color: var(--muted); }
+.fates b { display: block; color: var(--c); font-weight: 500; }
+.credit { font-size: 12px; color: var(--muted); }
+.credit a { color: var(--accent); }
+
 /* ledger */
 .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
 table.ledger { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
@@ -327,6 +348,54 @@ const OUT = {
   CO2: { label: 'CO₂', c: 'co2' }, ATP: { label: 'ATP', c: 'atp' }, H2O: { label: 'H₂O', c: 'electron' },
 };
 
+/* ---------- carbon tracing (pure logic) ----------
+   Labels: 'M' = traced carbon that arrived as the acetyl CH3, 'K' = as the acetyl C=O, 0 = any other carbon.
+   Carbon order per intermediate:
+     oxaloacetate [1,2,3,4]; citrate and isocitrate [oaa1, oaa2, oaa3, oaa4, acetyl CH2, acetyl COO];
+     alpha-ketoglutarate [oaa4, oaa3, oaa2, CH2, COO]; succinyl-CoA onward [4 carbons]. */
+/*TRACE-START*/
+function traceTurn(oaa, acetyl, flip) {
+  const [o1, o2, o3, o4] = oaa, [aM, aK] = acetyl;
+  const cit = [o1, o2, o3, o4, aM, aK];
+  const akg = [o4, o3, o2, aM, aK];              // isocitrate dehydrogenase removes oaa1
+  const scoa = [o3, o2, aM, aK];                 // alpha-KG dehydrogenase removes oaa4
+  const fum = flip ? scoa.slice().reverse() : scoa.slice(); // succinate is symmetrical
+  return { nodes: [oaa.slice(), cit, cit, akg, scoa, scoa, fum, fum], released: { 2: o1, 3: o4 }, end: fum };
+}
+function makeTrace(rand) {
+  const turns = [];
+  return function turn(n) {                      // n starts at 1
+    while (turns.length < n) {
+      const i = turns.length;
+      turns.push(traceTurn(i ? turns[i - 1].end : [0, 0, 0, 0], i ? [0, 0] : ['M', 'K'], rand() < 0.5));
+    }
+    return turns[n - 1];
+  };
+}
+/*TRACE-END*/
+const CARBON_NAMES = [
+  ['COO⁻', 'C=O', 'CH₂', 'COO⁻'],
+  ['COO⁻', 'C–OH', 'CH₂', 'COO⁻', 'CH₂', 'COO⁻'],
+  ['COO⁻', 'CH', 'CHOH', 'COO⁻', 'CH₂', 'COO⁻'],
+  ['COO⁻', 'C=O', 'CH₂', 'CH₂', 'COO⁻'],
+  ['C–SCoA', 'CH₂', 'CH₂', 'COO⁻'],
+  ['COO⁻', 'CH₂', 'CH₂', 'COO⁻'],
+  ['COO⁻', '=CH', '=CH', 'COO⁻'],
+  ['COO⁻', 'CHOH', 'CH₂', 'COO⁻'],
+];
+const MOL_KEYS = ['oaa', 'cit', 'icit', 'akg', 'scoa', 'suc', 'fum', 'mal'];
+/* PubChem computed 3D conformers, heavy atoms only: a = [element, x, y, z] in angstrom, b = [atom, atom, bond order].
+   Carbons come first, in the order described above. */
+const MOLS = {"oaa":{"a":[["C",1.913,0.31,0.01],["C",0.533,-0.286,0.008],["C",-0.622,0.683,0.03],["C",-1.998,0.066,0.004],["O",-2.967,1.019,-0.002],["O",0.456,-1.505,-0.001],["O",2.832,-0.663,0.002],["O",-2.244,-1.132,-0.022],["O",2.097,1.51,-0.028]],"b":[[4,3,1],[5,1,2],[6,0,1],[7,3,2],[8,0,2],[2,1,1],[2,3,1],[1,0,1]],"nc":4,"cid":970},"cit":{"a":[["C",0.607,-1.686,-0.323],["C",-0.124,-0.391,0.117],["C",-1.532,-0.535,-0.487],["C",-2.47,0.642,-0.19],["C",0.568,0.898,-0.335],["C",2.005,1.158,0.147],["O",-0.213,-0.39,1.542],["O",0.073,-2.77,0.048],["O",1.668,-1.511,-0.989],["O",2.257,0.686,1.294],["O",-2.106,1.748,-0.679],["O",2.761,1.79,-0.639],["O",-3.495,0.361,0.492]],"b":[[6,1,1],[7,0,1],[8,0,2],[9,5,1],[10,3,1],[11,5,2],[12,3,2],[1,4,1],[1,2,1],[1,0,1],[4,5,1],[2,3,1]],"nc":6,"cid":31348},"icit":{"a":[["C",-0.733,-1.581,0.187],["C",-0.034,-0.262,-0.224],["C",1.423,-0.391,0.256],["C",2.344,0.806,-0.048],["C",-0.736,0.984,0.33],["C",-2.206,1.168,-0.073],["O",2.019,-1.552,-0.325],["O",-0.815,-1.812,1.425],["O",-1.142,-2.28,-0.786],["O",2.436,1.147,-1.26],["O",2.888,1.328,0.969],["O",-2.783,2.208,0.348],["O",-2.663,0.237,-0.797]],"b":[[6,2,1],[7,0,1],[8,0,2],[9,3,1],[10,3,2],[11,5,1],[12,5,2],[1,2,1],[1,4,1],[1,0,1],[2,3,1],[4,5,1]],"nc":6,"cid":5459771},"akg":{"a":[["C",2.247,-0.026,-0.096],["C",0.791,-0.109,0.267],["C",-0.038,1.151,0.378],["C",-1.488,0.873,0.752],["C",-2.291,-0.007,-0.214],["O",0.389,-1.248,0.458],["O",-1.978,0.059,-1.434],["O",-3.19,-0.7,0.346],["O",2.858,-1.132,-0.156],["O",2.702,1.137,-0.302]],"b":[[5,1,2],[6,4,1],[7,4,2],[8,0,1],[9,0,2],[2,3,1],[2,1,1],[3,4,1],[1,0,1]],"nc":5,"cid":164533},"suc":{"a":[["C",1.588,-0.189,0.067],["C",0.75,1.089,0.194],["C",-0.675,0.918,0.699],["C",-1.595,0.026,-0.143],["O",2.757,0.003,-0.375],["O",-1.378,0.002,-1.385],["O",1.031,-1.266,0.415],["O",-2.478,-0.583,0.528]],"b":[[4,0,1],[5,3,1],[6,0,2],[7,3,2],[1,2,1],[1,0,1],[2,3,1]],"nc":4,"cid":160419},"fum":{"a":[["C",1.969,0.03,0.0],["C",0.503,-0.43,-0.001],["C",-0.508,0.447,-0.0],["C",-1.974,-0.014,-0.0],["O",2.806,-0.92,0.001],["O",-2.86,0.886,0.001],["O",2.181,1.275,-0.001],["O",-2.118,-1.272,-0.001]],"b":[[4,0,1],[5,3,1],[6,0,2],[7,3,2],[1,2,2],[1,0,1],[2,3,1]],"nc":4,"cid":5460307},"mal":{"a":[["C",-1.352,0.564,-0.184],["C",-0.682,-0.63,0.514],["C",0.671,-1.025,-0.064],["C",1.782,0.031,0.034],["O",-1.574,-1.735,0.374],["O",-1.54,0.457,-1.427],["O",-1.641,1.523,0.59],["O",2.628,0.052,-0.901],["O",1.706,0.763,1.063]],"b":[[4,1,1],[5,0,1],[6,0,2],[7,3,1],[8,3,2],[1,2,1],[1,0,1],[2,3,1]],"nc":4,"cid":5459792}};
+MOLS.scoa = (() => {                              // schematic: one single-bonded O on carbon 0 of succinate becomes S-CoA
+  const m = JSON.parse(JSON.stringify(MOLS.suc));
+  const bond = m.b.find(b => b[2] === 1 && (b[0] === 0 || b[1] === 0) && m.a[b[0] === 0 ? b[1] : b[0]][0] === 'O');
+  const o = m.a[bond[0] === 0 ? bond[1] : bond[0]], c = m.a[0];
+  const len = Math.hypot(o[1] - c[1], o[2] - c[2], o[3] - c[3]);
+  o[0] = 'S'; for (let k = 1; k < 4; k++) o[k] = c[k] + (o[k] - c[k]) / len * 1.8;
+  return m;
+})();
+
 const CHAPTERS = [
   {
     id: 'cell', short: 'Cell city', where: 'The whole cell · about 20 µm across',
@@ -415,9 +484,9 @@ const CHAPTERS = [
   {
     id: 'krebs', short: 'Krebs', where: 'Mitochondrial matrix',
     title: 'The Krebs cycle',
-    legend: [['electron', 'Carbon atoms of the intermediate'], ['acetyl', 'Acetyl group 2C'], ['nadh', 'NADH'], ['fadh', 'FADH₂'], ['atp', 'GTP'], ['co2', 'CO₂']],
+    legend: [['tag-m', 'Traced C (was CH₃)'], ['tag-k', 'Traced C (was C=O)'], ['carbon', 'Other carbon'], ['oxygen', 'Oxygen'], ['nadh', 'NADH'], ['fadh', 'FADH₂'], ['atp', 'GTP'], ['co2', 'CO₂']],
     html: () => `
-      <p class="lede">Each turn takes in a 2-carbon acetyl group, releases two carbons as CO₂ and loads the electrons onto carrier molecules. Count the carbon atoms on the moving molecule as it goes round.</p>
+      <p class="lede">Each turn takes in a 2-carbon acetyl group, releases two carbons as CO₂ and loads the electrons onto carrier molecules. The molecule in the middle is the current intermediate in 3D. Follow the two coloured carbons from your first acetyl group.</p>
       <div class="krebs">
         <div class="step-card" id="kCard"></div>
         <div class="ctl">
@@ -426,17 +495,27 @@ const CHAPTERS = [
           <button class="btn" id="kNext" type="button" aria-label="Next step">Step →</button>
         </div>
         <div class="dots" id="kDots">${KN.map((k, i) => `<button type="button" data-i="${i}" title="Step ${i + 1}: ${KN[i].name} → ${KN[(i + 1) % 8].name}">${i + 1}</button>`).join('')}</div>
+        <div class="tracer">
+          <div class="tr-head"><span class="eyebrow" id="kTurn">Carbon tracer · turn 1</span><button class="btn" id="kRestart" type="button">Restart trace</button></div>
+          <div class="strip" id="kStrip"></div>
+          <p id="kStatus"></p>
+          <div class="fates" id="kFates"></div>
+        </div>
         <div>
           <div class="eyebrow" style="margin-bottom:6px">This turn so far</div>
           <div class="tally" id="kTally"></div>
         </div>
       </div>
       <ul class="facts">
+        <li>The two CO₂ released in a turn are <b>not</b> the two carbons that just arrived. Both come from the oxaloacetate half of citrate. Aconitase can tell citrate’s two look-alike arms apart, even though citrate has no chiral carbon.</li>
+        <li>Succinate is symmetrical, so from fumarate onward each traced carbon can sit at either of two mirror-image positions. The tracer picks one at random, so restart it to see another path. The former C=O carbon always leaves during turn 2. The former CH₃ carbon stays through turn 2 and may leave in turn 3 or much later.</li>
+        <li>This follows one molecule through the cycle alone. In a living cell, intermediates are also drawn off to build other things and topped up from elsewhere.</li>
         <li>Per turn: <b>3 NADH, 1 FADH₂, 1 GTP and 2 CO₂</b>. Glucose gives two acetyl-CoA, so the cycle turns twice per glucose.</li>
         <li>The cycle makes very little ATP by itself. Its real product is high-energy electrons, handed to the next chapter.</li>
         <li>Hans Krebs worked out the cycle in 1937 using minced pigeon breast muscle, and shared the 1953 Nobel Prize for it.</li>
       </ul>
-      <p class="mnemonic">Mnemonic for the order: <b>C</b>itrate <b>I</b>s <b>K</b>rebs’ <b>S</b>tarting <b>S</b>ubstrate <b>F</b>or <b>M</b>aking <b>O</b>xaloacetate.</p>`,
+      <p class="mnemonic">Mnemonic for the order: <b>C</b>itrate <b>I</b>s <b>K</b>rebs’ <b>S</b>tarting <b>S</b>ubstrate <b>F</b>or <b>M</b>aking <b>O</b>xaloacetate.</p>
+      <p class="credit">3D shapes are computed conformers from <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a> (CIDs 970, 31348, 5459771, 164533, 160419, 5460307, 5459792), shown enlarged, with hydrogens hidden and acids as their ions. PubChem had no 3D record for succinyl-CoA, so it is a schematic adapted from succinate with coenzyme A abbreviated. A conformer is one possible shape; in water these molecules flex.</p>`,
   },
   {
     id: 'etc', short: 'ETC', where: 'Inner mitochondrial membrane · nanometre scale',
@@ -686,12 +765,12 @@ function init() {
       },
     });
   }
-  function emit(parent, kind, from, to, dur = 2.2, delay = 0) {
+  function emit(parent, kind, from, to, dur = 2.2, delay = 0, tint = null, caption = null) {
     const info = OUT[kind];
-    const color = C[info.c];
+    const color = tint || C[info.c];
     const g = new THREE.Group();
     const gl = glow(color, 1.5); g.add(gl);
-    const lb = textSprite(info.label, color, 0.62); lb.position.y = 0.72; g.add(lb);
+    const lb = textSprite(caption || info.label, color, 0.62); lb.position.y = 0.72; g.add(lb);
     const core = new THREE.Mesh(atomGeo, atomMat(color)); core.scale.setScalar(0.16); g.add(core);
     g.position.copy(from); g.visible = !delay; parent.add(g);
     const start = now + delay;
@@ -937,13 +1016,67 @@ function init() {
       nm.scale.setScalar(0.24); nm.position.copy(nodePos(i)); ring.add(nm); nodeMeshes.push(nm);
     }
   }
+  C.tagM = col('tag-m'); C.tagK = col('tag-k'); C.carbon = col('carbon'); C.oxygen = col('oxygen');
+  const tagColor = (l) => (l === 'M' ? C.tagM : l === 'K' ? C.tagK : C.carbon);
+  function carbonCluster(labs, { shape = 'ring', r = 0.2, glowSize = 2 } = {}) {
+    const g = new THREE.Group();
+    layout(labs.length, shape, r * 2.1).forEach((p, i) => {
+      const a = new THREE.Mesh(atomGeo, atomMat(tagColor(labs[i])));
+      a.scale.setScalar(labs[i] ? r * 1.2 : r); a.position.copy(p); g.add(a);
+      if (labs[i]) { const gl = glow(tagColor(labs[i]), r * 5); gl.position.copy(p); g.add(gl); }
+    });
+    if (glowSize) { const gl = glow(C.electron, glowSize); gl.material.opacity = 0.45; g.add(gl); }
+    return g;
+  }
   let token = null;
-  function setToken(n) {
+  function setToken(labs) {
     if (token) disposeObj(token);
-    token = molecule(n, C.electron, { shape: 'ring', r: 0.2, glowSize: 2.4 });
+    token = carbonCluster(labs);
     token.position.copy(tokenPos);
     ring.add(token);
   }
+
+  // large ball-and-stick model of the current intermediate, in the middle of the ring
+  const viewer = new THREE.Group(); viewer.position.set(0, 0.15, 0.4); ring.add(viewer);
+  const backdrop = new THREE.Mesh(new THREE.CircleGeometry(3.5, 64), new THREE.MeshBasicMaterial({ color: 0x0a0d15 }));
+  backdrop.position.set(0, 0, -2.8); ring.add(backdrop);
+  viewer.visible = backdrop.visible = false;
+  const stickGeo = new THREE.CylinderGeometry(1, 1, 1, 10);
+  const stickMat = new THREE.MeshStandardMaterial({ color: 0xaab6c8, roughness: 0.55 });
+  let model = null, modelKey = '';
+  function buildModel(node, labs) {
+    const key = node + ':' + labs.join('');
+    if (key === modelKey) return;
+    modelKey = key;
+    if (model) disposeObj(model);
+    const d = MOLS[MOL_KEYS[node]];
+    model = new THREE.Group();
+    const S = 0.82;
+    const pts = d.a.map(a => new V3(a[1], a[2], a[3]).multiplyScalar(S));
+    d.a.forEach((a, i) => {
+      const el = a[0];
+      const color = el === 'C' ? tagColor(labs[i]) : el === 'O' ? C.oxygen : C.atp;
+      const ball = new THREE.Mesh(atomGeo, atomMat(color));
+      ball.scale.setScalar((el === 'S' ? 0.46 : el === 'O' ? 0.34 : 0.37) * S);
+      ball.position.copy(pts[i]); model.add(ball);
+      if (el === 'C' && labs[i]) { const gl = glow(color, 1.7); gl.position.copy(pts[i]); model.add(gl); }
+      if (el === 'S') { const t = textSprite('S–CoA', new THREE.Color(0xffd75e), 0.5); t.position.copy(pts[i]).add(new V3(0, 0.62, 0.2)); model.add(t); }
+    });
+    d.b.forEach(([i, j, order]) => {
+      const a = pts[i], b = pts[j], dir = b.clone().sub(a);
+      const side = new V3().crossVectors(dir, new V3(0, 0, 1)).normalize().multiplyScalar(0.11);
+      (order === 2 ? [side, side.clone().negate()] : [new V3()]).forEach(off => {
+        const c = new THREE.Mesh(stickGeo, stickMat);
+        const rad = order === 2 ? 0.055 : 0.085;
+        c.scale.set(rad, dir.length(), rad);
+        c.position.copy(a).add(b).multiplyScalar(0.5).add(off);
+        c.quaternion.setFromUnitVectors(UP, dir.clone().normalize());
+        model.add(c);
+      });
+    });
+    viewer.add(model);
+  }
+  let molLabel = null;
   const tokenPos = nodePos(0);
   function highlightNode(i) {
     nodeMeshes.forEach((nm, k) => {
@@ -1073,6 +1206,7 @@ function init() {
   addLabel('Inner membrane (cristae)', 'fadh', mitoGroup, new V3(-12, -4.3, 3.2), ['link']);
   addLabel('Pyruvate dehydrogenase', 'acetyl', mitoGroup, new V3(-10.5, 3.3, 2.4), ['link']);
   addLabel('Krebs cycle', 'acetyl', mitoGroup, new V3(0, 0, 2), ['link']);
+  molLabel = addLabel('Oxaloacetate', 'electron', ring, new V3(0, -2.55, 0.8), ['krebs']);
   KN.forEach((k, i) => {
     const p = nodePos(i); const out = p.clone().normalize().multiplyScalar(RR + 1.35);
     addLabel(`${k.name} <small>${k.c}C</small>`, 'acetyl', ring, out, ['krebs'], { node: i });
@@ -1093,7 +1227,7 @@ function init() {
     fuel: { pos: new V3(8, 8, 43), target: new V3(0, 0, 3), group: 'cell', w: 19 },
     glycolysis: { pos: glyTarget.clone().add(D.clone().multiplyScalar(9)).add(SIDE.clone().multiplyScalar(7)).add(new V3(0, 4.5, 0)), target: glyTarget, group: 'cell', w: 7 },
     link: { pos: new V3(-24, 7, 19), target: new V3(-8, 0, 1), group: 'mito', w: 11 },
-    krebs: { pos: new V3(0, 1, 19), target: new V3(0, 0, 2), group: 'mito', w: 7.2 },
+    krebs: { pos: new V3(0, 1, 19), target: new V3(0, -0.35, 2), group: 'mito', w: 8.3 },
     etc: { pos: new V3(0, 2.6, 34), target: new V3(0, -1.2, 0), group: 'etc', w: 21 },
     tally: { pos: new V3(-15, 10, 30), target: new V3(0, 0, 0), group: 'cell', auto: true, w: 14 },
   };
@@ -1258,7 +1392,7 @@ function init() {
   const ringWorld = (p) => p.clone().add(ring.position);
   B.link = {
     enter() {
-      cristaeTarget = 0.28; tokenPos.copy(nodePos(0)); setToken(4); highlightNode(0);
+      cristaeTarget = 0.28; tokenPos.copy(nodePos(0)); setToken([0, 0, 0, 0]); highlightNode(0);
       this.next = now + 0.3;
     },
     tick(t) {
@@ -1281,19 +1415,33 @@ function init() {
   };
 
   // Krebs cycle
-  const K = { step: 0, start: 0, hold: 0.8, move: 1.8, playing: true, emitted: false, arrived: false };
+  const K = { step: 0, turn: 1, start: 0, hold: 2.4, move: 1.8, playing: true, emitted: false, arrived: false, trace: makeTrace(Math.random) };
+  // what is on the ring now: the substrate before the reaction, the product afterwards
+  function kShown() {
+    const t = K.trace(K.turn);
+    if (!K.emitted) return { node: K.step, labs: t.nodes[K.step] };
+    if (K.step < 7) return { node: K.step + 1, labs: t.nodes[K.step + 1] };
+    return { node: 0, labs: t.end };
+  }
+  function showCurrent() {
+    const sh = kShown();
+    buildModel(sh.node, sh.labs);
+    if (molLabel) molLabel.el.querySelector('span').innerHTML = `${KN[sh.node].name} <small>enlarged 3D</small>`;
+  }
   function kStart(s) {
-    K.step = (s + 8) % 8; K.start = now; K.emitted = false; K.arrived = false;
-    tokenPos.copy(nodePos(K.step)); setToken(KN[K.step].c); highlightNode(K.step);
-    if (K.step === 0) {
-      const ac = molecule(2, C.acetyl, { shape: 'chain', r: 0.22 });
-      const coa = new THREE.Mesh(atomGeo, atomMat(new THREE.Color(0x8aa0c0))); coa.scale.setScalar(0.34); coa.position.set(0.6, 0.25, 0); ac.add(coa);
-      travel(ring, ac, [new V3(-7.5, 6.8, 2), new V3(-3.4, 6.2, 1), nodePos(0).add(new V3(-0.2, 0.3, 0))], K.hold + 0.25, {
+    if (s > 7) { s = 0; K.turn++; }
+    if (s < 0) { if (K.turn > 1) { K.turn--; s = 7; } else s = 0; }
+    clearAgents();
+    K.step = s; K.start = now; K.emitted = false; K.arrived = false;
+    const labs = K.trace(K.turn).nodes[s];
+    tokenPos.copy(nodePos(s)); setToken(labs); highlightNode(s); showCurrent();
+    if (s === 0) {
+      const ac = carbonCluster(K.turn === 1 ? ['M', 'K'] : [0, 0], { shape: 'chain', r: 0.24, glowSize: 0 });
+      const coa = new THREE.Mesh(atomGeo, atomMat(new THREE.Color(0x8aa0c0))); coa.scale.setScalar(0.34); coa.position.set(0.65, 0.25, 0); ac.add(coa);
+      const tag = textSprite('acetyl-CoA', new THREE.Color(0xd9ccff), 0.52); tag.position.y = 0.75; ac.add(tag);
+      travel(ring, ac, [new V3(-7.5, 6.4, 2), new V3(-3.6, 5.8, 1), nodePos(0).add(new V3(-0.9, 0.5, 0))], K.hold, {
         ease: ease.out,
-        onDone: () => {
-          if (K.step === 0) setToken(6);
-          emitFrom('CoA', nodePos(0));
-        },
+        onDone: () => emitFrom('CoA', nodePos(0)),
       });
     }
     updateKrebsUI();
@@ -1312,24 +1460,30 @@ function init() {
   }
   function kEmit() {
     const st = KSTEPS[K.step];
-    setToken(KN[(K.step + 1) % 8].c);
+    showCurrent();
+    setToken(kShown().labs);
     const p = tokenPos.clone();
     const out = p.clone().normalize();
     st.out.forEach((kind, i) => {
       const side = new V3(-out.y, out.x, 0).multiplyScalar((i - (st.out.length - 1) / 2) * 1.6);
-      emit(ring, kind, p.clone(), p.clone().add(out.clone().multiplyScalar(kind === 'CO2' ? 4.2 : 3.2)).add(side).add(new V3(0, 0, kind === 'CO2' ? 3 : 1.5)), 2.6, i * 0.18);
+      const lost = kind === 'CO2' ? K.trace(K.turn).released[K.step] : 0;
+      emit(ring, kind, p.clone(), p.clone().add(out.clone().multiplyScalar(kind === 'CO2' ? 4.2 : 3.2)).add(side).add(new V3(0, 0, kind === 'CO2' ? 3 : 1.5)), lost ? 4 : 2.6, i * 0.18,
+        lost ? tagColor(lost) : null, lost ? 'traced CO₂' : null);
     });
     updateKrebsUI();
   }
   B.krebs = {
     enter() {
       cristaeTarget = 0.06; K.playing = !reduceMotion;
+      viewer.visible = backdrop.visible = true;
+      K.turn = 1; K.trace = makeTrace(Math.random);
       const kc = $('#kPlay');
       if (kc) {
         kc.addEventListener('click', () => { K.playing = !K.playing; if (K.playing && now - K.start > K.hold + K.move) kStart(K.step + 1); updateKrebsUI(); });
         $('#kPrev').addEventListener('click', () => { K.playing = false; kStart(K.step - 1); });
         $('#kNext').addEventListener('click', () => { K.playing = false; kStart(K.step + 1); });
         $('#kDots').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { K.playing = false; kStart(+b.dataset.i); } });
+        $('#kRestart').addEventListener('click', () => { K.turn = 1; K.trace = makeTrace(Math.random); K.playing = !reduceMotion; kStart(0); });
       }
       kStart(0);
     },
@@ -1344,12 +1498,48 @@ function init() {
         if (!K.emitted) { K.emitted = true; kEmit(); }
         tokenPos.copy(nodePos(K.step + 1));
         if (!K.arrived) { K.arrived = true; highlightNode((K.step + 1) % 8); }
-        if (K.playing && el > K.hold + K.move + 0.5) kStart(K.step + 1);
+        if (K.playing && el > K.hold + K.move + 2.2) kStart(K.step + 1);
       }
       if (token) { token.position.copy(tokenPos); token.rotation.z += dtG * 0.6; }
+      viewer.rotation.y = reduceMotion ? 0 : Math.sin(t * 0.5) * 0.55;
     },
-    exit() { cristaeTarget = 0.28; },
+    exit() { cristaeTarget = 0.28; viewer.visible = backdrop.visible = false; },
   };
+  function updateTracerUI() {
+    const strip = $('#kStrip'); if (!strip) return;
+    const sh = kShown();
+    const cls = (l) => (l === 'M' ? 'tag-m' : l === 'K' ? 'tag-k' : 'carbon');
+    $('#kTurn').textContent = `Carbon tracer · turn ${K.turn}`;
+    strip.innerHTML = sh.labs.map((l, i) => `<span class="carbon${l ? ' hot' : ''}" style="--c:var(--${cls(l)})"${l ? ' title="traced carbon"' : ''}><i>${l ? '★' : 'C'}</i><small>${CARBON_NAMES[sh.node][i]}</small></span>`).join('');
+    // where each traced carbon left, counting only reactions that have happened
+    const gone = {};
+    for (let n = 1; n <= K.turn; n++) [2, 3].forEach(st => {
+      if (n === K.turn && (st > K.step || (st === K.step && !K.emitted))) return;
+      const l = K.trace(n).released[st]; if (l) gone[l] = { turn: n, step: st + 1 };
+    });
+    const names = { M: 'Former CH₃ carbon', K: 'Former C=O carbon' };
+    const waiting = K.turn === 1 && K.step === 0 && !K.emitted;
+    $('#kFates').innerHTML = ['M', 'K'].map(l => {
+      const where = gone[l] ? `left as CO₂: turn ${gone[l].turn}, step ${gone[l].step}` : waiting ? 'arriving on acetyl-CoA' : 'still in the cycle';
+      return `<div style="--c:var(--${cls(l)})"><b>★ ${names[l]}</b>${where}</div>`;
+    }).join('');
+    const lost = K.emitted ? K.trace(K.turn).released[K.step] : undefined;
+    let msg;
+    if (lost) msg = `The CO₂ just released carries your <b>${names[lost].replace('Former', 'former')}</b>. It entered the cycle in turn 1.`;
+    else if (lost === 0) msg = K.turn === 1
+      ? 'This CO₂ came from the original oxaloacetate. Both of your traced carbons are still on board.'
+      : 'This CO₂ carries an untraced carbon.';
+    else if (gone.M && gone.K) msg = 'Both traced carbons have now left. Restart the trace to follow another molecule.';
+    else if (K.step === 0 && !K.emitted) msg = K.turn === 1
+      ? 'Your two traced carbons arrive on acetyl-CoA. Oxaloacetate is waiting for them.'
+      : 'A new acetyl group arrives. Its carbons are not traced.';
+    else if (K.step === 0) msg = K.turn === 1 ? 'Both traced carbons are now in one arm of citrate.' : 'Citrate is formed. Watch which carbons leave next.';
+    else if (sh.node === 5) msg = 'Succinate is symmetrical. Its two ends cannot be told apart, so each carbon has an equal chance of ending up at either one.';
+    else if (sh.node === 6 && K.step === 5) msg = 'Fumarate is formed. The tracer has picked one of the two equally likely orientations.';
+    else if (sh.node === 0) msg = `Oxaloacetate is rebuilt. Turn ${K.turn + 1} starts with whatever it still carries.`;
+    else msg = 'Follow the starred carbons through this step.';
+    $('#kStatus').innerHTML = msg;
+  }
   function updateKrebsUI() {
     const card = $('#kCard'); if (!card) return;
     const i = K.step, st = KSTEPS[i], a = KN[i], b = KN[(i + 1) % 8];
@@ -1362,6 +1552,7 @@ function init() {
       <div class="rxn"><span>${a.name}<span class="c">${a.c}C</span></span>${extra}<span class="arrow">→</span><span>${b.name}<span class="c">${b.c}C</span></span></div>
       <p>${st.note}</p>
       <div class="chips">${chips}</div>`;
+    updateTracerUI();
     const play = $('#kPlay'); if (play) play.textContent = K.playing ? 'Pause' : 'Play';
     [...$('#kDots').children].forEach((d, k) => d.classList.toggle('on', k === i));
     const counts = { NADH: 0, FADH2: 0, GTP: 0, CO2: 0 };
