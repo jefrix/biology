@@ -13,16 +13,6 @@ const OUT = {
 const stageEl = $('#stage');
 const canvas = $('#gl');
 let renderer;
-try {
-  if (!window.THREE) throw new Error('three.js did not load');
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-} catch (err) {
-  const d = document.createElement('div');
-  d.className = 'nogl';
-  d.textContent = 'The 3D view needs WebGL, which this browser could not start. The chapters on the right still work.';
-  stageEl.appendChild(d);
-}
-
 const V3 = window.THREE ? THREE.Vector3 : function () {};
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const rnd = mulberry32(20261125);
@@ -422,8 +412,8 @@ function setHash(id) {
   try { history.replaceState(null, '', '#' + id); } catch (e) { location.hash = id; }
 }
 
-function showChapter(i) {
-  if (i < 0 || i >= chapters.length) return;
+function showChapter(i, detail) {
+  if (!moduleKey || i < 0 || i >= chapters.length) return;
   chapterIndex = i;
   const ch = chapters[i], info = MANIFEST.find(x => x.key === moduleKey);
   const rail = $('#rail');
@@ -436,13 +426,16 @@ function showChapter(i) {
   $('#prevName').textContent = p ? p.short : 'All modules';
   $('#nextName').textContent = n ? n.short : 'All modules';
   $('#legend').innerHTML = ch.legend.map(([c, t]) => `<span style="--c:var(--${c})"><i></i>${t}</span>`).join('');
-  setHash(ch.id);
+  const openDetail = ch.details && Object.hasOwn(ch.details, detail) && ch.details[detail];
+  setHash(openDetail ? ch.id + '/' + detail : ch.id);
   document.title = `${ch.short} · Cellular Biology`;
   $('#panel').scrollTop = 0;
   if (G3) G3.enterStage(ch.id);
+  if (openDetail) openDetail();
 }
 
-function go(id) {
+function go(route) {
+  const [id, detail] = route.split('/');
   const info = moduleFor(id);
   if (!info) { showHome(); return; }
   const token = ++routeToken;
@@ -450,14 +443,18 @@ function go(id) {
   $('.app').inert = false;
   if (moduleKey !== info.key) {
     if (G3) G3.rest();
-    moduleKey = null;
+    moduleKey = null; chapters = []; chapterIndex = -1;
+    $('#rail').inert = true;
+    $('#prevBtn').disabled = $('#nextBtn').disabled = true;
     $('#chapter').innerHTML = '<p class="muted">Loading…</p>';
   }
   loadModule(info.key).then((def) => {
     if (token !== routeToken) return;
     moduleKey = info.key; chapters = def.chapters;
     const i = chapters.findIndex(c => c.id === id);
-    showChapter(i >= 0 ? i : 0);
+    $('#rail').inert = false;
+    $('#prevBtn').disabled = $('#nextBtn').disabled = false;
+    showChapter(i >= 0 ? i : 0, detail);
   }).catch((err) => {
     console.error(err);
     if (token === routeToken) $('#chapter').innerHTML = '<p>This module could not be loaded. Check your connection, then reload the page.</p>';
@@ -482,10 +479,21 @@ function startCellCity() {
   });
   addEventListener('hashchange', () => {
     const id = location.hash.slice(1);
-    if (chapterIndex >= 0 && moduleKey && chapters[chapterIndex].id === id) return;
     go(id);
   });
-  if (renderer) G3 = initWorld();
+  try {
+    if (!window.THREE?.OrbitControls) throw new Error('3D controls unavailable');
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    G3 = initWorld();
+  } catch (err) {
+    console.warn('3D viewer unavailable', err);
+    renderer?.dispose();
+    const notice = document.createElement('div');
+    notice.className = 'nogl';
+    notice.textContent = 'The 3D view is unavailable. You can still explore the chapters and activities.';
+    stageEl.appendChild(notice);
+    $('#resetView').disabled = true;
+  }
   go(location.hash.slice(1));
 }
 startCellCity();

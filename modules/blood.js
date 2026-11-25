@@ -104,6 +104,7 @@ const CHAPTERS = [
     id: 'blood', short: 'Blood', where: 'A drop of blood · cells to scale',
     title: 'Blood: couriers and defenders',
     legend: [['rbc', 'Red cell'], ['neut', 'Neutrophil'], ['lymph', 'Lymphocyte'], ['mono', 'Monocyte'], ['eos', 'Eosinophil'], ['baso', 'Basophil'], ['plt', 'Platelet'], ['mito', 'Mitochondria']],
+    details: { rbc: () => selectBlood('rbc', true) },
     html: () => `
       <p class="lede">Blood is the city’s delivery network and its security force. Red cells haul the oxygen that the electron transport chain consumes. White cells, the leukocytes, are mobile defenders that mostly use the blood to travel.</p>
       <div class="orgs">${BLOOD.map(c => `<button class="org" type="button" data-cell="${c.id}" style="--c:var(--${c.id})"><i></i><span><b>${c.name}</b><small>${c.tag.split(' · ')[1]}</small></span></button>`).join('')}

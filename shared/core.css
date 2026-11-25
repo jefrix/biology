@@ -407,3 +407,8 @@ table.ledger { border-collapse: collapse; width: 100%; font-size: 13px; font-var
 .trace .k { stroke: var(--potassium); }
 .trace .cursor { stroke: var(--fg); stroke-width: 1; opacity: .6; }
 
+
+.prediction { margin: 1rem 0; padding: 1rem; border: 1px solid currentColor; border-radius: .5rem; }
+.prediction legend { font-weight: 600; }
+.prediction label { display: block; padding: .3rem 0; cursor: pointer; }
+.prediction a { color: var(--accent); }

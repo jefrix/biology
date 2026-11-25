@@ -14,7 +14,7 @@ const ORGANELLES = [
   { id: 'lyso', name: 'Lysosomes', role: 'Recycling centre', c: 'lyso',
     text: 'Acidic sacs (pH about 4.5 to 5) full of digestive enzymes that break down worn-out parts and anything the cell swallows.' },
   { id: 'ribo', name: 'Ribosomes', role: 'Assembly benches', c: 'co2',
-    text: 'Molecular machines that read mRNA and link amino acids into proteins. Free ones in the cytosol make the cell’s own working proteins.' },
+    text: 'Molecular machines that read mRNA and link amino acids into proteins. Free ribosomes make proteins such as the enzymes of glycolysis in the cytosol. ER-bound ribosomes make proteins such as glucose transporters destined for the plasma membrane.' },
   { id: 'cyto', name: 'Cytoskeleton', role: 'Roads & rail', c: 'pyruvate',
     text: 'Microtubules and actin filaments hold the city’s shape. Motor proteins walk cargo along them like trains on tracks.' },
   { id: 'membrane', name: 'Plasma membrane', role: 'City wall & gates', c: 'glucose',
@@ -239,7 +239,7 @@ const CHAPTERS = [
     title: 'The ledger: one glucose, about 32 ATP',
     legend: [['mito', 'Mitochondria'], ['atp', 'ATP leaving to be spent']],
     html: () => `
-      <div class="big"><b>≈32</b><span>ATP from one glucose<br>with oxygen, versus 2 without</span></div>
+      <div class="big"><b>≈32</b><span>ATP per glucose with mitochondrial respiration<br>versus 2 net from glycolysis alone</span></div>
       <div class="table-wrap">
         <table class="ledger">
           <thead><tr><th>Stage</th><th>ATP/GTP</th><th>NADH</th><th>FADH₂</th><th>CO₂</th></tr></thead>
@@ -252,6 +252,15 @@ const CHAPTERS = [
         </table>
       </div>
       <div class="eq">10 ${m('NADH', 'nadh')} × 2.5 = 25 · 2 ${m('FADH₂', 'fadh')} × 1.5 = 3 · + 4 = <span class="m" style="--c:var(--atp)">≈32 ATP</span></div>
+      <fieldset class="prediction">
+        <legend>Which stage still makes ATP in a mature red blood cell?</legend>
+        <p>It carries oxygen but has no mitochondria. Choose a prediction.</p>
+        <label><input type="radio" name="rbc-atp" value="glycolysis"> Glycolysis</label>
+        <label><input type="radio" name="rbc-atp" value="krebs"> Krebs cycle</label>
+        <label><input type="radio" name="rbc-atp" value="etc"> Oxidative phosphorylation</label>
+        <p id="rbcFeedback" role="status"></p>
+        <a href="#blood/rbc">Explore the red blood cell</a>
+      </fieldset>
       <ul class="facts">
         <li>The figure is about 30 when NADH from glycolysis enters the mitochondrion by the glycerol-phosphate shuttle, which hands its electrons to FAD instead.</li>
         <li>All six carbons of glucose leave as the CO₂ you exhale. The oxygen you inhale ends up as water.</li>
@@ -260,6 +269,16 @@ const CHAPTERS = [
       <div class="eq">C₆H₁₂O₆ + 6 O₂ → 6 ${m('CO₂', 'co2')} + 6 H₂O + ≈32 ${m('ATP', 'atp')}</div>`,
   },
 ];
+
+document.addEventListener('change', (event) => {
+  if (event.target.name !== 'rbc-atp') return;
+  const feedback = {
+    glycolysis: 'Correct. Glycolysis takes place in the cytosol and can yield 2 net ATP per glucose. Converting pyruvate to lactate regenerates the NAD+ that keeps glycolysis running.',
+    krebs: 'The Krebs cycle needs the mitochondrial matrix. Look for a stage in the ledger that takes place in the cytosol and try again.',
+    etc: 'Oxidative phosphorylation needs the inner mitochondrial membrane. Carrying oxygen cannot replace that membrane. Try again.',
+  };
+  $('#rbcFeedback').textContent = feedback[event.target.value];
+});
 
 CellCity.register('energy', {
   chapters: CHAPTERS,
