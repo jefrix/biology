@@ -1,0 +1,1561 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Inside the Cell City</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A 3D walk through the cell, from the food you eat to glucose, glycolysis, the Krebs cycle and ATP.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: full-bleed 3D stage (a fluorescence-microscope view) beside a chapter panel; on phones the panel stacks under the stage.
+   Deliberately single-theme: the stage is a dark microscope field, so the whole page commits to it. */
+:root {
+  --bg: #060a11;
+  --bg-2: #0b111b;
+  --surface: #111a27;
+  --line: #1d2939;
+  --fg: #e6edf5;
+  --muted: #8c9bb0;
+  --accent: #4fd6e8;
+
+  /* molecule colours, shared with the 3D scene */
+  --glucose: #4fd6e8;
+  --pyruvate: #5fa8ff;
+  --acetyl: #b18cff;
+  --nadh: #6ee7a0;
+  --fadh: #ffb347;
+  --atp: #ffd75e;
+  --co2: #a9b4c2;
+  --proton: #ff5d73;
+  --electron: #d8f1ff;
+  --fat: #f1e4bd;
+  --amino: #ff79c6;
+  --fdg: #ff8a3d;
+  --mito: #ff6a4d;
+  --nucleus: #6a86ff;
+  --golgi: #c9a6ff;
+  --lyso: #8fd16a;
+  --membrane: #4aa3b5;
+
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+html { height: 100%; box-sizing: border-box; background: var(--bg); }
+*, *::before, *::after { box-sizing: inherit; }
+body { height: 100%; background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.6; overflow: hidden; }
+
+.app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 440px; }
+
+/* ---------- stage ---------- */
+.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: var(--bg); }
+.stage canvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; }
+.labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.lbl {
+  position: absolute; left: 0; top: 0; white-space: nowrap;
+  font: 500 11px/1 var(--f-mono); letter-spacing: .02em; color: var(--fg);
+  background: rgba(8, 13, 21, .78); border: 1px solid var(--line);
+  padding: 5px 8px 5px 7px; border-radius: 999px;
+  display: flex; align-items: center; gap: 6px;
+  transition: border-color .2s, background .2s, opacity .2s;
+}
+.lbl i { width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--accent)); box-shadow: 0 0 8px var(--c, var(--accent)); flex: none; }
+.lbl.click { pointer-events: auto; cursor: pointer; font: 500 11px/1 var(--f-mono); color: var(--fg); }
+.lbl.click:hover, .lbl.on { border-color: var(--c, var(--accent)); background: rgba(14, 22, 34, .92); }
+.lbl.dim { opacity: .45; }
+.lbl small { color: var(--muted); font-size: 10px; }
+
+.hud { position: absolute; display: flex; gap: 8px; align-items: center; pointer-events: none; }
+.hud > * { pointer-events: auto; }
+.hud-top { top: 14px; left: max(14px, env(safe-area-inset-left, 0px)); right: 14px; justify-content: space-between; }
+.hint { font: 400 11px/1.3 var(--f-mono); color: var(--muted); background: rgba(8,13,21,.6); border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; }
+.ghost-btn {
+  font: 500 12px/1 var(--f-body); color: var(--fg); background: rgba(8,13,21,.7);
+  border: 1px solid var(--line); border-radius: 6px; padding: 8px 11px; cursor: pointer;
+}
+.ghost-btn:hover { border-color: var(--muted); }
+.hud-bottom { bottom: 14px; left: max(14px, env(safe-area-inset-left, 0px)); flex-direction: column; align-items: flex-start; gap: 10px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; max-width: min(560px, calc(100% - 20px)); background: rgba(8,13,21,.66); border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; font: 400 11px/1.2 var(--f-mono); color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend span i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 7px var(--c); }
+.scale { font: 500 11px/1 var(--f-mono); color: var(--fg); display: flex; flex-direction: column; gap: 5px; }
+.scale .bar { height: 6px; border: 1.5px solid var(--fg); border-top: 0; width: 80px; transition: width .15s; }
+.scale .cap { color: var(--muted); font-weight: 400; }
+.fade { position: absolute; inset: 0; background: var(--bg); opacity: 0; pointer-events: none; transition: opacity .32s ease; display: grid; place-items: center; }
+.fade.on { opacity: 1; }
+.fade span { font: 500 12px/1 var(--f-mono); color: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
+.nogl { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center; color: var(--muted); }
+
+/* ---------- panel ---------- */
+.panel { min-width: 0; min-height: 0; overflow-y: auto; background: var(--bg-2); border-left: 1px solid var(--line); scrollbar-color: var(--line) transparent; }
+.panel-inner {
+  padding-block: 26px 34px;
+  padding-left: max(26px, env(safe-area-inset-left, 0px));
+  padding-right: max(26px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 22px;
+}
+.brand { display: flex; flex-direction: column; gap: 4px; }
+.eyebrow { font: 500 11px/1.2 var(--f-mono); text-transform: uppercase; letter-spacing: .14em; color: var(--muted); }
+h1 { margin: 0; font: 700 30px/1.05 var(--f-display); letter-spacing: -.02em; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--accent); }
+h2 { margin: 0; font: 700 25px/1.12 var(--f-display); letter-spacing: -.015em; text-wrap: balance; }
+h3 { margin: 0; font: 600 14px/1.3 var(--f-body); }
+p { margin: 0; }
+.muted { color: var(--muted); }
+
+.rail { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.rail button {
+  appearance: none; border: 0; background: none; padding: 8px 0 0; cursor: pointer; text-align: left;
+  color: var(--muted); font: 500 11px/1 var(--f-mono); border-top: 3px solid var(--line);
+  transition: color .2s, border-color .2s;
+}
+.rail button:hover { color: var(--fg); }
+.rail button.done { border-top-color: #33506a; }
+.rail button.on { color: var(--fg); border-top-color: var(--accent); }
+.rail-name { font: 500 12px/1.3 var(--f-mono); color: var(--muted); margin-top: -12px; }
+
+.chapter { display: flex; flex-direction: column; gap: 16px; }
+.chapter .lede { font-size: 16px; line-height: 1.6; color: #d4dde8; }
+.chapter ul.facts { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.chapter ul.facts li { padding-left: 16px; position: relative; color: #cdd6e2; }
+.chapter ul.facts li::before { content: ""; position: absolute; left: 0; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.m { font: 500 .92em/1 var(--f-mono); color: var(--c, var(--fg)); white-space: nowrap; }
+.eq {
+  font: 400 13px/1.6 var(--f-mono); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: nowrap; color: var(--muted);
+}
+.callout { border: 1px solid #4a3220; background: linear-gradient(0deg, rgba(255,138,61,.06), rgba(255,138,61,.06)), var(--surface); border-radius: 10px; padding: 14px 15px; display: flex; flex-direction: column; gap: 6px; }
+.callout .eyebrow { color: var(--fdg); }
+.callout p { color: #d9dee6; font-size: 14px; }
+details { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+details summary { cursor: pointer; padding: 11px 14px; font-weight: 500; font-size: 14px; list-style-position: inside; }
+details ol { margin: 0; padding: 0 16px 14px 34px; font-size: 13.5px; color: #cdd6e2; display: flex; flex-direction: column; gap: 5px; }
+details ol b { font-weight: 600; color: var(--fg); }
+
+/* organelle picker */
+.orgs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.org {
+  appearance: none; text-align: left; cursor: pointer; color: var(--fg);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+  padding: 9px 10px; display: flex; gap: 9px; align-items: flex-start; font: inherit; min-width: 0;
+}
+.org i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); margin-top: 6px; flex: none; }
+.org b { display: block; font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+.org small { display: block; color: var(--muted); font-size: 12px; line-height: 1.3; }
+.org:hover { border-color: #334459; }
+.org.on { border-color: var(--c); }
+.org-card { border-left: 2px solid var(--c, var(--line)); padding: 2px 0 2px 14px; display: flex; flex-direction: column; gap: 4px; min-height: 64px; }
+.org-card p { color: #cdd6e2; font-size: 14px; }
+
+/* fuel routes */
+.routes { display: flex; flex-direction: column; gap: 8px; }
+.route { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 13px; display: flex; flex-direction: column; gap: 6px; }
+.route .path { font: 400 12.5px/1.5 var(--f-mono); color: var(--muted); }
+.route p { font-size: 13.5px; color: #cdd6e2; }
+
+/* krebs widget */
+.krebs { display: flex; flex-direction: column; gap: 12px; }
+.step-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 15px; display: flex; flex-direction: column; gap: 9px; }
+.step-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.step-n { font: 500 11px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.enzyme { font: 500 12px/1.3 var(--f-mono); color: var(--acetyl); text-align: right; }
+.rxn { font: 500 16px/1.45 var(--f-display); display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; }
+.rxn .c { font: 500 11px/1 var(--f-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 3px 5px; vertical-align: 2px; margin-left: 3px; }
+.rxn .arrow { color: var(--muted); }
+.step-card p { font-size: 14px; color: #cdd6e2; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 12px/1 var(--f-mono); color: var(--c); border: 1px solid var(--c); border-radius: 999px; padding: 5px 9px; background: rgba(0,0,0,.2); }
+.chip.none { color: var(--muted); border-color: var(--line); }
+.ctl { display: flex; gap: 6px; }
+.btn {
+  appearance: none; cursor: pointer; font: 500 13px/1 var(--f-body); color: var(--fg);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 13px;
+}
+.btn:hover { border-color: #3a4d65; }
+.btn.primary { background: #16303a; border-color: #2a6170; color: #dff8fc; flex: 1; }
+.dots { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; }
+.dots button {
+  appearance: none; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+  border-radius: 6px; padding: 7px 0; font: 500 11px/1 var(--f-mono);
+}
+.dots button.on { color: var(--bg); background: var(--acetyl); border-color: var(--acetyl); }
+.tally { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.tally div { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 9px; display: flex; flex-direction: column; gap: 3px; }
+.tally b { font: 500 18px/1 var(--f-mono); color: var(--c); font-variant-numeric: tabular-nums; }
+.tally small { font: 400 11px/1.2 var(--f-mono); color: var(--muted); }
+.mnemonic { font-size: 13px; color: var(--muted); }
+.mnemonic b { color: var(--fg); font-weight: 600; }
+
+/* ledger */
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table.ledger { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+.ledger th, .ledger td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ledger th:first-child, .ledger td:first-child { text-align: left; }
+.ledger th { font: 500 10.5px/1.2 var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .08em; background: var(--surface); }
+.ledger td small { color: var(--muted); display: block; font-size: 11px; }
+.ledger tr.sum td { font-weight: 600; border-bottom: 0; background: rgba(79,214,232,.05); }
+.big { display: flex; align-items: baseline; gap: 10px; }
+.big b { font: 700 54px/1 var(--f-display); color: var(--atp); letter-spacing: -.03em; }
+.big span { color: var(--muted); font-size: 14px; line-height: 1.35; }
+
+.pager { display: flex; justify-content: space-between; gap: 8px; border-top: 1px solid var(--line); padding-top: 18px; }
+.pager .btn { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 0; flex: 1; }
+.pager .btn small { font: 500 10px/1 var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+.pager .btn.next { align-items: flex-end; text-align: right; }
+.pager .btn[disabled] { opacity: .35; cursor: default; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (max-width: 860px) {
+  body { overflow: hidden; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(280px, 50%) minmax(0, 1fr); }
+  .panel { border-left: 0; border-top: 1px solid var(--line); }
+  .panel-inner { padding-block: 18px 28px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); gap: 18px; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 22px; }
+  .hint { display: none; }
+  .legend { display: none; }
+  .lbl { font-size: 10px; padding: 4px 7px 4px 6px; }
+}
+@media (max-width: 420px) {
+  .orgs { grid-template-columns: 1fr; }
+  .tally { grid-template-columns: repeat(2, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fade, .scale .bar, .lbl { transition: none; }
+}
+</style>
+
+<div class="app">
+  <section class="stage" id="stage" aria-label="3D view of the cell">
+    <canvas id="gl" tabindex="0" aria-label="Interactive 3D cell. Drag to orbit, scroll or pinch to zoom."></canvas>
+    <div class="labels" id="labels"></div>
+    <div class="hud hud-top">
+      <span class="hint">Drag to orbit · scroll or pinch to zoom</span>
+      <button class="ghost-btn" id="resetView" type="button">Reset view</button>
+    </div>
+    <div class="hud hud-bottom">
+      <div class="legend" id="legend"></div>
+      <div class="scale" aria-hidden="true"><span id="scaleTxt">5 µm</span><div class="bar" id="scaleBar"></div></div>
+    </div>
+    <div class="fade" id="fade"><span id="fadeTxt">Zooming in</span></div>
+  </section>
+
+  <aside class="panel" id="panel">
+    <div class="panel-inner">
+      <header class="brand">
+        <span class="eyebrow">From your plate to ATP</span>
+        <h1>Inside the <em>Cell City</em></h1>
+      </header>
+      <nav class="rail" id="rail" aria-label="Chapters"></nav>
+      <div class="rail-name" id="railName"></div>
+      <article class="chapter" id="chapter" aria-live="polite"></article>
+      <div class="pager">
+        <button class="btn prev" id="prevBtn" type="button"><small>Previous</small><span id="prevName"></span></button>
+        <button class="btn next" id="nextBtn" type="button"><small>Next</small><span id="nextName"></span></button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+(() => {
+'use strict';
+const $ = (s) => document.querySelector(s);
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ================================================================
+   Chapter content
+   ================================================================ */
+const m = (txt, c) => `<span class="m" style="--c:var(--${c})">${txt}</span>`;
+
+const ORGANELLES = [
+  { id: 'nucleus', name: 'Nucleus', role: 'Head office & archive', c: 'nucleus',
+    text: 'Holds the blueprints: about 2 metres of DNA folded into a sphere roughly 6 µm across. Orders go out as messenger RNA through thousands of nuclear pores.' },
+  { id: 'er', name: 'Rough ER', role: 'Production line', c: 'membrane',
+    text: 'A maze of membrane sheets studded with ribosomes. Proteins meant for export or for membranes are built and folded here.' },
+  { id: 'golgi', name: 'Golgi apparatus', role: 'Shipping & packaging', c: 'golgi',
+    text: 'A stack of flattened sacs that trims, tags and sorts proteins, then buds them off in vesicles addressed to their destination.' },
+  { id: 'mito', name: 'Mitochondria', role: 'Power plants', c: 'mito',
+    text: 'Where the Krebs cycle and the electron transport chain run. A liver cell has around a thousand or more; heart muscle is packed with them.' },
+  { id: 'lyso', name: 'Lysosomes', role: 'Recycling centre', c: 'lyso',
+    text: 'Acidic sacs (pH about 4.5 to 5) full of digestive enzymes that break down worn-out parts and anything the cell swallows.' },
+  { id: 'ribo', name: 'Ribosomes', role: 'Assembly benches', c: 'co2',
+    text: 'Molecular machines that read mRNA and link amino acids into proteins. Free ones in the cytosol make the cell’s own working proteins.' },
+  { id: 'cyto', name: 'Cytoskeleton', role: 'Roads & rail', c: 'pyruvate',
+    text: 'Microtubules and actin filaments hold the city’s shape. Motor proteins walk cargo along them like trains on tracks.' },
+  { id: 'membrane', name: 'Plasma membrane', role: 'City wall & gates', c: 'glucose',
+    text: 'A lipid bilayer only 5 to 10 nm thick. Transporters such as GLUT act as gates, so glucose only enters where a door is open.' },
+];
+
+const KN = [
+  { name: 'Oxaloacetate', short: 'OAA', c: 4 },
+  { name: 'Citrate', short: 'CIT', c: 6 },
+  { name: 'Isocitrate', short: 'ICT', c: 6 },
+  { name: 'α-Ketoglutarate', short: 'αKG', c: 5 },
+  { name: 'Succinyl-CoA', short: 'SCoA', c: 4 },
+  { name: 'Succinate', short: 'SUC', c: 4 },
+  { name: 'Fumarate', short: 'FUM', c: 4 },
+  { name: 'Malate', short: 'MAL', c: 4 },
+];
+const KSTEPS = [
+  { enzyme: 'Citrate synthase', extraIn: 'Acetyl-CoA', extraInC: 2, out: [],
+    note: 'The 2-carbon acetyl group joins 4-carbon oxaloacetate to make citrate. Coenzyme A is set free to go and collect another acetyl group.' },
+  { enzyme: 'Aconitase', out: [],
+    note: 'A hydroxyl group is moved, turning citrate into its isomer isocitrate. Nothing is released; this sets up the first oxidation.' },
+  { enzyme: 'Isocitrate dehydrogenase', out: ['NADH', 'CO2'],
+    note: 'First oxidation. One carbon leaves as CO₂ and a pair of electrons is loaded onto NAD⁺. This is the cycle’s main control point.' },
+  { enzyme: 'α-Ketoglutarate dehydrogenase', out: ['NADH', 'CO2'],
+    note: 'A second carbon leaves as CO₂ and another NADH is made. Two carbons in, two carbons out: the books now balance.' },
+  { enzyme: 'Succinyl-CoA synthetase', out: ['GTP'],
+    note: 'The energy in the thioester bond makes one GTP (ATP in some tissues). This is the only energy currency the cycle makes directly.' },
+  { enzyme: 'Succinate dehydrogenase', out: ['FADH2'],
+    note: 'This enzyme is built into the inner membrane and doubles as Complex II of the electron transport chain. It loads electrons onto FAD.' },
+  { enzyme: 'Fumarase', out: [],
+    note: 'Water is added across the double bond of fumarate, giving malate.' },
+  { enzyme: 'Malate dehydrogenase', out: ['NADH'],
+    note: 'The third NADH. Oxaloacetate is regenerated, ready to grab the next acetyl group, which is what makes this a cycle.' },
+];
+const OUT = {
+  NADH: { label: 'NADH', c: 'nadh' }, FADH2: { label: 'FADH₂', c: 'fadh' }, GTP: { label: 'GTP', c: 'atp' },
+  CO2: { label: 'CO₂', c: 'co2' }, ATP: { label: 'ATP', c: 'atp' }, H2O: { label: 'H₂O', c: 'electron' },
+};
+
+const CHAPTERS = [
+  {
+    id: 'cell', short: 'Cell city', where: 'The whole cell · about 20 µm across',
+    title: 'A city the size of a speck of dust',
+    legend: [['nucleus', 'Nucleus'], ['membrane', 'Membrane & ER'], ['golgi', 'Golgi'], ['mito', 'Mitochondria'], ['lyso', 'Lysosomes']],
+    html: () => `
+      <p class="lede">Every one of your roughly 30 trillion cells runs like a small industrial city. It has an archive, production lines, a shipping depot, recycling and, most important for this story, power plants.</p>
+      <p class="muted">Pick a district to fly to it. Then follow a single glucose molecule from your last meal all the way to ATP, the energy currency every district spends.</p>
+      <div class="orgs" id="orgs">${ORGANELLES.map(o => `
+        <button class="org" type="button" data-id="${o.id}" style="--c:var(--${o.c})"><i></i><span><b>${o.name}</b><small>${o.role}</small></span></button>`).join('')}
+      </div>
+      <div class="org-card" id="orgCard"><h3>Choose a district</h3><p>Each label in the 3D view is clickable too.</p></div>`,
+  },
+  {
+    id: 'fuel', short: 'Fuel', where: 'Digestion & the cell surface',
+    title: 'Three fuel lines, one destination',
+    legend: [['glucose', 'Glucose (from carbs)'], ['fat', 'Fatty acids (from fats)'], ['amino', 'Amino acids (from protein)']],
+    html: () => `
+      <p class="lede">Carbohydrates really are broken down to glucose. Fats and proteins take their own roads, though, and merge into the same pathway further downstream. The shared destination is ATP.</p>
+      <div class="routes">
+        <div class="route">
+          <h3>${m('Carbohydrates', 'glucose')}</h3>
+          <div class="path">starch, sugar → glucose → glycolysis → pyruvate → acetyl-CoA</div>
+          <p>The main road, and the one this explainer follows. Your brain runs almost entirely on it.</p>
+        </div>
+        <div class="route">
+          <h3>${m('Fats', 'fat')}</h3>
+          <div class="path">triglyceride → fatty acids → β-oxidation → acetyl-CoA</div>
+          <p>Fatty acids are chopped two carbons at a time inside mitochondria and join the Krebs cycle directly. One 16-carbon palmitate yields 8 acetyl-CoA and about 106 ATP. The glycerol backbone joins glycolysis.</p>
+        </div>
+        <div class="route">
+          <h3>${m('Proteins', 'amino')}</h3>
+          <div class="path">protein → amino acids → pyruvate, acetyl-CoA or Krebs intermediates</div>
+          <p>Mostly reused to build new proteins. When burned, the nitrogen is removed (it leaves as urea) and the carbon skeleton enters wherever it fits.</p>
+        </div>
+      </div>
+      <p class="muted">Where the idea that everything becomes glucose comes from: between meals the liver does build new glucose from amino acids and glycerol (gluconeogenesis) to keep blood sugar steady for the brain.</p>`,
+  },
+  {
+    id: 'glycolysis', short: 'Glycolysis', where: 'Cytosol · no oxygen needed',
+    title: 'Glycolysis: splitting sugar in the streets',
+    legend: [['glucose', 'Glucose 6C'], ['pyruvate', 'Pyruvate 3C'], ['atp', 'ATP'], ['nadh', 'NADH'], ['fdg', 'FDG (PET tracer)']],
+    html: () => `
+      <p class="lede">Glucose enters through a GLUT transporter and is taken apart in the cytosol by ten enzymes in a row. One 6-carbon sugar becomes two 3-carbon pyruvates.</p>
+      <div class="eq">${m('glucose', 'glucose')} + 2 NAD⁺ + 2 ADP → 2 ${m('pyruvate', 'pyruvate')} + 2 ${m('NADH', 'nadh')} + 2 ${m('ATP', 'atp')}</div>
+      <ul class="facts">
+        <li>The cell invests 2 ATP up front and earns 4 back: a net profit of <b>2 ATP</b>.</li>
+        <li>It also loads <b>2 NADH</b>, which carry electrons to the mitochondria for a much bigger payout later.</li>
+        <li>It works without oxygen. When oxygen runs short (a sprinting muscle), pyruvate is turned into lactate so glycolysis can keep going.</li>
+      </ul>
+      <div class="callout">
+        <span class="eyebrow">Radiology link · FDG-PET</span>
+        <p><b>¹⁸F-FDG</b> is glucose with one oxygen swapped for radioactive fluorine. It enters through the same GLUT gates and hexokinase phosphorylates it, but FDG-6-phosphate cannot continue down glycolysis, so it stays trapped in the cell.</p>
+        <p>A PET scan maps that trapped tracer. Tissues burning lots of glucose light up: brain, heart, active muscle and many tumours, which lean heavily on glycolysis (the Warburg effect). Watch for the orange molecule in the 3D view.</p>
+      </div>
+      <details>
+        <summary>All ten steps</summary>
+        <ol>
+          <li><b>Hexokinase</b>: glucose → glucose-6-phosphate. Spends 1 ATP and traps the sugar. FDG stops here.</li>
+          <li><b>Phosphoglucose isomerase</b>: → fructose-6-phosphate.</li>
+          <li><b>Phosphofructokinase-1</b>: → fructose-1,6-bisphosphate. Spends 1 ATP. The main control valve.</li>
+          <li><b>Aldolase</b>: splits the 6-carbon sugar into two 3-carbon halves.</li>
+          <li><b>Triose phosphate isomerase</b>: makes both halves the same (G3P).</li>
+          <li><b>GAPDH</b>: G3P → 1,3-bisphosphoglycerate, making NADH (×2).</li>
+          <li><b>Phosphoglycerate kinase</b>: makes ATP (×2).</li>
+          <li><b>Phosphoglycerate mutase</b>: moves the phosphate.</li>
+          <li><b>Enolase</b>: removes water to make PEP.</li>
+          <li><b>Pyruvate kinase</b>: makes ATP (×2) and releases pyruvate.</li>
+        </ol>
+      </details>`,
+  },
+  {
+    id: 'link', short: 'Link', where: 'Mitochondrial matrix · about 2 µm long',
+    title: 'Through the power plant gates',
+    legend: [['pyruvate', 'Pyruvate 3C'], ['acetyl', 'Acetyl-CoA 2C'], ['nadh', 'NADH'], ['co2', 'CO₂'], ['mito', 'Membranes']],
+    html: () => `
+      <p class="lede">We have zoomed about 10× into one mitochondrion. It has two membranes: a smooth outer one and a heavily folded inner one (the cristae). The space inside is the matrix.</p>
+      <p>Pyruvate is carried across both membranes into the matrix. There the pyruvate dehydrogenase complex cuts off one carbon and attaches what is left to coenzyme A.</p>
+      <div class="eq">${m('pyruvate', 'pyruvate')} + CoA + NAD⁺ → ${m('acetyl-CoA', 'acetyl')} + ${m('CO₂', 'co2')} + ${m('NADH', 'nadh')}</div>
+      <ul class="facts">
+        <li>This is the first CO₂ you breathe out from that meal. It happens twice per glucose.</li>
+        <li>The enzyme complex needs vitamins B1 (thiamine), B2, B3 and B5 plus lipoic acid. Thiamine deficiency stalls it, which is part of why Wernicke encephalopathy hits the glucose-hungry brain.</li>
+        <li>Acetyl-CoA is the hub: glucose, fats and many amino acids all funnel into it before the Krebs cycle.</li>
+      </ul>`,
+  },
+  {
+    id: 'krebs', short: 'Krebs', where: 'Mitochondrial matrix',
+    title: 'The Krebs cycle',
+    legend: [['electron', 'Carbon atoms of the intermediate'], ['acetyl', 'Acetyl group 2C'], ['nadh', 'NADH'], ['fadh', 'FADH₂'], ['atp', 'GTP'], ['co2', 'CO₂']],
+    html: () => `
+      <p class="lede">Each turn takes in a 2-carbon acetyl group, releases two carbons as CO₂ and loads the electrons onto carrier molecules. Count the carbon atoms on the moving molecule as it goes round.</p>
+      <div class="krebs">
+        <div class="step-card" id="kCard"></div>
+        <div class="ctl">
+          <button class="btn" id="kPrev" type="button" aria-label="Previous step">← Step</button>
+          <button class="btn primary" id="kPlay" type="button">Pause</button>
+          <button class="btn" id="kNext" type="button" aria-label="Next step">Step →</button>
+        </div>
+        <div class="dots" id="kDots">${KN.map((k, i) => `<button type="button" data-i="${i}" title="Step ${i + 1}: ${KN[i].name} → ${KN[(i + 1) % 8].name}">${i + 1}</button>`).join('')}</div>
+        <div>
+          <div class="eyebrow" style="margin-bottom:6px">This turn so far</div>
+          <div class="tally" id="kTally"></div>
+        </div>
+      </div>
+      <ul class="facts">
+        <li>Per turn: <b>3 NADH, 1 FADH₂, 1 GTP and 2 CO₂</b>. Glucose gives two acetyl-CoA, so the cycle turns twice per glucose.</li>
+        <li>The cycle makes very little ATP by itself. Its real product is high-energy electrons, handed to the next chapter.</li>
+        <li>Hans Krebs worked out the cycle in 1937 using minced pigeon breast muscle, and shared the 1953 Nobel Prize for it.</li>
+      </ul>
+      <p class="mnemonic">Mnemonic for the order: <b>C</b>itrate <b>I</b>s <b>K</b>rebs’ <b>S</b>tarting <b>S</b>ubstrate <b>F</b>or <b>M</b>aking <b>O</b>xaloacetate.</p>`,
+  },
+  {
+    id: 'etc', short: 'ETC', where: 'Inner mitochondrial membrane · nanometre scale',
+    title: 'The electron transport chain',
+    legend: [['electron', 'Electrons (2e⁻)'], ['proton', 'H⁺ protons'], ['atp', 'ATP'], ['fadh', 'Ubiquinone (Q)'], ['mito', 'Cytochrome c']],
+    html: () => `
+      <p class="lede">Another 1,000× zoom, onto a patch of the inner membrane. NADH and FADH₂ drop off their electrons here, and the electrons pass down a chain of protein complexes like water down a series of mill wheels.</p>
+      <ul class="facts">
+        <li>${m('NADH', 'nadh')} feeds Complex I and ${m('FADH₂', 'fadh')} feeds Complex II. Ubiquinone (Q) ferries electrons to Complex III, and cytochrome c carries them to Complex IV.</li>
+        <li>Complex IV hands the electrons to <b>oxygen</b>, which picks up protons and becomes water. This is why you breathe. Cyanide and carbon monoxide block Complex IV.</li>
+        <li>Complexes I, III and IV use the energy to pump ${m('H⁺', 'proton')} into the intermembrane space: about 10 protons per NADH. That builds a charge of roughly 150 to 180 mV across a membrane only a few nanometres thick.</li>
+        <li>Protons flow back through <b>ATP synthase</b>, a true rotary motor. The flow spins its rotor, and each full turn makes 3 ${m('ATP', 'atp')}.</li>
+        <li>Roughly 2.5 ATP per NADH and 1.5 per FADH₂. Brown fat lets protons leak back through UCP1 instead, releasing the energy as heat.</li>
+      </ul>`,
+  },
+  {
+    id: 'tally', short: 'Ledger', where: 'The whole cell, again',
+    title: 'The ledger: one glucose, about 32 ATP',
+    legend: [['mito', 'Mitochondria'], ['atp', 'ATP leaving to be spent']],
+    html: () => `
+      <div class="big"><b>≈32</b><span>ATP from one glucose<br>with oxygen, versus 2 without</span></div>
+      <div class="table-wrap">
+        <table class="ledger">
+          <thead><tr><th>Stage</th><th>ATP/GTP</th><th>NADH</th><th>FADH₂</th><th>CO₂</th></tr></thead>
+          <tbody>
+            <tr><td>Glycolysis<small>cytosol</small></td><td>2</td><td>2</td><td>–</td><td>–</td></tr>
+            <tr><td>Link reaction ×2<small>matrix</small></td><td>–</td><td>2</td><td>–</td><td>2</td></tr>
+            <tr><td>Krebs cycle ×2<small>matrix</small></td><td>2</td><td>6</td><td>2</td><td>4</td></tr>
+            <tr class="sum"><td>Total</td><td>4</td><td>10</td><td>2</td><td>6</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="eq">10 ${m('NADH', 'nadh')} × 2.5 = 25 · 2 ${m('FADH₂', 'fadh')} × 1.5 = 3 · + 4 = <span class="m" style="--c:var(--atp)">≈32 ATP</span></div>
+      <ul class="facts">
+        <li>The figure is about 30 when NADH from glycolysis enters the mitochondrion by the glycerol-phosphate shuttle, which hands its electrons to FAD instead.</li>
+        <li>All six carbons of glucose leave as the CO₂ you exhale. The oxygen you inhale ends up as water.</li>
+        <li>ATP is spent almost as fast as it is made. You recycle roughly your own body weight of it every day.</li>
+      </ul>
+      <div class="eq">C₆H₁₂O₆ + 6 O₂ → 6 ${m('CO₂', 'co2')} + 6 H₂O + ≈32 ${m('ATP', 'atp')}</div>`,
+  },
+];
+
+/* ================================================================
+   Three.js setup
+   ================================================================ */
+const stageEl = $('#stage');
+const canvas = $('#gl');
+let renderer;
+try {
+  if (!window.THREE) throw new Error('three.js did not load');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+} catch (err) {
+  const d = document.createElement('div');
+  d.className = 'nogl';
+  d.textContent = 'The 3D view needs WebGL, which this browser could not start. The chapters on the right still work.';
+  stageEl.appendChild(d);
+}
+
+const V3 = window.THREE ? THREE.Vector3 : function () {};
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const rnd = mulberry32(20261125);
+const rr = (a, b) => a + (b - a) * rnd();
+const ease = {
+  inOut: (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2),
+  out: (u) => 1 - Math.pow(1 - u, 3),
+  lin: (u) => u,
+};
+
+let now = 0, dtG = 0;
+const css = getComputedStyle(document.documentElement);
+const col = (name) => new THREE.Color(css.getPropertyValue('--' + name).trim());
+
+function buildPanelOnly() {
+  setupPanel(() => {});
+  const id = (location.hash || '').slice(1);
+  showChapter(CHAPTERS.findIndex(c => c.id === id) >= 0 ? CHAPTERS.findIndex(c => c.id === id) : 0);
+}
+
+/* ---------- panel shared state (used by both paths) ---------- */
+let chapterIndex = 0;
+let onChapterChange = () => {};
+function setupPanel(cb) {
+  onChapterChange = cb;
+  const rail = $('#rail');
+  rail.innerHTML = CHAPTERS.map((c, i) => `<button type="button" data-i="${i}" aria-label="Chapter ${i + 1}: ${c.short}" title="${c.short}">${i + 1}</button>`).join('');
+  rail.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showChapter(+b.dataset.i); });
+  $('#prevBtn').addEventListener('click', () => showChapter(chapterIndex - 1));
+  $('#nextBtn').addEventListener('click', () => showChapter(chapterIndex + 1));
+  addEventListener('keydown', (e) => {
+    if (e.target.closest && e.target.closest('input, textarea, select')) return;
+    if (e.key === 'ArrowRight' && !e.altKey) showChapter(chapterIndex + 1);
+    if (e.key === 'ArrowLeft' && !e.altKey) showChapter(chapterIndex - 1);
+  });
+  addEventListener('hashchange', () => {
+    const i = CHAPTERS.findIndex(c => c.id === location.hash.slice(1));
+    if (i >= 0 && i !== chapterIndex) showChapter(i);
+  });
+}
+function showChapter(i) {
+  if (i < 0 || i >= CHAPTERS.length) return;
+  const prev = chapterIndex;
+  chapterIndex = i;
+  const ch = CHAPTERS[i];
+  [...$('#rail').children].forEach((b, k) => { b.classList.toggle('on', k === i); b.classList.toggle('done', k < i); });
+  $('#railName').textContent = `Chapter ${i + 1} of ${CHAPTERS.length} · ${ch.where}`;
+  $('#chapter').innerHTML = `<h2>${ch.title}</h2>` + ch.html();
+  const p = CHAPTERS[i - 1], n = CHAPTERS[i + 1];
+  $('#prevBtn').disabled = !p; $('#prevName').textContent = p ? p.short : '';
+  $('#nextBtn').disabled = !n; $('#nextName').textContent = n ? n.short : '';
+  $('#legend').innerHTML = ch.legend.map(([c, t]) => `<span style="--c:var(--${c})"><i></i>${t}</span>`).join('');
+  if (location.hash.slice(1) !== ch.id) { try { history.replaceState(null, '', '#' + ch.id); } catch (e) { location.hash = ch.id; } }
+  $('#panel').scrollTop = 0;
+  onChapterChange(ch.id, CHAPTERS[prev] && CHAPTERS[prev].id);
+}
+
+/* ================================================================
+   The 3D world
+   ================================================================ */
+function init() {
+  const scene = new THREE.Scene();
+  const BG = col('bg');
+  scene.background = BG;
+  scene.fog = new THREE.FogExp2(BG, 0.006);
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 600);
+  camera.position.set(10, 9, 30);
+  const controls = new THREE.OrbitControls(camera, canvas);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.enablePan = false;
+  controls.minDistance = 3;
+  controls.maxDistance = 120;
+  controls.autoRotateSpeed = 0.35;
+
+  scene.add(new THREE.AmbientLight(0x8fa3c4, 0.55));
+  const hemi = new THREE.HemisphereLight(0xbfd8ff, 0x1a1020, 0.5); scene.add(hemi);
+  const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(12, 20, 16); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x6fbfff, 0.35); rim.position.set(-18, -6, -14); scene.add(rim);
+
+  const C = {};
+  ['glucose', 'pyruvate', 'acetyl', 'nadh', 'fadh', 'atp', 'co2', 'proton', 'electron', 'fat', 'amino', 'fdg', 'mito', 'nucleus', 'golgi', 'lyso', 'membrane'].forEach(k => C[k] = col(k));
+  const UP = new V3(0, 1, 0);
+
+  /* ---------- material + sprite helpers ---------- */
+  function fresnelMat(color, intensity = 1, power = 2.4) {
+    return new THREE.ShaderMaterial({
+      uniforms: { uColor: { value: new THREE.Color(color) }, uI: { value: intensity }, uP: { value: power } },
+      vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 mv = modelViewMatrix * vec4(position,1.0); vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'uniform vec3 uColor; uniform float uI; uniform float uP; varying vec3 vN; varying vec3 vV; void main(){ float f = pow(1.0 - abs(dot(normalize(vN), normalize(vV))), uP); gl_FragColor = vec4(uColor * f * uI, 1.0); }',
+      transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+    });
+  }
+  const GLOW = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d'); const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.22, 'rgba(255,255,255,.55)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+  })();
+  function glow(color, size) {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    s.scale.setScalar(size);
+    return s;
+  }
+  const texCache = new Map();
+  function textTex(text, color) {
+    const k = text + '|' + color.getHexString();
+    if (texCache.has(k)) return texCache.get(k);
+    const fs = 56, pad = 14;
+    const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+    const font = `500 ${fs}px "IBM Plex Mono", Consolas, monospace`;
+    ctx.font = font;
+    c.width = Math.ceil(ctx.measureText(text).width) + pad * 2; c.height = fs + pad * 2;
+    ctx.font = font; ctx.textBaseline = 'middle';
+    ctx.shadowColor = '#' + color.getHexString(); ctx.shadowBlur = 14;
+    ctx.fillStyle = '#' + color.getHexString(); ctx.fillText(text, pad, c.height / 2 + 2);
+    const tex = new THREE.CanvasTexture(c); tex.minFilter = THREE.LinearFilter;
+    const v = { tex, aspect: c.width / c.height };
+    texCache.set(k, v); return v;
+  }
+  function textSprite(text, color, h = 0.7) {
+    const t = textTex(text, color);
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: t.tex, transparent: true, depthWrite: false }));
+    s.scale.set(h * t.aspect, h, 1);
+    return s;
+  }
+  const atomGeo = new THREE.SphereGeometry(1, 18, 14);
+  const matCache = new Map();
+  function atomMat(color) {
+    const k = color.getHexString();
+    if (!matCache.has(k)) matCache.set(k, new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.45, roughness: 0.35, metalness: 0.05 }));
+    return matCache.get(k);
+  }
+  function layout(n, shape, d) {
+    const pts = [];
+    if (shape === 'chain') {
+      for (let i = 0; i < n; i++) pts.push(new V3((i - (n - 1) / 2) * d * 0.86, (i % 2 ? 0.25 : -0.25) * d, 0));
+    } else if (n === 1) pts.push(new V3());
+    else {
+      const R = d / (2 * Math.sin(Math.PI / n));
+      for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2 + Math.PI / 2; pts.push(new V3(Math.cos(a) * R, Math.sin(a) * R, 0)); }
+    }
+    return pts;
+  }
+  function molecule(n, color, { shape = 'ring', r = 0.22, glowSize = 2.2, special = null } = {}) {
+    const g = new THREE.Group();
+    layout(n, shape, r * 2.1).forEach((p, i) => {
+      const a = new THREE.Mesh(atomGeo, atomMat(special && i === 0 ? special : color));
+      a.scale.setScalar(special && i === 0 ? r * 1.15 : r);
+      a.position.copy(p); g.add(a);
+    });
+    if (glowSize) g.add(glow(color, glowSize));
+    return g;
+  }
+  function disposeObj(o) {
+    if (o.parent) o.parent.remove(o);
+    o.traverse(c => { if (c.isSprite) c.material.dispose(); });
+  }
+
+  /* ---------- agents: small animations that run themselves ---------- */
+  let agents = [];
+  function clearAgents() { agents.forEach(a => a.obj && disposeObj(a.obj)); agents = []; }
+  function travel(parent, obj, points, dur, opts = {}) {
+    const curve = new THREE.CatmullRomCurve3(points.map(p => p.clone()));
+    const e = opts.ease || ease.inOut;
+    parent.add(obj);
+    obj.position.copy(points[0]);
+    const start = now + (opts.delay || 0);
+    if (opts.delay) obj.visible = false;
+    agents.push({
+      obj,
+      update(t) {
+        if (t < start) return true;
+        obj.visible = true;
+        const u = Math.min(1, (t - start) / dur);
+        obj.position.copy(curve.getPointAt(e(u)));
+        if (opts.spin) { obj.rotation.x += opts.spin * dtG; obj.rotation.y += opts.spin * 0.7 * dtG; }
+        if (opts.shrinkEnd && u > 0.8) obj.scale.setScalar(Math.max(0.001, (1 - u) / 0.2));
+        if (u >= 1) {
+          const keep = opts.keep;
+          if (!keep) disposeObj(obj);
+          if (opts.onDone) opts.onDone(obj);
+          return false;
+        }
+        return true;
+      },
+    });
+  }
+  function emit(parent, kind, from, to, dur = 2.2, delay = 0) {
+    const info = OUT[kind];
+    const color = C[info.c];
+    const g = new THREE.Group();
+    const gl = glow(color, 1.5); g.add(gl);
+    const lb = textSprite(info.label, color, 0.62); lb.position.y = 0.72; g.add(lb);
+    const core = new THREE.Mesh(atomGeo, atomMat(color)); core.scale.setScalar(0.16); g.add(core);
+    g.position.copy(from); g.visible = !delay; parent.add(g);
+    const start = now + delay;
+    agents.push({
+      obj: g,
+      update(t) {
+        if (t < start) return true;
+        g.visible = true;
+        const u = Math.min(1, (t - start) / dur);
+        g.position.lerpVectors(from, to, ease.out(u));
+        const op = u < 0.7 ? 1 : 1 - (u - 0.7) / 0.3;
+        gl.material.opacity = op; lb.material.opacity = op; core.scale.setScalar(0.16 * Math.max(op, 0.001));
+        if (u >= 1) { disposeObj(g); return false; }
+        return true;
+      },
+    });
+  }
+  function every(fn, obj = null) { agents.push({ obj, update: fn }); }
+
+  /* ================= CELL GROUP ================= */
+  const cellGroup = new THREE.Group(); scene.add(cellGroup);
+  const R = 12;
+  const nucleusPos = new V3(-2, 0.5, -0.5);
+  const D = new V3(0.85, 0.15, 0.5).normalize();   // GLUT gate direction
+  const SIDE = new V3().crossVectors(UP, D).normalize();
+  const GLUT = D.clone().multiplyScalar(R);
+  const SPLIT = D.clone().multiplyScalar(9.4);
+
+  // membrane
+  {
+    const geo = new THREE.SphereGeometry(R, 128, 96);
+    const p = geo.attributes.position, v = new V3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      const n = Math.sin(v.x * 0.35 + 1.3) * Math.cos(v.y * 0.42) * 0.45 + Math.sin(v.z * 0.5 + v.y * 0.2) * 0.3;
+      v.multiplyScalar(1 + n / R); p.setXYZ(i, v.x, v.y, v.z);
+    }
+    geo.computeVertexNormals();
+    cellGroup.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: C.membrane, transparent: true, opacity: 0.07, depthWrite: false, side: THREE.DoubleSide, roughness: 0.4 })));
+    cellGroup.add(new THREE.Mesh(geo, fresnelMat(C.membrane, 1.1, 2.6)));
+    // membrane proteins
+    const n = 1600, arr = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, s = Math.sqrt(1 - u * u); arr.set([s * Math.cos(th) * R, u * R, s * Math.sin(th) * R], i * 3); }
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+    cellGroup.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x9fe3ea, size: 0.09, transparent: true, opacity: 0.55, depthWrite: false })));
+  }
+  // GLUT transporter
+  {
+    const g = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: C.glucose, emissive: C.glucose, emissiveIntensity: 0.35, roughness: 0.5 });
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * Math.PI * 2;
+      const c = new THREE.Mesh(new THREE.CapsuleGeometry(0.18, 1.1, 4, 10), mat);
+      c.position.set(Math.cos(a) * 0.42, 0, Math.sin(a) * 0.42); g.add(c);
+    }
+    g.position.copy(GLUT);
+    g.quaternion.setFromUnitVectors(UP, D);
+    cellGroup.add(g);
+  }
+  // nucleus
+  const nucleus = new THREE.Group(); nucleus.position.copy(nucleusPos); cellGroup.add(nucleus);
+  {
+    const geo = new THREE.SphereGeometry(3.6, 64, 48);
+    nucleus.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: C.nucleus, emissive: C.nucleus, emissiveIntensity: 0.18, transparent: true, opacity: 0.35, roughness: 0.6, depthWrite: false })));
+    nucleus.add(new THREE.Mesh(geo, fresnelMat(C.nucleus, 1.4, 2.0)));
+    const nl = new THREE.Mesh(new THREE.SphereGeometry(1.1, 32, 24), new THREE.MeshStandardMaterial({ color: 0x3348a8, emissive: 0x2a3f9a, emissiveIntensity: 0.6, roughness: 0.7 }));
+    nl.position.set(0.8, 0.4, 0.6); nucleus.add(nl);
+    // chromatin
+    const n = 900, arr = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { const d = new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)); if (d.length() > 1) { i--; continue; } d.multiplyScalar(3.2); arr.set([d.x, d.y, d.z], i * 3); }
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(arr, 3));
+    nucleus.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xa9b8ff, size: 0.08, transparent: true, opacity: 0.7, depthWrite: false })));
+    // pores
+    const pm = new THREE.MeshBasicMaterial({ color: 0xc3ceff });
+    const pgeo = new THREE.TorusGeometry(0.12, 0.04, 6, 12);
+    for (let i = 0; i < 70; i++) {
+      const d = new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).normalize();
+      const t = new THREE.Mesh(pgeo, pm); t.position.copy(d.clone().multiplyScalar(3.62)); t.lookAt(d.clone().multiplyScalar(10)); nucleus.add(t);
+    }
+  }
+  // rough ER
+  const erGroup = new THREE.Group(); cellGroup.add(erGroup);
+  {
+    const mat = new THREE.MeshStandardMaterial({ color: C.membrane, emissive: C.membrane, emissiveIntensity: 0.3, roughness: 0.5, transparent: true, opacity: 0.85 });
+    const riboPts = [];
+    for (let k = 0; k < 5; k++) {
+      const r = 4.5 + k * 0.48, tilt = (k - 2) * 0.22, pts = [];
+      for (let i = 0; i <= 48; i++) {
+        const a = 0.2 + k * 0.1 + i / 48 * 4.7;
+        const y = Math.sin(a * 3 + k) * 0.8 + (k - 2) * 0.55;
+        pts.push(new V3(Math.cos(a) * r, y, Math.sin(a) * r).applyAxisAngle(new V3(1, 0, 0), tilt).add(nucleusPos));
+      }
+      const curve = new THREE.CatmullRomCurve3(pts);
+      erGroup.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 200, 0.15, 8, false), mat));
+      for (let i = 0; i < 140; i++) { const p = curve.getPointAt(rnd()); p.add(new V3(rr(-.22, .22), rr(-.22, .22), rr(-.22, .22))); riboPts.push(p.x, p.y, p.z); }
+    }
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(riboPts, 3));
+    erGroup.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xd6e2ee, size: 0.09, transparent: true, opacity: 0.9, depthWrite: false })));
+  }
+  // golgi
+  const golgiPos = new V3(3.2, 4.6, -4.2);
+  const golgi = new THREE.Group(); golgi.position.copy(golgiPos); cellGroup.add(golgi);
+  {
+    const inner = new THREE.Group(); inner.rotation.x = Math.PI / 2; golgi.add(inner);
+    const mat = new THREE.MeshStandardMaterial({ color: C.golgi, emissive: C.golgi, emissiveIntensity: 0.3, roughness: 0.5 });
+    for (let i = 0; i < 5; i++) {
+      const rad = 1.7 - Math.abs(i - 2) * 0.18;
+      const geo = new THREE.CylinderGeometry(rad, rad, 0.17, 48, 1);
+      const p = geo.attributes.position;
+      for (let j = 0; j < p.count; j++) { const x = p.getX(j), z = p.getZ(j); p.setY(j, p.getY(j) + 0.16 * (x * x + z * z)); }
+      geo.computeVertexNormals();
+      const s = new THREE.Mesh(geo, mat); s.position.y = (i - 2) * 0.4; inner.add(s);
+    }
+    for (let i = 0; i < 9; i++) {
+      const a = rnd() * Math.PI * 2, v = new THREE.Mesh(atomGeo, mat);
+      v.scale.setScalar(rr(0.14, 0.22)); v.position.set(Math.cos(a) * 2.1, rr(-1, 1.2), Math.sin(a) * 2.1); inner.add(v);
+    }
+    golgi.lookAt(nucleusPos);
+  }
+  // mitochondria (small)
+  const mitos = [];
+  {
+    const spots = [D.clone().multiplyScalar(6.6).add(new V3(0, -2.6, 0))];
+    let guard = 0;
+    while (spots.length < 9 && guard++ < 4000) {
+      const p = new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).multiplyScalar(10.4);
+      const len = p.length();
+      if (len < 4.5 || len > 10.2) continue;
+      if (p.distanceTo(nucleusPos) < 6.2 || p.distanceTo(golgiPos) < 3.2) continue;
+      if (spots.some(s => s.distanceTo(p) < 3.0)) continue;
+      spots.push(p);
+    }
+    const geo = new THREE.CapsuleGeometry(0.55, 1.7, 8, 18);
+    const mat = new THREE.MeshStandardMaterial({ color: C.mito, emissive: C.mito, emissiveIntensity: 0.35, roughness: 0.45 });
+    const fr = fresnelMat(C.mito, 1.3, 1.8);
+    spots.forEach((p, i) => {
+      const g = new THREE.Group();
+      g.add(new THREE.Mesh(geo, mat));
+      const sh = new THREE.Mesh(geo, fr); sh.scale.setScalar(1.12); g.add(sh);
+      g.position.copy(p); g.rotation.set(rr(0, 3), rr(0, 3), rr(0, 3));
+      g.userData = { base: p.clone(), ph: rr(0, 6.28) };
+      cellGroup.add(g); mitos.push(g);
+    });
+  }
+  const M1 = mitos[0].position.clone();
+  // lysosomes
+  const lysos = [];
+  {
+    const mat = new THREE.MeshStandardMaterial({ color: C.lyso, emissive: C.lyso, emissiveIntensity: 0.4, roughness: 0.4 });
+    let guard = 0;
+    while (lysos.length < 6 && guard++ < 3000) {
+      const p = new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).multiplyScalar(10);
+      if (p.length() > 10 || p.distanceTo(nucleusPos) < 5.6) continue;
+      if (mitos.some(mm => mm.position.distanceTo(p) < 2) || p.distanceTo(golgiPos) < 2.6) continue;
+      const l = new THREE.Mesh(atomGeo, mat); l.scale.setScalar(rr(0.35, 0.5)); l.position.copy(p);
+      l.userData = { base: p.clone(), ph: rr(0, 6.28) };
+      cellGroup.add(l); lysos.push(l);
+    }
+  }
+  // free ribosomes
+  {
+    const arr = [];
+    while (arr.length < 2000 * 3) {
+      const p = new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).multiplyScalar(11.2);
+      if (p.length() > 11.2 || p.distanceTo(nucleusPos) < 4) continue;
+      arr.push(p.x, p.y, p.z);
+    }
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+    cellGroup.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0x8fa2b8, size: 0.07, transparent: true, opacity: 0.6, depthWrite: false })));
+  }
+  // cytoskeleton
+  const cytoAnchor = new V3();
+  {
+    const mat = new THREE.LineBasicMaterial({ color: C.pyruvate, transparent: true, opacity: 0.28 });
+    for (let i = 0; i < 44; i++) {
+      const d = new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).normalize();
+      const a = nucleusPos.clone().add(d.clone().multiplyScalar(3.9));
+      const e = d.clone().add(new V3(rr(-.3, .3), rr(-.3, .3), rr(-.3, .3))).normalize().multiplyScalar(11.6);
+      const mid = a.clone().lerp(e, 0.5).add(new V3(rr(-1.2, 1.2), rr(-1.2, 1.2), rr(-1.2, 1.2)));
+      const pts = new THREE.CatmullRomCurve3([a, mid, e]).getPoints(24);
+      cellGroup.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+      if (i === 3) cytoAnchor.copy(pts[16]);
+    }
+  }
+
+  /* ================= MITOCHONDRION GROUP ================= */
+  const mitoGroup = new THREE.Group(); scene.add(mitoGroup);
+  const cristae = [];
+  {
+    const outer = new THREE.CapsuleGeometry(6, 18, 24, 64); outer.rotateZ(Math.PI / 2);
+    mitoGroup.add(new THREE.Mesh(outer, new THREE.MeshStandardMaterial({ color: C.mito, transparent: true, opacity: 0.05, depthWrite: false, side: THREE.DoubleSide })));
+    mitoGroup.add(new THREE.Mesh(outer, fresnelMat(C.mito, 1.0, 2.6)));
+    const inner = new THREE.CapsuleGeometry(5.3, 17, 24, 64); inner.rotateZ(Math.PI / 2);
+    const innerMat = fresnelMat(new THREE.Color(0xffa15c), 0.55, 2.2);
+    mitoGroup.add(new THREE.Mesh(inner, innerMat));
+    for (let i = 0; i < 9; i++) {
+      const x = -12 + i * 3;
+      const geo = new THREE.CylinderGeometry(3.6, 3.6, 0.32, 48); geo.rotateZ(Math.PI / 2);
+      const mat = new THREE.MeshStandardMaterial({ color: 0xff8a4f, emissive: 0xff6a3a, emissiveIntensity: 0.35, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide });
+      const cr = new THREE.Mesh(geo, mat);
+      cr.position.set(x, i % 2 ? 1.6 : -1.6, 0); cr.scale.set(1, 1, 1.15);
+      mitoGroup.add(cr); cristae.push(cr);
+    }
+    // ATP synthase knobs on cristae
+    const knobs = new THREE.InstancedMesh(atomGeo, new THREE.MeshStandardMaterial({ color: C.atp, emissive: C.atp, emissiveIntensity: 0.4 }), 9 * 22);
+    const m4 = new THREE.Matrix4(); let k = 0;
+    cristae.forEach((cr) => {
+      for (let j = 0; j < 22; j++) {
+        const a = rnd() * Math.PI * 2, rad = rr(1.2, 3.4);
+        const p = new V3(cr.position.x + (rnd() < 0.5 ? -0.3 : 0.3), cr.position.y + Math.cos(a) * rad, Math.sin(a) * rad * 1.15);
+        m4.compose(p, new THREE.Quaternion(), new V3(0.12, 0.12, 0.12)); knobs.setMatrixAt(k++, m4);
+      }
+    });
+    mitoGroup.add(knobs);
+    // matrix granules
+    const arr = [];
+    while (arr.length < 900 * 3) { const x = rr(-13, 13), y = rr(-4.8, 4.8), z = rr(-4.8, 4.8); if (y * y + z * z > 23) continue; arr.push(x, y, z); }
+    const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+    mitoGroup.add(new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xffd0a6, size: 0.07, transparent: true, opacity: 0.5, depthWrite: false })));
+    // mtDNA loops
+    const dm = new THREE.MeshStandardMaterial({ color: 0xffd2a8, emissive: 0xffb27a, emissiveIntensity: 0.4 });
+    [[-10, -2.8, -2.5], [9.5, 2.6, -2.2], [11, -2.4, 2.4]].forEach(p => { const t = new THREE.Mesh(new THREE.TorusKnotGeometry(0.45, 0.05, 64, 6, 2, 3), dm); t.position.set(...p); mitoGroup.add(t); });
+  }
+  // Krebs ring
+  const ring = new THREE.Group(); ring.position.set(0, 0, 2); mitoGroup.add(ring);
+  const RR = 4.4;
+  const nodeAngle = (i) => Math.PI / 2 - i * Math.PI * 2 / 8;
+  const nodePos = (i) => new V3(Math.cos(nodeAngle(i)) * RR, Math.sin(nodeAngle(i)) * RR, 0);
+  const arcPos = (i, u) => { const a = nodeAngle(i) - u * Math.PI * 2 / 8; return new V3(Math.cos(a) * RR, Math.sin(a) * RR, 0); };
+  const nodeMeshes = [];
+  {
+    ring.add(new THREE.Mesh(new THREE.TorusGeometry(RR, 0.045, 8, 200), new THREE.MeshBasicMaterial({ color: 0x8e7ac8, transparent: true, opacity: 0.8 })));
+    ring.add(new THREE.Mesh(new THREE.TorusGeometry(RR, 0.25, 8, 200), new THREE.MeshBasicMaterial({ color: C.acetyl, transparent: true, opacity: 0.07, depthWrite: false })));
+    const coneGeo = new THREE.ConeGeometry(0.15, 0.42, 12);
+    const coneMat = new THREE.MeshBasicMaterial({ color: 0xb9a8ec });
+    for (let i = 0; i < 8; i++) {
+      const a = nodeAngle(i) - Math.PI / 8;
+      const cone = new THREE.Mesh(coneGeo, coneMat);
+      cone.position.set(Math.cos(a) * RR, Math.sin(a) * RR, 0);
+      cone.quaternion.setFromUnitVectors(UP, new V3(Math.sin(a), -Math.cos(a), 0));
+      ring.add(cone);
+      const nm = new THREE.Mesh(atomGeo, new THREE.MeshStandardMaterial({ color: 0xcfd8e6, emissive: 0x7a86a0, emissiveIntensity: 0.4 }));
+      nm.scale.setScalar(0.24); nm.position.copy(nodePos(i)); ring.add(nm); nodeMeshes.push(nm);
+    }
+  }
+  let token = null;
+  function setToken(n) {
+    if (token) disposeObj(token);
+    token = molecule(n, C.electron, { shape: 'ring', r: 0.2, glowSize: 2.4 });
+    token.position.copy(tokenPos);
+    ring.add(token);
+  }
+  const tokenPos = nodePos(0);
+  function highlightNode(i) {
+    nodeMeshes.forEach((nm, k) => {
+      const on = k === i;
+      nm.material.emissive.set(on ? C.acetyl : new THREE.Color(0x7a86a0));
+      nm.material.emissiveIntensity = on ? 1.1 : 0.4;
+      nm.scale.setScalar(on ? 0.34 : 0.24);
+    });
+    labels.forEach(l => { if (l.node !== undefined) l.el.classList.toggle('on', l.node === i); });
+  }
+
+  /* ================= ETC GROUP ================= */
+  const etcGroup = new THREE.Group(); scene.add(etcGroup);
+  const X = { I: -15, II: -9, III: -3, IV: 4, SYN: 13 };
+  let rotor;
+  {
+    const foot = [{ x: X.I, w: 3.5, d: 1.9 }, { x: X.II, w: 1.1, d: 1.1 }, { x: X.III, w: 2.3, d: 2.1 }, { x: X.IV, w: 2, d: 1.9 }, { x: X.SYN, w: 1.9, d: 1.9 }, { x: X.SYN + 2.1, w: 0.8, d: 0.8 }];
+    const heads = [];
+    for (let x = -22; x <= 22; x += 0.6) for (let z = -5.1; z <= 5.1; z += 0.6) {
+      if (foot.some(f => ((x - f.x) / f.w) ** 2 + (z / f.d) ** 2 < 1)) continue;
+      heads.push([x + rr(-.05, .05), z + rr(-.05, .05)]);
+    }
+    const hg = new THREE.SphereGeometry(0.24, 10, 8);
+    const hm = new THREE.MeshStandardMaterial({ color: 0x8f6d55, emissive: 0x2a1a10, emissiveIntensity: 0.5, roughness: 0.8 });
+    const im = new THREE.InstancedMesh(hg, hm, heads.length * 2);
+    const m4 = new THREE.Matrix4(); let k = 0;
+    heads.forEach(([x, z]) => { [1.05, -1.05].forEach(y => { m4.makeTranslation(x, y + rr(-.04, .04), z); im.setMatrixAt(k++, m4); }); });
+    etcGroup.add(im);
+    etcGroup.add(new THREE.Mesh(new THREE.BoxGeometry(44.4, 1.7, 10.6), new THREE.MeshStandardMaterial({ color: 0x6b4630, transparent: true, opacity: 0.32, depthWrite: false })));
+
+    function protein(color, parts) {
+      const total = parts.reduce((s, p) => s + p.n, 0);
+      const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.55, emissive: color, emissiveIntensity: 0.3 });
+      const ims = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 14, 10), mat, total);
+      let j = 0;
+      parts.forEach(p => {
+        for (let i = 0; i < p.n; i++) {
+          let v; do { v = new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)); } while (v.lengthSq() > 1);
+          v.multiply(new V3(...p.r)).add(new V3(...p.c));
+          const s = rr(0.42, 0.8) * (p.s || 1);
+          m4.compose(v, new THREE.Quaternion(), new V3(s, s, s)); ims.setMatrixAt(j++, m4);
+        }
+      });
+      etcGroup.add(ims);
+    }
+    protein(new THREE.Color(0x5f8dff), [{ c: [X.I, 0, 0], r: [3.2, 1.3, 1.5], n: 60 }, { c: [X.I - 2, -3.6, 0], r: [1.3, 2.6, 1.3], n: 34 }]);
+    protein(C.fadh, [{ c: [X.II, -2.0, 0], r: [1.3, 1.3, 1.2], n: 18 }, { c: [X.II, -0.3, 0], r: [0.8, 0.8, 0.8], n: 6 }]);
+    protein(new THREE.Color(0x4fd6b0), [{ c: [X.III, 0.2, 0], r: [2.0, 2.2, 1.8], n: 46 }]);
+    protein(new THREE.Color(0xc58bff), [{ c: [X.IV, 0.3, 0], r: [1.7, 1.9, 1.6], n: 34 }]);
+
+    // ATP synthase
+    const syn = new THREE.Group(); syn.position.set(X.SYN, 0, 0); etcGroup.add(syn);
+    rotor = new THREE.Group(); syn.add(rotor);
+    const cm = new THREE.MeshStandardMaterial({ color: 0x9fd3ff, emissive: 0x2f6a9a, emissiveIntensity: 0.5, roughness: 0.4 });
+    for (let i = 0; i < 10; i++) {
+      const a = i / 10 * Math.PI * 2;
+      const c = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 2.6, 12), cm);
+      c.position.set(Math.cos(a) * 1.3, 0, Math.sin(a) * 1.3); rotor.add(c);
+    }
+    const gam = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 4.8, 12), new THREE.MeshStandardMaterial({ color: 0xe6f2ff, emissive: 0x6a8aa8, emissiveIntensity: 0.4 }));
+    gam.position.set(0.18, -2.6, 0); rotor.add(gam);
+    const cam = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.5, 0.5), gam.material); cam.position.set(0.5, -4.6, 0); rotor.add(cam);
+    const fa = new THREE.MeshStandardMaterial({ color: C.atp, emissive: C.atp, emissiveIntensity: 0.22, roughness: 0.5 });
+    const fb = new THREE.MeshStandardMaterial({ color: 0xe0a038, emissive: 0xe0a038, emissiveIntensity: 0.2, roughness: 0.5 });
+    for (let i = 0; i < 6; i++) {
+      const a = i / 6 * Math.PI * 2;
+      const s = new THREE.Mesh(atomGeo, i % 2 ? fa : fb); s.scale.setScalar(1.0);
+      s.position.set(Math.cos(a) * 1.15, -5.5, Math.sin(a) * 1.15); syn.add(s);
+    }
+    const cap = new THREE.Mesh(atomGeo, fb); cap.scale.setScalar(0.6); cap.position.set(0, -6.6, 0); syn.add(cap);
+    const stalkMat = new THREE.MeshStandardMaterial({ color: 0xb7c3d6, roughness: 0.6 });
+    const st = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 6.6, 10), stalkMat); st.position.set(2.2, -2.6, 0); syn.add(st);
+    const asub = new THREE.Mesh(atomGeo, stalkMat); asub.scale.set(0.8, 1.2, 0.8); asub.position.set(2.1, 0, 0); syn.add(asub);
+    const top = new THREE.Mesh(atomGeo, stalkMat); top.scale.setScalar(0.45); top.position.set(1.5, -6.4, 0); syn.add(top);
+  }
+
+  /* ---------- groups & per-group scale ---------- */
+  const GROUPS = { cell: cellGroup, mito: mitoGroup, etc: etcGroup };
+  const UNITS_PER_NM = { cell: 0.0012, mito: 0.015, etc: 0.33 };
+  const FOG = { cell: 0.006, mito: 0.008, etc: 0.007 };
+  let currentGroup = 'cell';
+  function setGroup(g) {
+    currentGroup = g;
+    Object.entries(GROUPS).forEach(([k, grp]) => { grp.visible = k === g; });
+    scene.fog.density = FOG[g];
+  }
+  setGroup('cell');
+
+  /* ================= HTML labels ================= */
+  const labelsEl = $('#labels');
+  const labels = [];
+  function addLabel(text, color, parent, anchor, stages, opts = {}) {
+    const el = document.createElement(opts.onClick ? 'button' : 'div');
+    el.className = 'lbl' + (opts.onClick ? ' click' : '');
+    if (opts.onClick) { el.type = 'button'; el.addEventListener('click', opts.onClick); }
+    el.style.setProperty('--c', `var(--${color})`);
+    el.innerHTML = `<i></i><span>${text}</span>`;
+    el.hidden = true;
+    labelsEl.appendChild(el);
+    const l = { el, parent, anchor: anchor.clone(), stages, node: opts.node, org: opts.org };
+    labels.push(l); return l;
+  }
+  const orgAnchors = {
+    nucleus: { pos: nucleusPos.clone().add(new V3(0, 3.9, 0)), focus: nucleusPos, dist: 13 },
+    er: { pos: nucleusPos.clone().add(new V3(-4.6, -1.6, 2.6)), focus: nucleusPos.clone().add(new V3(-3.6, -1, 2.6)), dist: 11 },
+    golgi: { pos: golgiPos.clone().add(new V3(0, 2.1, 0)), focus: golgiPos, dist: 8 },
+    mito: { pos: M1.clone().add(new V3(0, 1.4, 0)), focus: M1, dist: 6.5 },
+    lyso: { pos: lysos[0] ? lysos[0].position.clone().add(new V3(0, 0.9, 0)) : new V3(0, -6, 6), focus: lysos[0] ? lysos[0].position : new V3(0, -6, 6), dist: 5 },
+    ribo: { pos: new V3(-3, -6.5, 5.5), focus: new V3(-3, -6.5, 5.5), dist: 5.5 },
+    cyto: { pos: cytoAnchor.clone(), focus: cytoAnchor, dist: 8 },
+    membrane: { pos: GLUT.clone().add(new V3(0, 1.4, 0)), focus: GLUT, dist: 9 },
+  };
+  ORGANELLES.forEach(o => {
+    const a = orgAnchors[o.id];
+    addLabel(o.name, o.c, cellGroup, a.pos, ['cell'], { onClick: () => selectOrg(o.id), org: o.id });
+  });
+  addLabel('GLUT gate', 'glucose', cellGroup, GLUT.clone().add(SIDE.clone().multiplyScalar(-1.6)).add(new V3(0, 1.2, 0)), ['glycolysis']);
+  addLabel('Cytosol: glycolysis', 'pyruvate', cellGroup, SPLIT.clone().add(new V3(0, -1.6, 0)), ['glycolysis']);
+  addLabel('Mitochondrion', 'mito', cellGroup, M1.clone().add(new V3(0, -1.4, 0)), ['glycolysis']);
+  addLabel('Nucleus', 'nucleus', cellGroup, nucleusPos.clone().add(new V3(0, 3.9, 0)), ['fuel', 'tally']);
+  const FAT_DIR = new V3(-0.35, 0.75, 0.56).normalize();
+  const AA_DIR = new V3(-0.25, -0.7, 0.66).normalize();
+  addLabel('Carbohydrates → glucose', 'glucose', cellGroup, D.clone().multiplyScalar(17).add(new V3(0, 1.2, 0)), ['fuel']);
+  addLabel('Fats → fatty acids', 'fat', cellGroup, FAT_DIR.clone().multiplyScalar(17).add(new V3(0, 1.2, 0)), ['fuel']);
+  addLabel('Proteins → amino acids', 'amino', cellGroup, AA_DIR.clone().multiplyScalar(17).add(new V3(0, -1.2, 0)), ['fuel']);
+  addLabel('Outer membrane', 'mito', mitoGroup, new V3(-6, 6.4, 0.5), ['link']);
+  addLabel('Inner membrane (cristae)', 'fadh', mitoGroup, new V3(-12, -4.3, 3.2), ['link']);
+  addLabel('Pyruvate dehydrogenase', 'acetyl', mitoGroup, new V3(-10.5, 3.3, 2.4), ['link']);
+  addLabel('Krebs cycle', 'acetyl', mitoGroup, new V3(0, 0, 2), ['link']);
+  KN.forEach((k, i) => {
+    const p = nodePos(i); const out = p.clone().normalize().multiplyScalar(RR + 1.35);
+    addLabel(`${k.name} <small>${k.c}C</small>`, 'acetyl', ring, out, ['krebs'], { node: i });
+  });
+  addLabel('Intermembrane space', 'proton', etcGroup, new V3(-7, 6.2, 0), ['etc']);
+  addLabel('Matrix', 'mito', etcGroup, new V3(-6, -6.5, 0), ['etc']);
+  addLabel('Complex I', 'pyruvate', etcGroup, new V3(X.I + 1, 3.0, 0), ['etc']);
+  addLabel('II', 'fadh', etcGroup, new V3(X.II, -4.3, 0), ['etc']);
+  addLabel('Complex III', 'nadh', etcGroup, new V3(X.III, 3.7, 0), ['etc']);
+  addLabel('Complex IV', 'acetyl', etcGroup, new V3(X.IV + 0.3, 3.7, 0), ['etc']);
+  addLabel('O₂ → H₂O', 'electron', etcGroup, new V3(X.IV + 0.8, -4.2, 0), ['etc']);
+  addLabel('ATP synthase', 'atp', etcGroup, new V3(X.SYN + 3.6, -6, 0), ['etc']);
+
+  /* ================= camera poses & tweening ================= */
+  const glyTarget = SPLIT.clone().add(new V3(0, -0.6, 0));
+  const POSES = {
+    cell: { pos: new V3(10, 9, 30), target: new V3(0, 0, 0), group: 'cell', auto: true, w: 14 },
+    fuel: { pos: new V3(8, 8, 43), target: new V3(0, 0, 3), group: 'cell', w: 19 },
+    glycolysis: { pos: glyTarget.clone().add(D.clone().multiplyScalar(9)).add(SIDE.clone().multiplyScalar(7)).add(new V3(0, 4.5, 0)), target: glyTarget, group: 'cell', w: 7 },
+    link: { pos: new V3(-24, 7, 19), target: new V3(-8, 0, 1), group: 'mito', w: 11 },
+    krebs: { pos: new V3(0, 1, 19), target: new V3(0, 0, 2), group: 'mito', w: 7.2 },
+    etc: { pos: new V3(0, 2.6, 34), target: new V3(0, -1.2, 0), group: 'etc', w: 21 },
+    tally: { pos: new V3(-15, 10, 30), target: new V3(0, 0, 0), group: 'cell', auto: true, w: 14 },
+  };
+  function fitPose(pose) {
+    const a = camera.aspect;
+    const off = pose.pos.clone().sub(pose.target);
+    const tanH = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const need = pose.w ? pose.w / (tanH * Math.min(a, 1.6)) : 0;
+    const len = Math.max(off.length(), need);
+    return { pos: pose.target.clone().add(off.setLength(len)), target: pose.target.clone() };
+  }
+  let tween = null;
+  function tweenTo(pose, dur = 1.5) {
+    if (reduceMotion || dur <= 0) { camera.position.copy(pose.pos); controls.target.copy(pose.target); tween = null; return; }
+    tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pose.pos.clone(), t1: pose.target.clone(), start: now, dur };
+  }
+  controls.addEventListener('start', () => { tween = null; controls.autoRotate = false; });
+
+  let stageId = 'cell';
+  let fadeTimer = null;
+  function goStage(id, instant) {
+    const pose = POSES[id];
+    const fp = fitPose(pose);
+    controls.autoRotate = !!pose.auto && !reduceMotion;
+    if (pose.group !== currentGroup) {
+      if (instant) { setGroup(pose.group); tweenTo(fp, 0); return; }
+      const deeper = ['cell', 'mito', 'etc'].indexOf(pose.group) > ['cell', 'mito', 'etc'].indexOf(currentGroup);
+      $('#fadeTxt').textContent = deeper ? 'Zooming in' : 'Zooming out';
+      $('#fade').classList.add('on');
+      clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(() => {
+        setGroup(pose.group);
+        const back = fp.target.clone().add(fp.pos.clone().sub(fp.target).multiplyScalar(deeper ? 1.9 : 0.55));
+        camera.position.copy(back); controls.target.copy(fp.target);
+        tweenTo(fp, 1.6);
+        $('#fade').classList.remove('on');
+      }, reduceMotion ? 0 : 340);
+    } else tweenTo(fp, instant ? 0 : 1.5);
+  }
+  $('#resetView').addEventListener('click', () => goStage(stageId));
+
+  /* ================= stage behaviours ================= */
+  const B = {};
+  let cristaeTarget = 0.3;
+
+  function selectOrg(id) {
+    const o = ORGANELLES.find(x => x.id === id);
+    const a = orgAnchors[id];
+    controls.autoRotate = false;
+    const dir = camera.position.clone().sub(a.focus).normalize();
+    tweenTo({ pos: a.focus.clone().add(dir.multiplyScalar(a.dist * (camera.aspect < 1.25 ? 1.25 : 1))), target: a.focus.clone() }, 1.3);
+    document.querySelectorAll('.org').forEach(b => b.classList.toggle('on', b.dataset.id === id));
+    labels.forEach(l => { if (l.org) l.el.classList.toggle('on', l.org === id); });
+    const card = $('#orgCard');
+    if (card) { card.style.setProperty('--c', `var(--${o.c})`); card.innerHTML = `<h3>${o.name} <span class="muted">· ${o.role}</span></h3><p>${o.text}</p>`; }
+  }
+
+  B.cell = {
+    enter() {
+      const orgs = $('#orgs');
+      if (orgs) orgs.addEventListener('click', (e) => { const b = e.target.closest('.org'); if (b) selectOrg(b.dataset.id); });
+      labels.forEach(l => l.org && l.el.classList.remove('on'));
+    },
+  };
+
+  function spawnGlucose(fdg) {
+    const start = D.clone().multiplyScalar(20).add(SIDE.clone().multiplyScalar(rr(-2.5, 2.5))).add(new V3(0, rr(-2, 2), 0));
+    const mol = molecule(6, fdg ? C.fdg : C.glucose, { shape: 'ring', special: fdg ? C.fdg : null, glowSize: fdg ? 3 : 2.2 });
+    const inside = D.clone().multiplyScalar(10.6);
+    if (fdg) {
+      travel(cellGroup, mol, [start, D.clone().multiplyScalar(15), GLUT, inside], 3.4, {
+        spin: 0.4, keep: true,
+        onDone: (o) => {
+          const tag = textSprite('FDG-6-P · trapped', C.fdg, 0.5); tag.position.set(0, 0.9, 0); o.add(tag);
+          const t0 = now;
+          every((t) => {
+            const u = (t - t0) / 7;
+            o.scale.setScalar(1 + Math.sin(t * 5) * 0.08);
+            o.rotation.y += dtG * 0.3;
+            if (u > 0.85) { tag.material.opacity = Math.max(0, (1 - u) / 0.15); o.scale.setScalar(Math.max(0.001, (1 - u) / 0.15)); }
+            if (u >= 1) { disposeObj(o); return false; }
+            return true;
+          }, o);
+        },
+      });
+      return;
+    }
+    travel(cellGroup, mol, [start, D.clone().multiplyScalar(15), GLUT, inside, SPLIT], 4, {
+      spin: 0.5,
+      onDone: () => {
+        [-1, 1].forEach((s, i) => {
+          const pyr = molecule(3, C.pyruvate, { shape: 'chain' });
+          const mid = SPLIT.clone().add(SIDE.clone().multiplyScalar(s * 1.3)).add(new V3(0, -0.9, 0));
+          const end = M1.clone().add(SIDE.clone().multiplyScalar(s * 0.35));
+          travel(cellGroup, pyr, [SPLIT, mid, end], 3.2, { spin: 0.9, shrinkEnd: true });
+        });
+        emit(cellGroup, 'ATP', SPLIT, SPLIT.clone().add(new V3(-0.6, 2.8, 0)).add(SIDE.clone().multiplyScalar(-1.2)), 2.4);
+        emit(cellGroup, 'ATP', SPLIT, SPLIT.clone().add(new V3(0.4, 3.2, 0)).add(SIDE.clone().multiplyScalar(0.6)), 2.4, 0.25);
+        emit(cellGroup, 'NADH', SPLIT, SPLIT.clone().add(new V3(0, -2.6, 0)).add(SIDE.clone().multiplyScalar(-1.8)), 2.4, 0.1);
+        emit(cellGroup, 'NADH', SPLIT, SPLIT.clone().add(new V3(0, -3.0, 0)).add(SIDE.clone().multiplyScalar(1.4)), 2.4, 0.35);
+      },
+    });
+  }
+  B.glycolysis = {
+    enter() { this.next = now + 0.3; this.count = 0; },
+    tick(t) {
+      if (t > this.next) {
+        this.count++;
+        spawnGlucose(this.count % 3 === 0);
+        this.next = t + 2.6;
+      }
+    },
+  };
+
+  const nearestMito = (p) => mitos.reduce((b, mm) => (mm.position.distanceTo(p) < b.position.distanceTo(p) ? mm : b), mitos[0]).position;
+  B.fuel = {
+    enter() { this.next = [now + 0.2, now + 1.0, now + 1.8]; },
+    tick(t) {
+      if (t > this.next[0]) {
+        this.next[0] = t + 2.4;
+        const mol = molecule(6, C.glucose, { shape: 'ring' });
+        const s = D.clone().multiplyScalar(21).add(new V3(rr(-2, 2), rr(-2, 2), rr(-2, 2)));
+        travel(cellGroup, mol, [s, D.clone().multiplyScalar(15), GLUT, SPLIT], 4.2, { spin: 0.5, shrinkEnd: true });
+      }
+      if (t > this.next[1]) {
+        this.next[1] = t + 2.8;
+        const mol = molecule(10, C.fat, { shape: 'chain', r: 0.18, glowSize: 2.6 });
+        const gate = FAT_DIR.clone().multiplyScalar(R);
+        const target = nearestMito(FAT_DIR.clone().multiplyScalar(8));
+        const s = FAT_DIR.clone().multiplyScalar(21).add(new V3(rr(-2, 2), rr(-2, 2), rr(-2, 2)));
+        travel(cellGroup, mol, [s, FAT_DIR.clone().multiplyScalar(15), gate, target], 5, { spin: 0.3, shrinkEnd: true });
+      }
+      if (t > this.next[2]) {
+        this.next[2] = t + 1.6;
+        const mol = molecule(3, C.amino, { shape: 'ring', r: 0.2 });
+        const gate = AA_DIR.clone().multiplyScalar(R);
+        const toBuild = rnd() < 0.55;
+        const target = toBuild ? nucleusPos.clone().add(AA_DIR.clone().multiplyScalar(4.9)) : nearestMito(AA_DIR.clone().multiplyScalar(8));
+        const s = AA_DIR.clone().multiplyScalar(21).add(new V3(rr(-2, 2), rr(-2, 2), rr(-2, 2)));
+        travel(cellGroup, mol, [s, AA_DIR.clone().multiplyScalar(15), gate, target], 4.6, { spin: 0.8, shrinkEnd: true });
+      }
+    },
+  };
+
+  B.tally = {
+    enter() { this.next = now; },
+    tick(t) {
+      if (t > this.next) {
+        this.next = t + (reduceMotion ? 0.6 : 0.22);
+        const mm = mitos[Math.floor(rnd() * mitos.length)];
+        const g = glow(C.atp, 0.9);
+        const from = mm.position.clone();
+        const to = from.clone().add(new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).normalize().multiplyScalar(rr(2.5, 4.5)));
+        cellGroup.add(g); g.position.copy(from);
+        const t0 = t;
+        agents.push({ obj: g, update(tt) { const u = Math.min(1, (tt - t0) / 2.2); g.position.lerpVectors(from, to, ease.out(u)); g.material.opacity = 1 - u; if (u >= 1) { disposeObj(g); return false; } return true; } });
+      }
+    },
+  };
+
+  // Link reaction
+  const ringWorld = (p) => p.clone().add(ring.position);
+  B.link = {
+    enter() {
+      cristaeTarget = 0.28; tokenPos.copy(nodePos(0)); setToken(4); highlightNode(0);
+      this.next = now + 0.3;
+    },
+    tick(t) {
+      if (t > this.next) {
+        this.next = t + 3.6;
+        const L = new V3(-10.2, 1.6, 2.4);
+        const pyr = molecule(3, C.pyruvate, { shape: 'chain', r: 0.26 });
+        travel(mitoGroup, pyr, [new V3(-31, 7, 8), new V3(-21, 4, 5), new V3(-14.6, 2.4, 3), L], 2.8, {
+          spin: 0.6,
+          onDone: () => {
+            emit(mitoGroup, 'CO2', L, L.clone().add(new V3(-2.2, 3.4, 2.2)), 2.6);
+            emit(mitoGroup, 'NADH', L, L.clone().add(new V3(1.6, -3.4, 2)), 2.6, 0.15);
+            const ac = molecule(2, C.acetyl, { shape: 'chain', r: 0.26 });
+            const coa = new THREE.Mesh(atomGeo, atomMat(new THREE.Color(0x8aa0c0))); coa.scale.setScalar(0.4); coa.position.set(0.7, 0.3, 0); ac.add(coa);
+            travel(mitoGroup, ac, [L, new V3(-6.5, 3.4, 2.4), ringWorld(nodePos(0)).add(new V3(-0.6, 0.4, 0))], 2.6, { spin: 0.4, shrinkEnd: true });
+          },
+        });
+      }
+    },
+  };
+
+  // Krebs cycle
+  const K = { step: 0, start: 0, hold: 0.8, move: 1.8, playing: true, emitted: false, arrived: false };
+  function kStart(s) {
+    K.step = (s + 8) % 8; K.start = now; K.emitted = false; K.arrived = false;
+    tokenPos.copy(nodePos(K.step)); setToken(KN[K.step].c); highlightNode(K.step);
+    if (K.step === 0) {
+      const ac = molecule(2, C.acetyl, { shape: 'chain', r: 0.22 });
+      const coa = new THREE.Mesh(atomGeo, atomMat(new THREE.Color(0x8aa0c0))); coa.scale.setScalar(0.34); coa.position.set(0.6, 0.25, 0); ac.add(coa);
+      travel(ring, ac, [new V3(-7.5, 6.8, 2), new V3(-3.4, 6.2, 1), nodePos(0).add(new V3(-0.2, 0.3, 0))], K.hold + 0.25, {
+        ease: ease.out,
+        onDone: () => {
+          if (K.step === 0) setToken(6);
+          emitFrom('CoA', nodePos(0));
+        },
+      });
+    }
+    updateKrebsUI();
+  }
+  function emitFrom(kind, p) {
+    if (kind === 'CoA') {
+      const coa = new THREE.Group();
+      coa.add(glow(new THREE.Color(0x8aa0c0), 1.1));
+      const lb = textSprite('CoA', new THREE.Color(0xaabbd6), 0.5); lb.position.y = 0.55; coa.add(lb);
+      const from = p.clone(), to = p.clone().add(new V3(1.6, 2.6, 1.2));
+      ring.add(coa); coa.position.copy(from);
+      const t0 = now;
+      agents.push({ obj: coa, update(t) { const u = Math.min(1, (t - t0) / 1.8); coa.position.lerpVectors(from, to, ease.out(u)); coa.children.forEach(c => c.material.opacity = 1 - u); if (u >= 1) { disposeObj(coa); return false; } return true; } });
+      return;
+    }
+  }
+  function kEmit() {
+    const st = KSTEPS[K.step];
+    setToken(KN[(K.step + 1) % 8].c);
+    const p = tokenPos.clone();
+    const out = p.clone().normalize();
+    st.out.forEach((kind, i) => {
+      const side = new V3(-out.y, out.x, 0).multiplyScalar((i - (st.out.length - 1) / 2) * 1.6);
+      emit(ring, kind, p.clone(), p.clone().add(out.clone().multiplyScalar(kind === 'CO2' ? 4.2 : 3.2)).add(side).add(new V3(0, 0, kind === 'CO2' ? 3 : 1.5)), 2.6, i * 0.18);
+    });
+    updateKrebsUI();
+  }
+  B.krebs = {
+    enter() {
+      cristaeTarget = 0.06; K.playing = !reduceMotion;
+      const kc = $('#kPlay');
+      if (kc) {
+        kc.addEventListener('click', () => { K.playing = !K.playing; if (K.playing && now - K.start > K.hold + K.move) kStart(K.step + 1); updateKrebsUI(); });
+        $('#kPrev').addEventListener('click', () => { K.playing = false; kStart(K.step - 1); });
+        $('#kNext').addEventListener('click', () => { K.playing = false; kStart(K.step + 1); });
+        $('#kDots').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { K.playing = false; kStart(+b.dataset.i); } });
+      }
+      kStart(0);
+    },
+    tick(t) {
+      const el = t - K.start;
+      if (el < K.hold) tokenPos.copy(nodePos(K.step));
+      else if (el < K.hold + K.move) {
+        const u = (el - K.hold) / K.move;
+        tokenPos.copy(arcPos(K.step, ease.inOut(u)));
+        if (!K.emitted && u > 0.5) { K.emitted = true; kEmit(); }
+      } else {
+        if (!K.emitted) { K.emitted = true; kEmit(); }
+        tokenPos.copy(nodePos(K.step + 1));
+        if (!K.arrived) { K.arrived = true; highlightNode((K.step + 1) % 8); }
+        if (K.playing && el > K.hold + K.move + 0.5) kStart(K.step + 1);
+      }
+      if (token) { token.position.copy(tokenPos); token.rotation.z += dtG * 0.6; }
+    },
+    exit() { cristaeTarget = 0.28; },
+  };
+  function updateKrebsUI() {
+    const card = $('#kCard'); if (!card) return;
+    const i = K.step, st = KSTEPS[i], a = KN[i], b = KN[(i + 1) % 8];
+    const extra = st.extraIn ? `<span>+</span><span>${st.extraIn}<span class="c">${st.extraInC}C</span></span>` : '';
+    const chips = st.out.length
+      ? st.out.map(k => `<span class="chip" style="--c:var(--${OUT[k].c})">+ ${OUT[k].label}</span>`).join('')
+      : `<span class="chip none">${i === 0 ? 'CoA released' : i === 6 ? 'H₂O added' : 'Rearrangement only'}</span>`;
+    card.innerHTML = `
+      <div class="step-top"><span class="step-n">Step ${i + 1} of 8</span><span class="enzyme">${st.enzyme}</span></div>
+      <div class="rxn"><span>${a.name}<span class="c">${a.c}C</span></span>${extra}<span class="arrow">→</span><span>${b.name}<span class="c">${b.c}C</span></span></div>
+      <p>${st.note}</p>
+      <div class="chips">${chips}</div>`;
+    const play = $('#kPlay'); if (play) play.textContent = K.playing ? 'Pause' : 'Play';
+    [...$('#kDots').children].forEach((d, k) => d.classList.toggle('on', k === i));
+    const counts = { NADH: 0, FADH2: 0, GTP: 0, CO2: 0 };
+    for (let s = 0; s <= i; s++) { if (s === i && !K.emitted) break; KSTEPS[s].out.forEach(k => counts[k]++); }
+    const max = { NADH: 3, FADH2: 1, GTP: 1, CO2: 2 };
+    $('#kTally').innerHTML = Object.keys(counts).map(k => `<div style="--c:var(--${OUT[k].c})"><b>${counts[k]}/${max[k]}</b><small>${OUT[k].label}</small></div>`).join('');
+  }
+
+  // Electron transport chain
+  const protonGeo = new THREE.SphereGeometry(0.2, 10, 8);
+  const protonMat = new THREE.MeshBasicMaterial({ color: C.proton });
+  function makeProton() { const g = new THREE.Group(); g.add(new THREE.Mesh(protonGeo, protonMat)); g.add(glow(C.proton, 0.9)); return g; }
+  B.etc = {
+    enter() { this.next = now + 0.3; this.free = []; this.nextUse = now + 1; this.used = 0; this.spin = 0.6; this.n = 0; },
+    pump(x, n) {
+      if (this.free.length > 70) return;
+      for (let i = 0; i < n; i++) {
+        const p = makeProton();
+        const a = new V3(x + rr(-1, 1), -3.6, rr(-1, 1));
+        travel(etcGroup, p, [a, new V3(x + rr(-.5, .5), 0, rr(-.5, .5)), new V3(x + rr(-2, 2), 3.4, rr(-2, 2))], 1.5, {
+          keep: true, delay: i * 0.12,
+          onDone: (o) => this.free.push({ o, v: new V3(rr(-1, 1), rr(-.5, .5), rr(-1, 1)) }),
+        });
+      }
+    },
+    electrons(fromFAD) {
+      const e = new THREE.Group(); e.add(glow(C.electron, 1.5));
+      const lb = textSprite('2e⁻', C.electron, 0.5); lb.position.y = 0.6; e.add(lb);
+      const carrier = new THREE.Color(fromFAD ? C.fadh : C.nadh);
+      const dropFrom = fromFAD ? new V3(X.II - 2, -7.5, 2.5) : new V3(X.I - 4.5, -8, 2.5);
+      const dropAt = fromFAD ? new V3(X.II, -3.4, 0.6) : new V3(X.I - 2, -5.8, 0.6);
+      emit(etcGroup, fromFAD ? 'FADH2' : 'NADH', dropFrom, dropAt, 1.3);
+      const q = new THREE.Mesh(atomGeo, atomMat(C.fadh)); q.scale.setScalar(0.34);
+      const cyt = new THREE.Mesh(atomGeo, atomMat(C.mito)); cyt.scale.setScalar(0.5);
+      const seg1 = fromFAD ? [dropAt, new V3(X.II, -1.2, 0.4), new V3(X.II + 0.6, 0, 0.8)] : [dropAt, new V3(X.I - 2, -3, 0.5), new V3(X.I, -0.2, 0.6), new V3(X.I + 3.4, 0, 0.8)];
+      setTimeout(() => {
+        if (stageId !== 'etc') return;
+        travel(etcGroup, e, seg1, fromFAD ? 1.2 : 1.6, {
+          keep: true,
+          onDone: () => {
+            if (!fromFAD) this.pump(X.I, 4);
+            e.add(q);
+            travel(etcGroup, e, [e.position.clone(), new V3(-6, 0, 1.4), new V3(X.III - 1.2, 0, 0.8), new V3(X.III, 0.3, 0)], 1.5, {
+              keep: true,
+              onDone: () => {
+                e.remove(q); this.pump(X.III, 4); e.add(cyt);
+                travel(etcGroup, e, [e.position.clone(), new V3(X.III, 2.9, 0.5), new V3(0.5, 3.4, 0.8), new V3(X.IV, 2.7, 0.5), new V3(X.IV, 0.2, 0)], 1.8, {
+                  keep: true,
+                  onDone: () => {
+                    e.remove(cyt); this.pump(X.IV, 2);
+                    travel(etcGroup, e, [e.position.clone(), new V3(X.IV + 0.4, -2.6, 0.4)], 0.8, {
+                      shrinkEnd: true,
+                      onDone: () => emit(etcGroup, 'H2O', new V3(X.IV + 0.4, -2.8, 0.4), new V3(X.IV + 2.4, -7.5, 2.2), 2.4),
+                    });
+                  },
+                });
+              },
+            });
+          },
+        });
+      }, 1250);
+    },
+    tick(t, dt) {
+      if (t > this.next) {
+        this.n++;
+        this.electrons(this.n % 3 === 0);
+        this.next = t + 2.4;
+      }
+      this.free.forEach(f => {
+        f.v.add(new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).multiplyScalar(dt * 2)).clampLength(0, 1.4);
+        const p = f.o.position; p.addScaledVector(f.v, dt);
+        if (p.x < -21 || p.x > 21) f.v.x *= -1;
+        if (p.y < 2.2 || p.y > 6.5) f.v.y *= -1;
+        if (p.z < -4.5 || p.z > 4.5) f.v.z *= -1;
+        p.y = Math.min(6.5, Math.max(2.2, p.y));
+      });
+      if (t > this.nextUse && this.free.length > 3) {
+        this.nextUse = t + 0.3;
+        const target = new V3(X.SYN + 1.3, 2.4, 0);
+        let bi = 0; this.free.forEach((f, i) => { if (f.o.position.distanceTo(target) < this.free[bi].o.position.distanceTo(target)) bi = i; });
+        const f = this.free.splice(bi, 1)[0];
+        const a = rnd() * Math.PI * 2;
+        travel(etcGroup, f.o, [f.o.position.clone(), new V3(X.SYN + 1.9, 2.6, 0.4), new V3(X.SYN + Math.cos(a) * 1.3, 0, Math.sin(a) * 1.3), new V3(X.SYN + 1.8, -2.4, 1.2)], 1.6, {
+          shrinkEnd: true,
+          onDone: () => {
+            this.used++; this.spin = Math.min(6, this.spin + 0.7);
+            if (this.used % 3 === 0) emit(etcGroup, 'ATP', new V3(X.SYN, -6.2, 1.2), new V3(X.SYN + rr(-3, 3), -10, rr(1, 4)), 2.6);
+          },
+        });
+      }
+      this.spin += (0.6 - this.spin) * Math.min(1, dt * 0.6);
+      rotor.rotation.y += this.spin * dt;
+    },
+    exit() { (this.free || []).forEach(f => disposeObj(f.o)); this.free = []; },
+  };
+
+  /* ================= chapter changes ================= */
+  setupPanel((id, prevId) => {
+    if (B[stageId] && B[stageId].exit) B[stageId].exit();
+    clearAgents();
+    stageId = id;
+    labels.forEach(l => { l.el.classList.remove('on'); });
+    goStage(id, !started);
+    if (B[id] && B[id].enter) B[id].enter();
+    started = true;
+  });
+  let started = false;
+
+  /* ================= resize ================= */
+  function resize() {
+    const r = stageEl.getBoundingClientRect();
+    const w = Math.max(1, r.width), h = Math.max(1, r.height);
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(stageEl);
+  resize();
+
+  const initial = CHAPTERS.findIndex(c => c.id === location.hash.slice(1));
+  showChapter(initial >= 0 ? initial : 0);
+
+  /* ================= frame loop ================= */
+  const scaleTxt = $('#scaleTxt'), scaleBar = $('#scaleBar'), fadeEl = $('#fade');
+  const clock = new THREE.Clock();
+  const tmp = new V3();
+  let lastScaleUpdate = 0;
+  function frame() {
+    requestAnimationFrame(frame);
+    const dt = Math.min(0.1, clock.getDelta());
+    dtG = dt; now += dt;
+
+    if (tween) {
+      const u = Math.min(1, (now - tween.start) / tween.dur), e = ease.inOut(u);
+      camera.position.lerpVectors(tween.p0, tween.p1, e);
+      controls.target.lerpVectors(tween.t0, tween.t1, e);
+      if (u >= 1) tween = null;
+    }
+    controls.update();
+
+    // ambient life
+    const amb = reduceMotion ? 0.2 : 1;
+    if (cellGroup.visible) {
+      mitos.forEach((mm, i) => {
+        const d = mm.userData;
+        mm.position.set(d.base.x + Math.sin(now * 0.4 + d.ph) * 0.12 * amb, d.base.y + Math.cos(now * 0.35 + d.ph) * 0.12 * amb, d.base.z);
+        mm.rotation.y += dt * 0.08 * amb;
+        const mat = mm.children[0].material;
+        mat.emissiveIntensity = stageId === 'tally' ? 0.55 + Math.sin(now * 3 + i) * 0.25 : 0.35;
+      });
+      lysos.forEach(l => { const d = l.userData; l.position.set(d.base.x + Math.sin(now * 0.3 + d.ph) * 0.2 * amb, d.base.y + Math.sin(now * 0.25 + d.ph * 2) * 0.2 * amb, d.base.z + Math.cos(now * 0.3 + d.ph) * 0.2 * amb); });
+      nucleus.rotation.y += dt * 0.02 * amb;
+    }
+    if (mitoGroup.visible) {
+      cristae.forEach(c => { c.material.opacity += (cristaeTarget - c.material.opacity) * Math.min(1, dt * 3); });
+    }
+
+    const b = B[stageId];
+    if (b && b.tick) b.tick(now, dt);
+    const list = agents; agents = [];
+    for (const a of list) if (a.update(now)) agents.push(a);
+
+    renderer.render(scene, camera);
+
+    // labels
+    const rect = canvas.getBoundingClientRect();
+    const w = rect.width, h = rect.height;
+    const fading = fadeEl.classList.contains('on');
+    for (const l of labels) {
+      const show = !fading && l.stages.includes(stageId) && l.parent.visible !== false && GROUPS[currentGroup] && isIn(l.parent, GROUPS[currentGroup]);
+      if (!show) { if (!l.el.hidden) l.el.hidden = true; continue; }
+      tmp.copy(l.anchor).applyMatrix4(l.parent.matrixWorld).project(camera);
+      if (tmp.z > 1 || tmp.x < -1.2 || tmp.x > 1.2 || tmp.y < -1.2 || tmp.y > 1.2) { l.el.hidden = true; continue; }
+      l.el.hidden = false;
+      l.el.style.transform = `translate(${((tmp.x + 1) / 2 * w).toFixed(1)}px, ${((1 - tmp.y) / 2 * h).toFixed(1)}px) translate(-50%, -50%)`;
+    }
+
+    // scale bar
+    if (now - lastScaleUpdate > 0.1) {
+      lastScaleUpdate = now;
+      const dist = camera.position.distanceTo(controls.target);
+      const pxPerUnit = (h / 2) / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * dist);
+      const pxPerNm = pxPerUnit * UNITS_PER_NM[currentGroup];
+      const want = 90 / pxPerNm;
+      const pow = Math.pow(10, Math.floor(Math.log10(want)));
+      const nice = [1, 2, 5, 10].map(v => v * pow).reduce((bst, v) => Math.abs(v * pxPerNm - 90) < Math.abs(bst * pxPerNm - 90) ? v : bst);
+      scaleBar.style.width = (nice * pxPerNm).toFixed(0) + 'px';
+      scaleTxt.textContent = nice >= 1000 ? `${+(nice / 1000).toPrecision(3)} µm` : `${+nice.toPrecision(3)} nm`;
+    }
+  }
+  function isIn(obj, root) { let o = obj; while (o) { if (o === root) return true; o = o.parent; } return false; }
+  requestAnimationFrame(frame);
+}
+
+if (renderer) init();
+else buildPanelOnly();
+})();
+</script>
