@@ -108,6 +108,34 @@
   --nadph: #46e8ff;
   --lactate: #ff7aa2;
   --biomass: #b6f36a;
+  /* tissue modules added with the 18-slide bench */
+  --hepato: #c8733f;
+  --bone: #ece4d0;
+  --cancer: #e646d6;
+  --immune: #7d7bff;
+  --bbb: #c9e86a;
+  --gut: #ff9d7a;
+  --glycogen: #ffd2f0;
+  --urea: #e8f0ff;
+  --ammonia: #b6f36a;
+  --cyp: #ff6a4d;
+  --osteoid: #f7c873;
+  --mineral: #f4f1e6;
+  --rankl: #ff5d73;
+  --opg: #46e8ff;
+  --vegf: #ffe45e;
+  --mhc1: #5fb4ff;
+  --mhc2: #ffb347;
+  --peptide: #ff79c6;
+  --complement: #b6f36a;
+  --antibody: #ffd75e;
+  --perforin: #ff4d5e;
+  --gad: #f7ff8a;
+  --pgp: #ff7aa2;
+  --lymphatic: #e8f6ff;
+  --chylo: #fff0b3;
+  --drug: #b18cff;
+  --sa: #ffe45e;
 
   --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;

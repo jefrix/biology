@@ -13,6 +13,23 @@
     ['Type IIa','Fast','Intermediate','Repeated higher-force work'],
     ['Type IIx','Fastest','Lower','Brief, high-force efforts'],
   ];
+  const RATES = {
+    slow: [50, 'Slow (sinus bradycardia), 50 beats per minute: vagal acetylcholine slows the funny current, so the SA node takes longer to reach threshold. Each RR interval stretches to 1.2 s. Normal in fit athletes and during sleep.'],
+    normal: [72, 'Normal sinus rhythm, 72 beats per minute: every beat starts in the SA node, each P wave is followed by a QRS complex after a PR interval of about 0.16 s, and the RR interval is about 0.83 s.'],
+    fast: [120, 'Fast (sinus tachycardia), 120 beats per minute: norepinephrine acting on β1 receptors raises cAMP, which speeds the funny current and steepens the pacemaker ramp. The RR interval shrinks to 0.5 s and the QT interval shortens.'],
+  };
+  whenLesson('heart-rate', v => { const el = $('#pacemakerCaption'); if (el) el.textContent = RATES[v][1]; });
+  const apSvg = '<svg viewBox="0 0 320 120" role="img" aria-label="An SA node pacemaker potential slowly ramps up to threshold and fires, with no flat resting phase, while a ventricular cell rests flat at minus 90 millivolts, fires, holds a plateau, then repolarizes." style="width:100%;height:auto;margin:6px 0 2px">'
+    + '<text x="4" y="12" fill="var(--muted)" font-size="10" font-family="var(--f-mono)">SA node cell</text>'
+    + '<path d="M4 52 L40 40 Q48 38 50 14 Q56 10 64 30 L72 52 L108 40 Q116 38 118 14 Q124 10 132 30 L140 52 L150 48" fill="none" stroke="var(--sa)" stroke-width="2"/>'
+    + '<text x="30" y="62" fill="var(--sa)" font-size="9" font-family="var(--f-mono)">I_f ramp</text>'
+    + '<text x="170" y="12" fill="var(--muted)" font-size="10" font-family="var(--f-mono)">Ventricular cell</text>'
+    + '<path d="M170 64 L196 64 L198 18 L204 26 L236 30 Q248 34 256 64 L316 64" fill="none" stroke="var(--rbc)" stroke-width="2"/>'
+    + '<text x="210" y="24" fill="var(--rbc)" font-size="9" font-family="var(--f-mono)">plateau</text>'
+    + '<text x="4" y="82" fill="var(--muted)" font-size="10" font-family="var(--f-mono)">ECG</text>'
+    + '<path d="M4 108 L30 108 Q36 100 42 108 L58 108 L61 111 L65 84 L69 112 L72 108 L92 108 Q104 96 116 108 L316 108" fill="none" stroke="var(--electron)" stroke-width="2"/>'
+    + '<text x="34" y="98" fill="var(--electron)" font-size="9" font-family="var(--f-mono)">P</text><text x="60" y="80" fill="var(--electron)" font-size="9" font-family="var(--f-mono)">QRS</text><text x="101" y="94" fill="var(--electron)" font-size="9" font-family="var(--f-mono)">T</text>'
+    + '</svg>';
   const chapters = [
     {id:'muscle-contraction', short:'Signal to force', where:'A skeletal muscle fiber', title:'From nerve impulse to muscle contraction',
       legend:[['electron','Electrical signal'],['atp','Calcium'],['rbc','Actin'],['dendrite','Myosin']],
@@ -38,11 +55,31 @@
           <tr><td>Skeletal</td><td>Yes</td><td>Many, at the edge of each fiber</td><td>Voluntary, through motor neurons</td></tr>
           <tr><td>Cardiac</td><td>Yes</td><td>Usually one or two, central</td><td>Involuntary, set by pacemaker cells</td></tr>
           <tr><td>Smooth</td><td>No</td><td>One, central</td><td>Involuntary, through nerves, hormones and stretch</td></tr></tbody></table></div>
-        <p><a href="#rest">Explore electrical gradients</a> · <a href="#muscle-contraction">Back to signal to force</a></p>
+        <p><a href="#rest">Explore electrical gradients</a> · <a href="#muscle-contraction">Back to signal to force</a> · <a href="#pacemaker">How the heart sets its own rhythm</a></p>
         <p class="credit">Sources: <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-1-overview-of-muscle-tissues">OpenStax, Overview of Muscle Tissues</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-7-cardiac-muscle-tissue">Cardiac Muscle Tissue</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-8-smooth-muscle">Smooth Muscle</a>. The three rows use different magnifications and are not to scale with each other. Cell shapes, nucleus counts and band spacing are schematic.</p>`},
+    {id:'pacemaker', short:'Pacemaker & ECG', where:'The heart’s conduction system', title:'The SA node pacemaker and the ECG',
+      legend:[['sa','Electrical activation'],['rbc','Atria and ventricles'],['electron','ECG and gap junctions']],
+      html:()=>`<p class="lede">Cardiac muscle contracts without any nerve telling each beat to start. Specialized pacemaker cells fire on their own, and a conduction system spreads each impulse in a fixed order that an ECG records from the skin.</p>
+        ${lessonSeg('heart-rate','Heart rate',[['slow','Slow · 50'],['normal','Normal · 72'],['fast','Fast · 120']],'normal')}
+        <p id="pacemakerCaption" class="lesson-phase" aria-live="polite">${RATES[LESSON['heart-rate']||'normal'][1]}</p>
+        ${apSvg}
+        <ol class="lesson-sequence">
+          <li><b>SA node.</b> Pacemaker cells have no stable resting potential. HCN channels open as the cell repolarizes and let in the <b>funny current</b> (I<sub>f</sub>), mostly sodium, so the membrane creeps up from about −60 mV to threshold near −40 mV. Calcium channels then fire the upstroke and potassium channels reset it.</li>
+          <li><b>Atria and AV node.</b> The impulse spreads across both atria (the P wave) and reaches the AV node, which conducts slowly. That delay of about a tenth of a second lets the atria finish filling the ventricles.</li>
+          <li><b>His–Purkinje system.</b> The bundle of His, the left and right bundle branches and the Purkinje fibers carry the impulse at several meters per second to the apex first, so the ventricles squeeze from the bottom up (the QRS complex).</li>
+          <li><b>Recovery.</b> The ventricles repolarize (the T wave) before the next beat. Atrial repolarization is hidden inside the QRS.</li>
+        </ol>
+        <ul class="facts">
+          <li><b>Intercalated discs</b> join cardiomyocytes end to end. Desmosomes hold them together mechanically, and <b>gap junctions</b> of connexin-43 let ions flow from cell to cell, so the muscle acts as a functional syncytium. Compare the <a href="#muscle-tissues">three muscle tissues</a>.</li>
+          <li>The SA node is fastest, so it sets the rate. If it fails, the AV node (about 40 to 60 per minute) or ventricular cells (slower still) take over as backup pacemakers.</li>
+          <li>Ivabradine blocks the funny current to slow the heart. Damage to the AV node causes heart block, which is treated with an implanted electronic pacemaker.</li>
+          <li>A ventricular cell is different: it rests near −90 mV, fires with fast sodium channels, and holds a long calcium plateau that prevents tetanus. See the <a href="#rest">resting potential</a> and <a href="#spike">action potential</a> in neurons.</li>
+        </ul>
+        <div class="callout"><span class="eyebrow">Radiology link</span><p>Cardiac CT and MRI are <b>ECG-gated</b>: images are taken in a chosen part of the RR interval, often mid-diastole, when the heart is most still. For coronary CT angiography, a beta-blocker is often given to slow the heart below about 60 to 65 beats per minute, which lengthens diastole and reduces motion blur.</p></div>
+        <p class="credit">Sources: <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/19-2-cardiac-muscle-and-electrical-activity" target="_blank" rel="noopener">OpenStax Anatomy &amp; Physiology 2e, 19.2 Cardiac Muscle and Electrical Activity</a> · <a href="https://doi.org/10.1161/circresaha.109.208041" target="_blank" rel="noopener">DiFrancesco, the role of the funny current in pacemaker activity (Circ Res, 2010)</a>. The heart is a simplified schematic with the conduction pathways drawn on its surface, and the ECG is a modeled lead II waveform, not a recording. Real conduction is three-dimensional and the waveform varies with the lead and the person.</p>`},
   ];
 
-  function build({scene,addLabel,goStage}) {
+  function build({scene,addLabel,goStage,glow}) {
     const groups = {}, poses = {}, behaviors = {}, fog = {}, depth = {};
     const sphere = new THREE.SphereGeometry(1,20,14);
     const cylinder = new THREE.CylinderGeometry(1,1,1,12);
@@ -245,6 +282,65 @@
           }
           positions.needsUpdate=true;
         });
+      } else if (id==='pacemaker') {
+        poses[id]={group:id,target:new V3(0.6,-0.6,0),pos:new V3(1.5,1.5,19),w:7.6};
+        const glowMat=(c,o)=>new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:.1,roughness:.5,transparent:true,opacity:o,depthWrite:false});
+        const atrMat=glowMat(red,.32), venMat=glowMat(red,.3), pathMat=new THREE.MeshStandardMaterial({color:gold,emissive:gold,emissiveIntensity:.35,roughness:.4});
+        const atria=new THREE.Group(), vent=new THREE.Group(); group.add(atria); group.add(vent);
+        [[-1.35,1.75,.1],[1.3,1.85,-.3]].forEach(([x,y,z])=>{const m=new THREE.Mesh(sphere,atrMat);m.position.set(x,y,z);m.scale.set(1.25,1.05,1.05);atria.add(m);});
+        [[-1,-1.4,.3,1.45,2.2,1.25],[.9,-1.5,-.1,1.6,2.5,1.45]].forEach(([x,y,z,a,b,c])=>{const m=new THREE.Mesh(sphere,venMat);m.position.set(x,y,z);m.scale.set(a,b,c);vent.add(m);});
+        const P=(x,y,z)=>new V3(x,y,z);
+        const tubeOn=(pts,r)=>{const c=new THREE.CatmullRomCurve3(pts);group.add(new THREE.Mesh(new THREE.TubeGeometry(c,40,r,8,false),pathMat));return c;};
+        const SA=P(-1.95,2.65,.75), AV=P(-.3,.35,.75), HIS=P(0,-.35,.8);
+        ball(group,gold,SA.x,SA.y,SA.z,.24); ball(group,gold,AV.x,AV.y,AV.z,.19);
+        const atrPaths=[tubeOn([SA,P(-1.4,1.4,1),AV],.05),tubeOn([SA,P(0,2.6,.6),P(1.6,2.2,.6)],.05),tubeOn([SA,P(-2.2,1.4,.8),P(-1.6,.6,.9)],.04)];
+        const his=tubeOn([AV,HIS],.08);
+        const lbb=tubeOn([HIS,P(.6,-1.5,.95),P(.9,-3.5,.9)],.07), rbb=tubeOn([HIS,P(-.5,-1.6,1),P(-.8,-3.2,1)],.06);
+        const purk=[tubeOn([P(.9,-3.5,.9),P(1.9,-2.5,.9),P(2.35,-.7,.7)],.045),tubeOn([P(-.8,-3.2,1),P(-1.9,-2.3,1),P(-2.3,-.6,.8)],.045),tubeOn([P(.9,-3.5,.9),P(1.2,-2.6,1.4),P(1.4,-1.4,1.3)],.035),tubeOn([P(-.8,-3.2,1),P(-1.1,-2.3,1.4),P(-1.3,-1.2,1.3)],.035)];
+        const sparks=Array.from({length:8},()=>{const s=glow(new THREE.Color(gold),.9);group.add(s);return s;});
+        const saGlow=glow(new THREE.Color(gold),1);saGlow.position.copy(SA);group.add(saGlow);
+        // intercalated disc inset: two cardiomyocytes joined by gap junctions
+        const disc=new THREE.Group(); disc.position.set(5.4,1.6,0); group.add(disc);
+        [-1.05,1.05].forEach(x=>{const b=new THREE.Mesh(new THREE.BoxGeometry(2,1.2,1.2),glowMat(red,.35));b.position.x=x;disc.add(b);});
+        const cx=[]; for (let i=0;i<5;i++){const c=new THREE.Mesh(cylinder,new THREE.MeshStandardMaterial({color:aqua,emissive:aqua,emissiveIntensity:.1,roughness:.4}));disc.add(c);c.position.set(0,-.4+i*.2,.2-(i%2)*.4);c.scale.set(.06,.18,.06);c.rotation.z=Math.PI/2;cx.push(c);}
+        const ions=Array.from({length:6},(_,i)=>ball(disc,gold,-1.8+i*.6,.05*(i%2),.25,.07));
+        // ECG trace
+        const N=260, ecgPts=Array.from({length:N},()=>new V3()), ecgGeo=new THREE.BufferGeometry().setFromPoints(ecgPts);
+        const ecg=new THREE.Line(ecgGeo,new THREE.LineBasicMaterial({color:white})); ecg.frustumCulled=false; group.add(ecg);
+        const base=new THREE.Line(new THREE.BufferGeometry().setFromPoints([new V3(-4.6,-5.4,0),new V3(4.6,-5.4,0)]),new THREE.LineBasicMaterial({color:0x2a3a4f})); group.add(base);
+        const dot=ball(group,white,0,0,0,.09);
+        label('SA node',SA.x-.6,SA.y+.55,'sa'); label('AV node',AV.x-1.1,AV.y+.05,'sa'); label('Bundle of His',HIS.x+1.1,HIS.y+.25,'sa');
+        label('Bundle branches',-1.9,-1.4,'sa'); label('Purkinje fibers',2.7,-1.6,'sa'); label('Atria',1.4,3.2,'rbc'); label('Ventricles',2.2,-3.6,'rbc');
+        label('Intercalated disc · Cx43 gap junctions',5.4,2.8,'electron'); label('ECG · lead II (modeled)',-3.3,-4.2,'electron');
+        const gauss=(t,m,w)=>Math.exp(-((t-m)*(t-m))/(2*w*w));
+        const wave=(t,RR)=>{const tc=.17+.2*Math.sqrt(RR);return .12*gauss(t,.05,.022)-.08*gauss(t,.165,.008)+gauss(t,.185,.009)-.22*gauss(t,.205,.009)+.28*gauss(t,tc,.042);};
+        const along=(c,u)=>c.getPointAt(Math.min(1,Math.max(0,u)));
+        render=time=>{
+          const bpm=RATES[LESSON['heart-rate']||'normal'][0], RR=60/bpm;
+          const T=reduceMotion?.2:time, tb=T%RR;
+          // ECG: last 3 seconds scroll right to left
+          const pos=ecgGeo.attributes.position;
+          for (let j=0;j<N;j++){const tt=T-3+j/(N-1)*3, b=((tt%RR)+RR)%RR; pos.setXYZ(j,-4.6+j/(N-1)*9.2,-5.4+wave(b,RR)*1.6,0);}
+          pos.needsUpdate=true; dot.position.set(4.6,-5.4+wave(tb,RR)*1.6,.02);
+          // activation front along the conduction system
+          const act=[];
+          if (tb<.09) atrPaths.forEach(c=>act.push(along(c,tb/.09)));
+          else if (tb<.15) act.push(AV.clone());
+          else if (tb<.17) act.push(along(his,(tb-.15)/.02));
+          else if (tb<.2) {act.push(along(lbb,(tb-.17)/.03)); act.push(along(rbb,(tb-.17)/.03));}
+          else if (tb<.25) purk.forEach(c=>act.push(along(c,(tb-.2)/.05)));
+          sparks.forEach((s,i)=>{s.visible=i<act.length; if (s.visible) s.position.copy(act[i]);});
+          const tc=.17+.2*Math.sqrt(RR);
+          const aOn=tb<.14 ? Math.sin(Math.min(1,tb/.14)*Math.PI) : 0;
+          const vOn=tb>.17 && tb<tc+.08 ? (tb<tc ? 1 : 1-(tb-tc)/.08) : 0;
+          atrMat.emissive.setHex(aOn>.05?gold:red); atrMat.emissiveIntensity=.1+aOn*.6;
+          venMat.emissive.setHex(vOn>.05?gold:red); venMat.emissiveIntensity=.1+vOn*.45;
+          const aSq=tb>.08&&tb<.25 ? Math.sin((tb-.08)/.17*Math.PI) : 0, vSq=tb>.2&&tb<tc+.05 ? Math.sin((tb-.2)/(tc-.15)*Math.PI) : 0;
+          atria.scale.setScalar(1-aSq*.05); vent.scale.set(1-vSq*.06,1-vSq*.08,1-vSq*.06);
+          saGlow.scale.setScalar(.6+Math.pow(Math.min(1,tb/(RR-.02)),3)*.9+(tb<.03?1:0)); saGlow.material.opacity=.4+.6*Math.min(1,tb/RR);
+          ions.forEach((m,i)=>{m.visible=vOn>0||aOn>0; m.position.x=-1.8+((i*.6+(reduceMotion?0:time*2.4))%3.6);});
+          cx.forEach(c=>{c.material.emissiveIntensity=vOn>0?.6:.1;});
+        };
       } else {
         poses[id].pos.set(1,1.4,17);
         for (const y of [1.83,2.30,2.77]) {

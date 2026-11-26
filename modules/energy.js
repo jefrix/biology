@@ -339,7 +339,7 @@ const CHAPTERS = [
         <li>Without oxygen, even a normal cell shifts to lactate. That is ordinary anaerobic glycolysis, as in a sprinting muscle or a <a href="#blood/rbc">red blood cell</a>.</li>
       </ul>
       <div class="callout"><span class="eyebrow">Radiology link · FDG-PET</span><p>FDG enters through the same GLUT transporters and is phosphorylated by hexokinase, but FDG-6-phosphate is not processed further and most tissues have little enzyme to remove the phosphate, so it stays trapped. Avid tumors therefore glow on PET, and the standardized uptake value (SUV) gives a semi-quantitative measure. Uptake is not specific: inflammation, infection, healing tissue, brown fat and active muscle also take up FDG. Some cancers take up little, such as many prostate cancers and some slow-growing or mucinous tumors, and very small lesions can be missed. High blood glucose and insulin shift FDG away from tumors, which is why <a href="#petprep">PET preparation</a> matters.</p></div>
-      <p><a href="#glycolysis">Back to glycolysis and FDG trapping</a> · <a href="#cycle">The cell cycle these cells are racing through</a> · <a href="#branches">The pentose phosphate pathway</a></p>
+      <p><a href="#glycolysis">Back to glycolysis and FDG trapping</a> · <a href="#cycle">The cell cycle these cells are racing through</a> · <a href="#branches">The pentose phosphate pathway</a> · <a href="#cancer-pet">FDG-avid tumors in cancer biology</a></p>
       ${energySources([EN_SRC.vh, EN_SRC.anaer, EN_SRC.eanm], 'The two cells are schematic. Real tumors mix well-oxygenated and hypoxic regions, use other fuels such as glutamine and lactate, and vary widely in FDG uptake. For learning, not diagnosis.')}`,
   },
 ];

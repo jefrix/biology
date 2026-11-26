@@ -257,6 +257,7 @@ const INSULIN_CHAPTERS = [
         <p><b>Heart viability imaging wants the opposite.</b> Glucose loading or an insulin clamp is used so that living heart muscle takes up FDG.</p>
         <p><b>Finding an insulinoma</b> can use a different target. PET tracers based on exendin bind the GLP-1 receptor, which most benign insulinomas express strongly. The evidence comes mainly from small studies.</p>
       </div>
+      <p><a href="#cancer-pet">Why tumors take up FDG</a> · <a href="#liver-cyp">The liver as the PET reference organ</a></p>
       ${sources([SRC.eanm, SRC.eanm3, SRC.ajr, SRC.viability, SRC.exendin], 'The 3D figure is an illustration with made-up relative brightness. It is not patient data and cannot be used to read scans.')}`,
   },
 ];

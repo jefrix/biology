@@ -56,10 +56,10 @@ const MANIFEST = [
   { key: 'neural', name: 'Neural cells', c: 'dendrite', eyebrow: 'Neurons and glia', title: 'The city’s communications network',
     blurb: 'Meet neurons and glia, run a live action potential simulation, send signals across a synapse, and see how stroke and MS show up on MRI.',
     ids: ['neurons', 'rest', 'spike', 'myelin', 'synapse', 'integrate', 'axon', 'brain'], names: ['Cells', 'Rest', 'Spike', 'Myelin', 'Synapse', 'Sum', 'Transport', 'Imaging'] },
-  { key: 'muscle', name: 'Muscle cells', c: 'schwann', eyebrow: 'Muscle cells and fiber types',
-    title: 'From nerve signal to force', blurb: 'Watch calcium release and filaments slide, then compare fiber types and muscle tissues.',
-    ids: ['muscle-contraction', 'muscle-structure', 'muscle-fibers', 'muscle-tissues'],
-    names: ['Signal to force', 'Inside the fiber', 'Fiber types', 'Three muscle tissues'] },
+  { key: 'muscle', name: 'Muscle cells', c: 'schwann', eyebrow: 'Muscle cells, fiber types and the heartbeat',
+    title: 'From nerve signal to force', blurb: 'Watch calcium release and filaments slide, compare fiber types and muscle tissues, then follow each heartbeat from the SA node pacemaker through the conduction system while a live ECG traces it.',
+    ids: ['muscle-contraction', 'muscle-structure', 'muscle-fibers', 'muscle-tissues', 'pacemaker'],
+    names: ['Signal to force', 'Inside the fiber', 'Fiber types', 'Three muscle tissues', 'Pacemaker & ECG'] },
   { key: 'blood', name: 'Blood', c: 'rbc', eyebrow: 'Blood cells', title: 'Couriers and defenders',
     blurb: 'A to-scale line-up of the red cell, every kind of white cell and platelets, then watch platelets and fibrin seal a breached vessel. Each with radiology links.',
     ids: ['blood', 'clotting'], names: ['Cell line-up', 'Platelets & clotting'], cells: 7,
@@ -77,12 +77,101 @@ const MANIFEST = [
   { key: 'reproduction', name: 'Reproductive cells', slideName: 'Repro&shy;ductive cells', c: 'chrom-a', eyebrow: 'Reproductive cells and fertilization',
     title: 'From gametes to a blastocyst', blurb: 'Compare sperm and oocytes, track chromosomes through meiosis, and see fertilization and early cleavage in 3D.',
     ids: ['gametes', 'human-meiosis', 'fertilization', 'early-cleavage'], names: ['Sperm and oocyte', 'Meiosis', 'Fertilization', 'Early cleavage'] },
+  { key: 'hepatocyte', name: 'Hepatocyte', slideName: 'Hepato&shy;cyte', c: 'hepato', eyebrow: 'The liver cell', title: 'The body’s chemical processing plant',
+    blurb: 'Switch a liver cell between fed and fasted to store glycogen or make new glucose, run the urea cycle that turns toxic ammonia into urea, then watch cytochrome P450 enzymes process a drug and see why the liver is the reference organ on FDG-PET.',
+    ids: ['liver-glycogen', 'urea-cycle', 'liver-cyp'], names: ['Glycogen & new glucose', 'Urea cycle', 'CYP450 & imaging'] },
+  { key: 'bone', name: 'Bone cells', c: 'bone', eyebrow: 'Osteoblasts, osteocytes and osteoclasts', title: 'A skeleton that rebuilds itself',
+    blurb: 'Watch osteoclasts dig and osteoblasts refill a remodeling site under RANKL and OPG control, thin a trabecular lattice from normal to osteoporosis while DEXA reads the T-score, and compare lytic with sclerotic lesions on X-ray.',
+    ids: ['bone-remodel', 'bone-dexa', 'bone-lesions'], names: ['Remodeling trio', 'DEXA & density', 'Lytic vs sclerotic'] },
+  { key: 'cancer', name: 'Cancer biology', c: 'cancer', eyebrow: 'Cancer cell biology', title: 'When the city’s growth controls fail',
+    blurb: 'Jam the gas pedal with RAS and cut the brakes with p53 to watch checkpoints fail, follow a tumor as it calls in new vessels and spreads, then see why fast, glycolytic tumors glow on FDG-PET while their necrotic cores stay dark.',
+    ids: ['cancer-genes', 'cancer-spread', 'cancer-pet'], names: ['Oncogenes & checkpoints', 'Angiogenesis & metastasis', 'FDG-avid tumors'] },
+  { key: 'immune', name: 'Immune activation', slideName: 'Immune acti&shy;vation', c: 'immune', eyebrow: 'Immune activation', title: 'Raising the city’s defenses',
+    blurb: 'Compare MHC class I and class II as they show peptides to CD8 and CD4 T cells, watch complement tag and punch holes in bacteria while a vessel becomes inflamed, then see antibodies and cytotoxic T cells finish the job.',
+    ids: ['immune-mhc', 'immune-complement', 'immune-effector'], names: ['MHC presentation', 'Complement & inflammation', 'Antibodies & killer T cells'] },
+  { key: 'bbb', name: 'Blood–brain barrier', slideName: 'Blood–brain barrier', c: 'bbb', eyebrow: 'The blood–brain barrier', title: 'The brain’s guarded border',
+    blurb: 'Build the neurovascular unit from sealed endothelium, pericytes and astrocyte endfeet, see what gets through and what P-glycoprotein pumps back out, then watch gadolinium leak through a broken barrier on MRI in stroke, tumor and MS.',
+    ids: ['bbb-unit', 'bbb-transport', 'bbb-mri'], names: ['Neurovascular unit', 'Entry & efflux', 'Breakdown on MRI'] },
+  { key: 'enterocyte', name: 'Enterocyte', slideName: 'Entero&shy;cyte', c: 'gut', eyebrow: 'The intestinal absorptive cell', title: 'Where your plate enters the body',
+    blurb: 'Pull glucose in through the brush border with SGLT1, package fats into chylomicrons for the lymph, then follow nutrients and an oral drug through the portal vein to the liver and its first-pass effect.',
+    ids: ['gut-sglt1', 'gut-fat', 'gut-portal'], names: ['Brush border & SGLT1', 'Fat & chylomicrons', 'Portal vein & first pass'] },
 ];
 const registry = {};
 const CellCity = { register(key, def) { registry[key] = def; } };
 const moduleFor = (id) => MANIFEST.find(x => x.ids.includes(id));
 // Old chapter links that moved when modules were merged, so bookmarks still land somewhere sensible.
 const ALIASES = { 'endocrine-targets': 'endocrine-receptors' };
+
+/* ---------- a small 3D toolkit shared by the tissue modules ----------
+   const k = sceneKit(g) gives materials, primitives, labeled stages and looping particle streams;
+   a module's build() fills k.out and returns it. Only called when WebGL is available. */
+function sceneKit(g) {
+  const out = { groups: {}, poses: {}, behaviors: {}, fog: {}, depth: {}, unitsPerNm: {}, fadeText: {} };
+  const sphere = new THREE.SphereGeometry(1, 20, 14), rodGeo = new THREE.CylinderGeometry(1, 1, 1, 14), UPV = new THREE.Vector3(0, 1, 0);
+  const cache = {};
+  const C = (name) => cache[name] || (cache[name] = col(name));
+  const std = (c, extra = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, emissive: c, emissiveIntensity: 0.25, roughness: 0.5 }, extra));
+  const ghost = (c, opacity = 0.2) => new THREE.MeshStandardMaterial({ color: c, transparent: true, opacity, depthWrite: false, roughness: 0.4, side: THREE.DoubleSide });
+  function ball(parent, mat, r, pos) { const m = new THREE.Mesh(sphere, mat); m.scale.setScalar(r); if (pos) m.position.copy(pos); parent.add(m); return m; }
+  function setRod(m, a, b, r) {
+    const d = b.clone().sub(a), len = Math.max(0.001, d.length());
+    m.position.copy(a).add(b).multiplyScalar(0.5); m.scale.set(r, len, r);
+    m.quaternion.setFromUnitVectors(UPV, d.normalize());
+  }
+  function rod(parent, mat, a, b, r) { const m = new THREE.Mesh(rodGeo, mat); parent.add(m); setRod(m, a, b, r); return m; }
+  function tube(parent, mat, pts, r, closed = false, seg = 80) {
+    const curve = new THREE.CatmullRomCurve3(pts, closed);
+    const m = new THREE.Mesh(new THREE.TubeGeometry(curve, seg, r, 12, closed), mat);
+    m.userData.curve = curve; parent.add(m); return m;
+  }
+  // a translucent cell body with a glowing rim, scaled to radius r (or [x, y, z] radii)
+  function body(parent, color, r, pos, opacity = 0.2) {
+    const grp = new THREE.Group();
+    grp.add(new THREE.Mesh(sphere, ghost(color, opacity)));
+    grp.add(new THREE.Mesh(sphere, g.fresnelMat(color, 1.1, 2.4)));
+    if (Array.isArray(r)) grp.scale.set(...r); else grp.scale.setScalar(r);
+    if (pos) grp.position.copy(pos);
+    parent.add(grp); return grp;
+  }
+  function add(id, root, pose, opts = {}) {
+    out.groups[id] = root; g.scene.add(root);
+    out.fog[id] = opts.fog ?? 0.003; out.depth[id] = opts.depth ?? 2;
+    out.poses[id] = Object.assign({ group: id }, pose);
+    if (opts.unit) out.unitsPerNm[id] = opts.unit;
+    if (opts.fade) out.fadeText[id] = opts.fade;
+  }
+  const lbl = (text, c, parent, at, id) => g.addLabel(text, c, parent, at, [id]);
+  // n beads looping along a curve at `speed` loops per second; set s.visible or s.speed at any time
+  function stream(parent, mat, r, curve, n, speed, glowColor) {
+    const items = Array.from({ length: n }, () => {
+      const m = ball(parent, mat, r);
+      if (glowColor) { const s = g.glow(glowColor, r * 6); s.scale.divideScalar(r); m.add(s); }
+      return m;
+    });
+    const s = {
+      items, curve, speed, phase: 0, visible: true, at: null,
+      update(dt) {
+        if (!reduceMotion) s.phase += dt * s.speed;
+        items.forEach((m, i) => {
+          const u = (((s.phase + i / n) % 1) + 1) % 1;
+          m.position.copy(s.curve.getPointAt(u)); m.visible = s.visible;
+          if (s.at) s.at(m, u, i);
+        });
+      },
+    };
+    s.update(0); return s;
+  }
+  const curve = (pts, closed = false) => new THREE.CatmullRomCurve3(pts, closed);
+  // a flat canvas-textured panel, for X-ray, MRI or PET style read-outs drawn in 2D
+  function panel(parent, w, h, px = 256) {
+    const c = document.createElement('canvas'); c.width = px; c.height = Math.round(px * h / w);
+    const tex = new THREE.CanvasTexture(c);
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
+    parent.add(mesh);
+    return { mesh, ctx: c.getContext('2d'), canvas: c, draw(fn) { fn(this.ctx, c.width, c.height); tex.needsUpdate = true; } };
+  }
+  return { out, C, std, ghost, ball, rod, setRod, tube, body, add, lbl, stream, curve, panel, sphere, rodGeo, glow: g.glow, fresnelMat: g.fresnelMat, V: (x, y, z) => new THREE.Vector3(x, y, z) };
+}
 
 /* ---------- a shared segmented control for chapter scenes ----------
    lessonSeg('clot-step', 'Step', [['auto', 'Play all'], ['0', 'Injury']]) renders buttons; LESSON['clot-step'] holds the choice,
@@ -417,7 +506,7 @@ function initWorld() {
 
 /* ---------- loading a module the first time it is opened ---------- */
 // Bump with the ?v= in index.html on each deploy so GitHub Pages visitors never mix cached and new files.
-const ASSET_VERSION = 3;
+const ASSET_VERSION = 4;
 const loading = {};
 const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
 const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';
@@ -548,11 +637,19 @@ const MOTIFS = {
   nephron: '<path d="M44 16a26 26 0 1 0 6 51"/><circle class="f" cx="38" cy="38" r="9"/><circle class="f" cx="30" cy="48" r="8"/><circle class="f" cx="44" cy="50" r="9"/><circle class="f" cx="36" cy="58" r="7"/><path d="M50 67c14 0 10-14 22-14s8 18 16 18M88 71v18M80 89V74"/><path d="M18 30l-8-10M24 22L16 10" opacity=".6"/>',
   cytoskeleton: '<path class="f" d="M50 10c22 0 40 14 40 34 0 12-6 18-4 30 1 8-10 16-24 16-10 0-14-6-26-6-14 0-28-8-28-24 0-14 8-20 8-30C16 18 30 10 50 10z" opacity=".5"/><path d="M14 62c4-3 4 3 8 0s4 3 8 0M12 50c4-3 4 3 8 0M84 30c3 3-3 4 0 8"/><circle class="d" cx="48" cy="48" r="3.4"/><path d="M48 48L22 24M48 48L76 18M48 48L88 52M48 48L70 82M48 48L30 84M48 48L14 46M48 48L58 12"/><path class="thick" d="M8 70c6-6 12-8 18-6M6 58c6-2 10-2 14 2"/>',
   reproduction: '<circle cx="44" cy="56" r="32" stroke-dasharray="3 3"/><circle class="f" cx="44" cy="56" r="26"/><circle class="d" cx="38" cy="50" r="5"/><ellipse class="f" cx="83" cy="18" rx="6" ry="4.4" transform="rotate(35 83 18)"/><path d="M78 14c-4-4-4 4-8 0s-4 4-8 0"/>',
+  hepatocyte: '<path class="f" d="M50 8l36 21v42L50 92 14 71V29z" opacity=".55"/><circle cx="50" cy="50" r="7"/><path d="M50 43V8M56 46l30-17M56 54l30 17M50 57v35M44 54L14 71M44 46L14 29"/><path d="M30 26l4 8M70 26l-4 8M80 50h-9M70 74l-4-8M30 74l4-8M20 50h9" opacity=".6"/><circle class="d" cx="36" cy="36" r="2.2"/><circle class="d" cx="64" cy="36" r="2.2"/><circle class="d" cx="68" cy="58" r="2.2"/><circle class="d" cx="38" cy="66" r="2.2"/><circle class="d" cx="28" cy="50" r="2"/><circle class="d" cx="58" cy="72" r="2"/>',
+  bone: '<circle class="f" cx="50" cy="50" r="40" opacity=".5"/><circle cx="50" cy="50" r="33"/><circle cx="50" cy="50" r="25"/><circle cx="50" cy="50" r="17"/><circle class="f" cx="50" cy="50" r="7"/><ellipse class="d" cx="50" cy="21" rx="3" ry="1.6"/><ellipse class="d" cx="76" cy="44" rx="1.6" ry="3"/><ellipse class="d" cx="30" cy="68" rx="2.8" ry="1.6" transform="rotate(40 30 68)"/><ellipse class="d" cx="64" cy="73" rx="2.8" ry="1.6"/><ellipse class="d" cx="27" cy="37" rx="1.6" ry="2.8"/><path d="M50 19v-6M50 23v4M78 44h6M74 44h-4M28 70l-4 4M66 73h5" opacity=".7"/>',
+  cancer: '<path class="f" d="M22 30c10-14 30-12 40-6 14 2 24 14 22 28 4 14-8 30-24 30-12 6-30 2-36-10-10-8-12-30-2-42z" opacity=".6"/><circle class="d" cx="34" cy="38" r="5"/><circle class="d" cx="56" cy="34" r="6"/><circle class="d" cx="70" cy="52" r="5"/><circle class="d" cx="48" cy="56" r="6.5"/><circle class="d" cx="32" cy="64" r="4.5"/><circle class="d" cx="60" cy="72" r="5"/><path class="thick" d="M84 14c-8 6-10 14-14 22M70 36c-4 2-8 2-10 6" opacity=".8"/><path d="M12 88l10-10M88 86l-8-8"/>',
+  immune: '<circle class="f" cx="34" cy="50" r="15"/><path d="M34 35L28 12M30 36L14 24M21 44L4 42M22 60L8 74M32 65l-4 22M44 63l10 20M47 40l8-20"/><circle class="d" cx="34" cy="50" r="5"/><circle class="f" cx="72" cy="50" r="13"/><circle class="d" cx="72" cy="50" r="7"/><path class="thick" d="M48 46h11M48 54h11"/><circle class="d" cx="53" cy="50" r="1.6"/>',
+  bbb: '<circle class="f" cx="50" cy="50" r="36" opacity=".55"/><circle cx="50" cy="50" r="28"/><circle cx="50" cy="50" r="18"/><path class="thick" d="M50 22v8M50 70v8M22 50h6M72 50h6"/><ellipse class="d" cx="45" cy="47" rx="6" ry="4"/><path d="M14 22c8 4 12 10 14 14M86 24c-6 4-10 8-12 12M14 80c8-4 12-8 14-12M86 78c-6-4-10-8-12-12" opacity=".7"/><circle class="d" cx="12" cy="20" r="3"/><circle class="d" cx="88" cy="22" r="3"/><circle class="d" cx="12" cy="82" r="3"/><circle class="d" cx="88" cy="80" r="3"/>',
+  enterocyte: '<path class="f" d="M10 92V40c0-18 20-18 20 0v52M38 92V28c0-18 22-18 22 0v64M68 92V44c0-18 22-18 22 0v48" opacity=".55"/><path d="M10 40c0-18 20-18 20 0M38 28c0-18 22-18 22 0M68 44c0-18 22-18 22 0" class="thick"/><path d="M20 30v62M49 18v74M79 34v58" opacity=".5"/><circle class="d" cx="15" cy="60" r="2"/><circle class="d" cx="25" cy="70" r="2"/><circle class="d" cx="44" cy="52" r="2"/><circle class="d" cx="54" cy="64" r="2"/><circle class="d" cx="74" cy="66" r="2"/><circle class="d" cx="84" cy="76" r="2"/>',
 };
 const SLIDE_PREP = {
   energy: 'Mitochondrial fluorescence', protein: 'Anti-insulin immunostain', cleanup: 'Lysosome fluorescence',
   transport: 'Membrane dye', division: 'DNA stain, anaphase', cytoskeleton: 'Phalloidin + anti-tubulin', neural: 'Golgi silver stain', muscle: 'Striated muscle, H&E',
   blood: 'Wright–Giemsa smear', hormones: 'Islet immunostain', nephron: 'PAS, kidney cortex', reproduction: 'Phase contrast',
+  hepatocyte: 'PAS, liver lobule', bone: 'Ground bone, osteon', cancer: 'Ki-67 immunostain, carcinoma', immune: 'CD4/CD8 immunofluorescence',
+  bbb: 'GFAP + claudin-5 immunostain', enterocyte: 'PAS, jejunal villi',
 };
 const TRAYS = [
   { id: 'mechanisms', name: 'Cell mechanisms', tag: 'CM', note: 'What happens inside one cell', from: 0, to: 6 },
