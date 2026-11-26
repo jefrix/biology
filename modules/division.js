@@ -210,6 +210,19 @@ const SRC = {
   preg: link('https://www.rsna.org/-/media/Files/RSNA/Media/Medical-Imaging-During-Pregnancy.ashx', 'RSNA, imaging during pregnancy (quoting ACOG)'),
 };
 
+/* Apoptosis chapter: three pathways on a 16-second timeline; each caption starts at its time (s). */
+const APO_PATHS = [
+  ['intrinsic', 'Intrinsic', [[0, 'DNA damage activates p53, which switches on BH3-only proteins.'], [2.5, 'BAX and BAK open pores in the outer mitochondrial membrane.'], [3.5, 'Cytochrome c leaks out into the cytosol.'], [5.5, 'Cytochrome c and Apaf-1 assemble the apoptosome, which activates caspase-9.'], [7, 'Caspase-9 activates executioner caspases 3 and 7, which cut hundreds of proteins.'], [9, 'Chromatin condenses and the nucleus fragments. The membrane blebs.'], [12, 'The cell breaks into apoptotic bodies that display an “eat me” signal.'], [13, 'A macrophage swallows the pieces. No contents spill, so there is no inflammation.']]],
+  ['extrinsic', 'Extrinsic', [[0, 'A cytotoxic T cell arrives carrying Fas ligand.'], [2, 'Fas ligand clusters death receptors on the target cell surface.'], [3, 'The receptors assemble a signaling complex that activates caspase-8.'], [4.5, 'Caspase-8 directly activates executioner caspases 3 and 7, and cuts Bid to pull in the mitochondria.'], [9, 'Chromatin condenses and the nucleus fragments. The membrane blebs.'], [12, 'The cell breaks into apoptotic bodies that display an “eat me” signal.'], [13, 'A macrophage swallows the pieces cleanly.']]],
+  ['necrosis', 'Necrosis (contrast)', [[0, 'Without oxygen or ATP, ion pumps fail. Water rushes in and the cell and its mitochondria swell.'], [3, 'The plasma membrane ruptures.'], [3.6, 'Cell contents spill out and act as danger signals. The nucleus fades.'], [6, 'Neutrophils arrive and the surrounding tissue becomes inflamed.']]],
+];
+function apoText(path, T) {
+  const p = APO_PATHS.find(x => x[0] === path) || APO_PATHS[0];
+  let text = p[2][0][1];
+  for (const [at, t] of p[2]) if (T >= at) text = t;
+  return text;
+}
+
 const CHAPTERS = [
   {
     id: 'cycle', short: 'Cycle', where: 'The life of one dividing cell',
@@ -282,7 +295,38 @@ const CHAPTERS = [
         <li>Many damaged cells die only when they next try to divide. That is one reason some tissues and tumors respond slowly.</li>
         <li>Different cell types favor different fates. Lymphocytes are unusual in that many die quickly by apoptosis.</li>
       </ul>
+      <p><a href="#apoptosis">Watch apoptosis step by step</a></p>
       <p class="credit">The choice is drawn as a simple switch. In real cells the outcome is a matter of probability and depends on cell type, dose and many other proteins.</p>`,
+  },
+  {
+    id: 'apoptosis', short: 'Apoptosis', where: 'Inside a cell that has decided to die',
+    title: 'Apoptosis: a tidy, programmed death',
+    legend: [['g1', 'Cell'], ['mito', 'Mitochondria'], ['cytc', 'Cytochrome c'], ['caspase', 'Active caspases'], ['nucleus', 'Nucleus'], ['mono', 'Macrophage']],
+    html: () => `
+      <p class="lede">A damaged, infected or unneeded cell can take itself apart from the inside. <b>Apoptosis</b> packages the cell into small membrane-wrapped pieces that are eaten before they can leak, so neighbors are not inflamed. Compare it with <b>necrosis</b>, where a cell bursts.</p>
+      ${lessonSeg('dv-death', 'Pathway', APO_PATHS.map(([v, name]) => [v, name]))}
+      <p id="apoCaption" class="lesson-phase" aria-live="polite">${apoText(LESSON['dv-death'] || 'intrinsic', 0)}</p>
+      <ol class="lesson-sequence">
+        <li><b>Intrinsic (mitochondrial) pathway.</b> DNA damage or stress activates p53 and BH3-only proteins such as PUMA and NOXA. They overcome protective BCL-2 proteins, so BAX and BAK open pores in the outer mitochondrial membrane. <b>Cytochrome c</b> escapes into the cytosol, binds Apaf-1, and seven of them assemble an <b>apoptosome</b> that activates initiator <b>caspase-9</b>.</li>
+        <li><b>Extrinsic (death receptor) pathway.</b> Fas ligand on a cytotoxic T cell, or TNF-family signals, cluster death receptors on the target. They build a signaling complex that activates initiator <b>caspase-8</b>, which can also cut Bid to recruit the mitochondria.</li>
+        <li><b>Execution.</b> Both paths activate executioner <b>caspase-3 and caspase-7</b>, protein-cutting enzymes that dismantle the cytoskeleton and nuclear lamina and activate a DNA-cutting enzyme. Chromatin condenses and fragments, and the membrane blebs.</li>
+        <li><b>Clearance.</b> Phosphatidylserine flips to the outer surface as an “eat me” signal. Macrophages swallow the apoptotic bodies quietly, with anti-inflammatory signals.</li>
+      </ol>
+      <div class="table-wrap"><table class="ledger"><thead><tr><th></th><th>Apoptosis</th><th>Necrosis</th></tr></thead><tbody>
+        <tr><td>Cell size</td><td>Shrinks</td><td>Swells</td></tr>
+        <tr><td>Membrane</td><td>Intact, blebs into apoptotic bodies</td><td>Ruptures and leaks</td></tr>
+        <tr><td>Nucleus</td><td>Condenses and fragments</td><td>Fades or breaks up irregularly</td></tr>
+        <tr><td>Energy</td><td>Needs ATP</td><td>Often follows ATP loss, as in ischemia</td></tr>
+        <tr><td>Neighbors</td><td>Usually no inflammation</td><td>Inflammation as contents spill</td></tr>
+      </tbody></table></div>
+      <ul class="facts">
+        <li>Apoptosis sculpts the embryo (it separates fingers), removes self-reactive lymphocytes, and is how cytotoxic T cells and NK cells kill infected cells. See them at work in <a href="#blood">Blood</a>.</li>
+        <li>Too little apoptosis helps cancers survive. Venetoclax, a drug that blocks BCL-2, restarts it in some leukemias. Too much contributes to neurodegeneration and to cell loss after a stroke.</li>
+        <li>Radiation and many chemotherapy drugs trigger apoptosis through DNA damage and p53. Lymphocytes are especially prone, which is why blood lymphocyte counts fall soon after radiation exposure. Many other cells instead die when they next try to divide, as described in <a href="#fate">Fate</a>.</li>
+      </ul>
+      <div class="callout"><span class="eyebrow">Radiology link</span><p>Treatment response is partly a story of cell death. A tumor that responds may shrink, or may stay the same size while its center dies. On contrast-enhanced CT or MRI, a <b>necrotic core</b> does not enhance and looks darker than living tumor. On diffusion-weighted MRI, water moves more freely once cells die and membranes break down, so the apparent diffusion coefficient often rises after effective therapy. In the brain, <b>radiation necrosis</b> can mimic tumor regrowth months to years later, and perfusion MRI or PET may help tell them apart. Response criteria differ by tumor type, so follow the protocol used by the treating team.</p></div>
+      <p><a href="#fate">Back to cell fate after damage</a> · <a href="#survival">Why radiotherapy is split into fractions</a> · <a href="#autophagy">Compare autophagy, the cell’s self-recycling</a></p>
+      <p class="credit">Sources: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2117903/" target="_blank" rel="noopener">Elmore, apoptosis: a review of programmed cell death (Toxicol Pathol, 2007)</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/3-5-cell-growth-and-division" target="_blank" rel="noopener">OpenStax Anatomy &amp; Physiology 2e, 3.5 Cell Growth and Division</a> · <i>Alberts et al., Molecular Biology of the Cell</i>, cell death chapter. The scene compresses about an hour of real apoptosis into seconds. Only a few molecules are drawn, and other regulated forms of death, such as necroptosis, pyroptosis and ferroptosis, are not shown. For learning, not diagnosis.</p>`,
   },
   {
     id: 'survival', short: 'Survival', where: 'Radiobiology · a teaching model',
@@ -759,17 +803,172 @@ CellCity.register('division', {
     }
 
     /* ================= camera and behaviors ================= */
+    /* ================= APOPTOSIS (not to scale) ================= */
+    const apoGroup = new THREE.Group(); scene.add(apoGroup);
+    const apoBehavior = (() => {
+      const A = {};
+      ['g1', 'mito', 'cytc', 'caspase', 'nucleus', 'mono', 'lymph', 'neut', 'atp', 'proton', 'fat'].forEach(k => A[k] = col(k));
+      const R = 6;
+      const cell = new THREE.Group(); apoGroup.add(cell);
+      const shell = cellShell(R, A.g1); cell.add(shell);
+      const nucG = new THREE.Group(); nucG.position.set(0.6, 0.4, 0); cell.add(nucG);
+      const nucMat = std(A.nucleus, { emissiveIntensity: 0.25, transparent: true, opacity: 0.85 });
+      const nucBody = mesh(new THREE.SphereGeometry(2.3, 40, 30), nucMat, nucG);
+      const frags = [[-0.9, 0.6, 0.3], [0.8, 0.7, -0.4], [0.5, -0.8, 0.6], [-0.6, -0.7, -0.5]].map(q => mesh(new THREE.SphereGeometry(0.8, 20, 16), std(A.nucleus.clone().multiplyScalar(0.7), { emissiveIntensity: 0.4 }), nucG, q));
+      const mitoGeo = new THREE.CapsuleGeometry(0.45, 1.3, 6, 12), mitoMat = std(A.mito, { emissiveIntensity: 0.35 });
+      const MITO = [[-3.4, 1.8, 1.2], [-2.6, -2.6, 0.8], [3.2, -2.2, 1.5], [-3.6, -0.4, -2.2], [2.4, 2.8, -1.6], [0.2, -3.6, -1.8]].map(q => new V3(...q));
+      const mitos = MITO.map((p, i) => { const m = mesh(mitoGeo, mitoMat, cell, p); m.rotation.set(rr(0, 3), rr(0, 3), rr(0, 3)); return m; });
+      const pores = MITO.map(p => { const t = mesh(new THREE.TorusGeometry(0.32, 0.09, 6, 14), std(A.proton, { emissiveIntensity: 0.6 }), cell, p.clone().add(new V3(0, 0.75, 0.3))); return t; });
+      const cytc = Array.from({ length: 36 }, (_, i) => { const d = dot(A.cytc, 0.13, 0.6); cell.add(d); d.userData = { from: MITO[i % 6], dir: randDir(), sp: rr(1.4, 3) }; return d; });
+      const someCyt = new Set([0, 1, 2, 6, 7, 12]);
+      const apoCenter = new V3(0.5, -1.8, 2.6);
+      const wheel = Array.from({ length: 7 }, (_, k) => { const a = k / 7 * Math.PI * 2; const o = mesh(atomGeo, std(A.cytc.clone().lerp(new THREE.Color(0xffffff), 0.3), { emissiveIntensity: 0.4 }), cell, null, 0.32); o.userData = { at: apoCenter.clone().add(new V3(Math.cos(a) * 0.85, Math.sin(a) * 0.85, 0)), from: randDir().multiplyScalar(rr(2, 4)) }; return o; });
+      const hub = glow(A.caspase, 2.2); hub.position.copy(apoCenter); cell.add(hub);
+      const casp = Array.from({ length: 28 }, (_, i) => { const m = mesh(new THREE.TetrahedronGeometry(0.22), std(A.caspase, { emissiveIntensity: 0.7 }), cell); m.userData = { dir: randDir(), r: rr(1.5, 5), ph: rr(0, 6) }; return m; });
+      const blebs = Array.from({ length: 12 }, () => { const d = randDir(); const m = mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshStandardMaterial({ color: A.g1, transparent: true, opacity: 0.12, depthWrite: false }), cell, d.clone().multiplyScalar(R)); m.userData = { d }; return m; });
+      const bodies = Array.from({ length: 5 }, (_, i) => {
+        const g_ = new THREE.Group(); apoGroup.add(g_);
+        g_.add(cellShell(1.7, A.g1));
+        mesh(new THREE.SphereGeometry(0.6, 16, 12), std(A.nucleus.clone().multiplyScalar(0.7), { emissiveIntensity: 0.4 }), g_, [0.2, 0.1, 0]);
+        for (let k = 0; k < 4; k++) mesh(atomGeo, atomMat(A.atp), g_, randDir().multiplyScalar(1.7), 0.12);
+        const a = i / 5 * Math.PI * 2;
+        g_.userData = { home: new V3(Math.cos(a) * 2.6, Math.sin(a) * 2.6, (i % 2 ? 1 : -1) * 1.2), out: new V3(Math.cos(a) * 4.6, Math.sin(a) * 4.2, (i % 2 ? 1 : -1) * 1.8) };
+        return g_;
+      });
+      const macro = new THREE.Group(); apoGroup.add(macro);
+      macro.add(new THREE.Mesh(new THREE.SphereGeometry(5, 40, 30), new THREE.MeshStandardMaterial({ color: A.mono, transparent: true, opacity: 0.16, depthWrite: false })));
+      macro.add(new THREE.Mesh(new THREE.SphereGeometry(5, 40, 30), fresnelMat(A.mono, 1.1, 2.3)));
+      mesh(new THREE.TorusGeometry(1.8, 1.1, 14, 30, 4), std(new THREE.Color(0x6d4bd0), { emissiveIntensity: 0.3 }), macro, [-1.2, 0, 0]);
+      const tcell = new THREE.Group(); apoGroup.add(tcell);
+      tcell.add(new THREE.Mesh(new THREE.SphereGeometry(2.6, 32, 24), new THREE.MeshStandardMaterial({ color: A.lymph, transparent: true, opacity: 0.2, depthWrite: false })));
+      tcell.add(new THREE.Mesh(new THREE.SphereGeometry(2.6, 32, 24), fresnelMat(A.lymph, 1.1, 2.3)));
+      mesh(new THREE.SphereGeometry(1.9, 24, 18), std(new THREE.Color(0x6d4bd0), { emissiveIntensity: 0.3 }), tcell, [0.3, 0, 0]);
+      const contact = new V3(R * 0.94, 1.2, 0);
+      const receptors = Array.from({ length: 6 }, (_, k) => { const s = mesh(stick, std(A.lymph, { emissiveIntensity: 0.5 }), cell); const off = new V3(0, (k - 2.5) * 0.45, (k % 2 ? 0.4 : -0.4)); setStick(s, contact.clone().add(off), contact.clone().add(off).add(new V3(0.9, 0, 0)), 0.08); return s; });
+      const disc = glow(A.caspase, 2.4); disc.position.copy(contact).add(new V3(-0.8, 0, 0)); cell.add(disc);
+      const spill = Array.from({ length: 44 }, (_, i) => { const d = dot([A.mito, A.atp, A.nucleus, A.fat][i % 4], 0.16, 0.5); apoGroup.add(d); d.userData = { dir: randDir(), sp: rr(1.5, 4.5) }; return d; });
+      const shards = Array.from({ length: 12 }, (_, i) => { const geo = new THREE.SphereGeometry(R, 12, 8, rr(0, 6), 0.8, rr(0.4, 2.4), 0.7); const m = new THREE.Mesh(geo, fresnelMat(A.g1, 1.0, 2.5)); apoGroup.add(m); m.userData = { dir: randDir(), spin: rr(-1, 1) }; return m; });
+      const neuts = Array.from({ length: 3 }, (_, i) => { const g_ = new THREE.Group(); apoGroup.add(g_); g_.add(new THREE.Mesh(new THREE.SphereGeometry(1.8, 24, 18), fresnelMat(A.neut, 1.1, 2.3))); g_.add(new THREE.Mesh(new THREE.SphereGeometry(1.8, 24, 18), new THREE.MeshStandardMaterial({ color: A.neut, transparent: true, opacity: 0.2, depthWrite: false }))); const a = i / 3 * Math.PI * 2 + 0.6; g_.userData = { from: new V3(Math.cos(a) * 18, Math.sin(a) * 12, 4), to: new V3(Math.cos(a) * 8.5, Math.sin(a) * 7, 2) }; return g_; });
+      const flames = Array.from({ length: 8 }, (_, i) => { const s = glow(A.proton, 7); const a = i / 8 * Math.PI * 2; s.position.set(Math.cos(a) * 7, Math.sin(a) * 6, -1); apoGroup.add(s); return s; });
+      const hold = (name, color, parent, at) => { const h = new THREE.Group(); parent.add(h); addLabel(name, color, h, at, ['apoptosis']); return h; };
+      const L = {
+        mito: hold('Mitochondrion', 'mito', cell, MITO[0].clone().add(new V3(0, 1.2, 0))),
+        nuc: hold('Nucleus', 'nucleus', nucG, new V3(0, 2.9, 0)),
+        cytc: hold('Cytochrome c', 'cytc', cell, new V3(-4.5, 3, 2)),
+        apo: hold('Apoptosome · caspase-9', 'caspase', cell, apoCenter.clone().add(new V3(0, -1.3, 0))),
+        casp: hold('Caspases 3 and 7', 'caspase', cell, new V3(3.2, 3.8, 2)),
+        bodies: hold('Apoptotic bodies', 'g1', apoGroup, new V3(0, -6.6, 0)),
+        macro: hold('Macrophage', 'mono', macro, new V3(0, 5.6, 0)),
+        tcell: hold('T cell · Fas ligand', 'lymph', tcell, new V3(0, 3.2, 0)),
+        rec: hold('Death receptors · caspase-8', 'caspase', cell, contact.clone().add(new V3(-0.6, -1.6, 0))),
+        spill: hold('Spilled contents', 'atp', apoGroup, new V3(-8, -5, 0)),
+        neut: hold('Neutrophils', 'neut', apoGroup, new V3(9, 8, 2)),
+      };
+      const clamp = (x) => Math.max(0, Math.min(1, x));
+      const seg = (T, a, b) => clamp((T - a) / (b - a));
+      const st = { elapsed: 0, key: '' };
+      function pose(path, T) {
+        const nec = path === 'necrosis', ext = path === 'extrinsic', apo = !nec;
+        Object.values(L).forEach(h => { h.visible = false; });
+        // shared reset
+        cell.visible = true; shell.visible = true; cell.scale.setScalar(1);
+        mitos.forEach(m => m.scale.setScalar(1));
+        nucBody.visible = true; nucBody.scale.setScalar(1); nucMat.opacity = 0.85; frags.forEach(f => { f.visible = false; });
+        [pores, cytc, wheel, casp, blebs, receptors, bodies, spill, shards, neuts, flames].forEach(list => list.forEach(o => { o.visible = false; }));
+        hub.visible = false; disc.visible = false; macro.visible = false; tcell.visible = false;
+        L.nuc.visible = T < 9; L.mito.visible = T < 5;
+        if (apo) {
+          if (ext) {
+            tcell.visible = T < 11;
+            tcell.position.copy(new V3(13, 1.2, 0).lerp(new V3(R + 2.7, 1.2, 0), ease.out(seg(T, 0, 2))));
+            L.tcell.visible = T < 9;
+            receptors.forEach(r => { r.visible = T > 2; });
+            disc.visible = T > 3 && T < 9; disc.material.opacity = 0.5 + 0.4 * Math.sin(T * 6);
+            L.rec.visible = T > 2.5 && T < 7;
+          }
+          const poreT = ext ? 5 : 2.5, cytT = ext ? 5.6 : 3.5;
+          pores.forEach(p => { p.visible = T > poreT && T < 12; p.scale.setScalar(Math.max(0.01, seg(T, poreT, poreT + 1))); });
+          cytc.forEach((d, i) => {
+            if (ext && !someCyt.has(i)) return;
+            if (T < cytT || T > 12) return;
+            d.visible = true;
+            const u = seg(T, cytT, cytT + 2.4), toWheel = !ext && T > 5.5;
+            const p = d.userData.from.clone().add(d.userData.dir.clone().multiplyScalar(u * d.userData.sp));
+            if (toWheel && i < 7) p.lerp(wheel[i].userData.at, seg(T, 5.5, 6.8));
+            d.position.copy(p);
+          });
+          L.cytc.visible = T > cytT && T < 7;
+          if (!ext) {
+            wheel.forEach(w => { w.visible = T > 5.5 && T < 12; w.position.copy(apoCenter.clone().add(w.userData.from).lerp(w.userData.at, ease.inOut(seg(T, 5.5, 6.8)))); });
+            hub.visible = T > 6.6 && T < 11; hub.material.opacity = 0.6 + 0.3 * Math.sin(T * 5);
+            L.apo.visible = T > 6 && T < 9;
+          }
+          const castT = ext ? 4.5 : 7, src = ext ? contact.clone().add(new V3(-0.8, 0, 0)) : apoCenter;
+          casp.forEach(c => {
+            if (T < castT || T > 12) return;
+            c.visible = true;
+            const u = ease.out(seg(T, castT, castT + 2.2));
+            c.position.copy(src.clone().lerp(c.userData.dir.clone().multiplyScalar(c.userData.r), u));
+            c.rotation.set(T * 3 + c.userData.ph, T * 2, 0);
+          });
+          L.casp.visible = T > castT + 0.5 && T < 11;
+          const shrink = 1 - 0.18 * seg(T, 9, 11.5);
+          cell.scale.setScalar(shrink);
+          const pyk = seg(T, 9, 10.5);
+          nucBody.scale.setScalar(1 - 0.45 * pyk); nucMat.opacity = 0.85 + 0.15 * pyk;
+          if (T > 10.5) { nucBody.visible = false; frags.forEach((f, k) => { f.visible = true; f.position.copy(new V3(...[[-0.9, 0.6, 0.3], [0.8, 0.7, -0.4], [0.5, -0.8, 0.6], [-0.6, -0.7, -0.5]][k]).multiplyScalar(1 + 0.8 * seg(T, 10.5, 11.5))); }); }
+          const bleb = seg(T, 10, 11) * (1 - seg(T, 11.8, 12));
+          blebs.forEach((b, k) => { b.visible = bleb > 0.01; b.scale.setScalar(Math.max(0.01, bleb * (0.9 + 0.5 * Math.abs(Math.sin(T * 4 + k))))); });
+          if (T > 12) {
+            cell.visible = false;
+            const eat = seg(T, 14, 15.6);
+            const mPos = new V3(-16, -1, 0).lerp(new V3(-1, 0, 0), ease.inOut(seg(T, 12.4, 14.4)));
+            macro.visible = true; macro.position.copy(mPos); L.macro.visible = true;
+            bodies.forEach(b => { b.visible = eat < 0.98; const p = b.userData.home.clone().lerp(b.userData.out, seg(T, 12, 13)); b.position.copy(p.lerp(mPos.clone().add(new V3(0.6, 0, 0)), eat)); b.scale.setScalar(Math.max(0.01, 1 - 0.6 * eat)); });
+            L.bodies.visible = T < 14.2;
+          }
+        } else {
+          const swell = 1 + 0.35 * seg(T, 0, 3);
+          cell.scale.setScalar(swell); mitos.forEach(m => m.scale.setScalar(1 + 0.6 * seg(T, 0, 3)));
+          if (T > 3) {
+            shell.visible = false;
+            shards.forEach(s => { s.visible = true; s.position.copy(s.userData.dir.clone().multiplyScalar(seg(T, 3, 6) * 5)); s.rotation.set(T * s.userData.spin, T * s.userData.spin * 0.7, 0); s.scale.setScalar(swell); });
+            spill.forEach(d => { d.visible = true; d.position.copy(d.userData.dir.clone().multiplyScalar(2 + seg(T, 3.4, 8) * d.userData.sp * 2.2)); });
+            nucMat.opacity = 0.85 * (1 - 0.8 * seg(T, 3.6, 7)); L.spill.visible = true;
+          }
+          neuts.forEach(n => { n.visible = T > 5.5; n.position.copy(n.userData.from.clone().lerp(n.userData.to, ease.out(seg(T, 5.5, 9.5)))); });
+          L.neut.visible = T > 6.5;
+          flames.forEach((f, k) => { f.visible = T > 5; f.material.opacity = 0.18 * seg(T, 5, 8) * (0.7 + 0.3 * Math.sin(T * 2 + k)); });
+        }
+      }
+      function update() {
+        const path = LESSON['dv-death'] || 'intrinsic';
+        const T = reduceMotion ? (path === 'necrosis' ? 8 : 10.8) : st.elapsed % 17.5;
+        pose(path, Math.min(T, 16));
+        const text = apoText(path, Math.min(T, 16));
+        if (text !== st.key) { st.key = text; const el = $('#apoCaption'); if (el) el.textContent = text; }
+      }
+      whenLesson('dv-death', () => { st.elapsed = 0; });
+      return {
+        enter() { st.elapsed = 0; st.key = ''; update(); },
+        tick(t, dt) { if (!reduceMotion) st.elapsed += dt; update(); },
+        reset() { st.elapsed = 0; G3.goStage('apoptosis'); update(); },
+      };
+    })();
+
     const POSES = {
       cycle: { pos: new V3(0, 0, 50), target: new V3(3, 0, 0), group: 'cycle', w: 21 },
       mitosis: { pos: new V3(0, 3, 50), target: new V3(0, -0.5, 0), group: 'mitosis', w: 19 },
       damage: { pos: new V3(0, 4, 50), target: new V3(0, 0, 0), group: 'dna', w: 23 },
       repair: { pos: new V3(0, 2, 56), target: new V3(0, -3, 0), group: 'repair', w: 24 },
       fate: { pos: new V3(0, 0, 50), target: new V3(0, -1, 0), group: 'fate', w: 16 },
+      apoptosis: { pos: new V3(-6, 6, 44), target: new V3(0, 0, 0), group: 'apoptosis', w: 12.5 },
       survival: { pos: new V3(0, 0, 50), target: new V3(0, -0.8, 0), group: 'survival', w: 15 },
       dose: { pos: new V3(0, 3, 56), target: new V3(0, -1.5, 0), group: 'dose', w: 18 },
     };
     const enter = (id, extra) => () => { current = id; renderRead(); if (extra) extra(); };
     const B = {
+      apoptosis: apoBehavior,
       cycle: { enter: enter('cycle', () => { cyc.u = 0.05; cyc.g0 = 0; }), tick: cycTick },
       mitosis: { enter: enter('mitosis', () => { D.phase = 0; mit.s = 0; mit.since = 0; mit.shown = -1; D.play = !reduceMotion; syncMitosis(); renderRead(); }), tick: mitTick },
       damage: { enter: enter('damage', () => { exposure(); B.damage.next = now + 9; }), tick(t) { if (t > this.next) { this.next = t + 9; exposure(); } } },
@@ -787,10 +986,10 @@ CellCity.register('division', {
     };
 
     return {
-      groups: { cycle: cycGroup, mitosis: mitGroup, dna: dmgGroup, repair: repGroup, fate: fateGroup, survival: surGroup, dose: doseGroup },
+      groups: { cycle: cycGroup, mitosis: mitGroup, dna: dmgGroup, repair: repGroup, fate: fateGroup, apoptosis: apoGroup, survival: surGroup, dose: doseGroup },
       unitsPerNm: { mitosis: 0.001, dna: 1 / 0.34, repair: 1 / 0.34 },
-      fog: { cycle: 0.002, mitosis: 0.003, dna: 0.004, repair: 0.003, fate: 0.002, survival: 0.001, dose: 0.002 },
-      depth: { cycle: 0.8, mitosis: 1.2, dna: 4, repair: 4.2, fate: 1.1, survival: 0.9, dose: -0.5 },
+      fog: { cycle: 0.002, mitosis: 0.003, dna: 0.004, repair: 0.003, fate: 0.002, apoptosis: 0.002, survival: 0.001, dose: 0.002 },
+      depth: { cycle: 0.8, mitosis: 1.2, dna: 4, repair: 4.2, fate: 1.1, apoptosis: 1.15, survival: 0.9, dose: -0.5 },
       poses: POSES, behaviors: B,
     };
   },

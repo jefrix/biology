@@ -142,6 +142,7 @@ document.addEventListener('click', (e) => {
   const b = e.target.closest('[data-pf]');
   if (b) {
     const name = b.dataset.pf; W[name] = b.dataset.val;
+    if (name === 'gene') LESSON['pf-chromatin'] = W.gene;      // the chromatin chapter shows the same cell
     document.querySelectorAll(`[data-pf="${name}"]`).forEach(x => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-pressed', on); });
     renderRead(); onChange(name); return;
   }
@@ -175,9 +176,40 @@ const SRC = {
   folding: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC4404187/', 'proinsulin folding and INS mutations'),
   process: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC7734662/', 'proinsulin processing'),
   pet: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC5226808/', 'amino acid PET tracer uptake'),
+  osEpi: link('https://openstax.org/books/biology-2e/pages/16-3-eukaryotic-epigenetic-gene-regulation', 'OpenStax Biology 2e, 16.3 Eukaryotic epigenetic gene regulation'),
+  luger: link('https://www.rcsb.org/structure/1AOI', 'PDB 1AOI, the nucleosome core particle (Luger et al., 1997)'),
+  kuroda: link('https://doi.org/10.1371/journal.pone.0006953', 'Kuroda et al., insulin gene expression is regulated by DNA methylation (PLoS ONE, 2009)'),
+  andrali: link('https://doi.org/10.1042/BJ20081029', 'Andrali et al., glucose regulation of insulin gene expression (Biochem J, 2008)'),
 };
+const CHROMATIN_TEXT = {
+  beta: 'Beta cell: the region around INS is open euchromatin. Acetylated histones loosen, a nucleosome-free promoter exposes binding sites, and PDX1, MAFA and NEUROD1 recruit RNA polymerase II, which starts making RNA.',
+  other: 'Neuron or muscle cell: the same DNA is packed into compact heterochromatin. Methylated DNA and histones keep the promoter wrapped up, the beta-cell factors are absent, and RNA polymerase II never lands.',
+};
+// The chromatin choice and the gene chapter's cell-type switch describe the same cell, so keep them in step.
+whenLesson('pf-chromatin', (v) => { W.gene = v; });
 
 const CHAPTERS = [
+  {
+    id: 'chromatin', short: 'Chromatin', where: 'The nucleus · packaging around the insulin gene',
+    title: 'Why the insulin gene is open in a beta cell',
+    legend: [['strand-a', 'DNA'], ['histone', 'Histone octamer'], ['acetyl-mark', 'Acetyl marks'], ['methyl-mark', 'Methyl marks'], ['tf', 'Beta-cell transcription factors'], ['rnapol', 'RNA polymerase II'], ['rna', 'New RNA']],
+    html: () => {
+      if (!Object.hasOwn(LESSON, 'pf-chromatin')) LESSON['pf-chromatin'] = W.gene;
+      return `
+      <p class="lede">Almost every cell in your body carries the <b>INS</b> gene for insulin, but only pancreatic beta cells read it. The difference is in how the DNA around the gene is packaged and which proteins can reach it.</p>
+      ${lessonSeg('pf-chromatin', 'Cell type', [['beta', 'Pancreatic beta cell'], ['other', 'Neuron or muscle cell']])}
+      <p id="chromCaption" class="lesson-phase" aria-live="polite">${CHROMATIN_TEXT[LESSON['pf-chromatin']]}</p>
+      <ul class="facts">
+        <li><b>Nucleosomes.</b> About 147 base pairs of DNA wrap 1.65 turns around a core of eight histone proteins, two each of H2A, H2B, H3 and H4. Short linker DNA joins one nucleosome to the next, like beads on a string.</li>
+        <li><b>Euchromatin and heterochromatin.</b> Loosely packed euchromatin is accessible and usually active. Tightly packed heterochromatin hides its DNA from the machinery that reads genes.</li>
+        <li><b>Epigenetic marks.</b> Acetyl groups on histone tails loosen their grip on DNA and recruit activators. Certain methyl marks on histones, and methyl groups on CpG sites in DNA itself, help keep genes silent. In mice and in human islets, the <b>INS</b> promoter carries little DNA methylation in beta cells and much more in other cells.</li>
+        <li><b>Promoter and enhancers.</b> A short region upstream of the gene holds binding sites for transcription factors. In beta cells, <b>PDX1</b>, <b>MAFA</b> and <b>NEUROD1</b> bind their sites there. Together with coactivators and Mediator, they recruit <b>RNA polymerase II</b> to the start site.</li>
+        <li>High glucose increases this binding and insulin gene transcription. Long-term exposure to high glucose and fatty acids can lower MAFA and PDX1 activity, one way beta cells fail in type 2 diabetes.</li>
+      </ul>
+      <p><a href="#gene">Next: read the INS gene</a> · <a href="#islet">Meet the beta cell in its islet</a></p>
+      ${sources([SRC.osEpi, SRC.fcb, SRC.luger, SRC.kuroda, SRC.andrali], 'The scene is schematic: real chromatin folds in three dimensions, the compact state is not a regular fiber, and the INS control region spans a few hundred base pairs with many more factors. 1 scene unit ≈ 2 nm for the nucleosomes; linker and promoter lengths are compressed.')}`;
+    },
+  },
   {
     id: 'gene', short: 'Gene', where: 'The nucleus · reading one gene',
     title: 'The blueprint: the insulin gene',
@@ -686,7 +718,155 @@ CellCity.register('protein', {
     }
 
     /* ================= camera and behaviors ================= */
+    /* ================= CHROMATIN (1 unit ≈ 2 nm for nucleosomes; linkers compressed) ================= */
+    const gChrom = new THREE.Group(); scene.add(gChrom);
+    const chromatinBehavior = (() => {
+      const CC = {};
+      ['histone', 'acetyl-mark', 'methyl-mark', 'tf', 'strand-a', 'strand-b', 'rnapol', 'rna', 'co2'].forEach(k => CC[k] = col(k));
+      const N = 10, PROM = 4;                       // the promoter lies in the linker after nucleosome 4
+      const WR = 2.15, PITCH = 1.2, TURNS = 1.65, OCT_R = 1.55;
+      const openPos = [-27, -20.5, -14, -7.5, -1, 15, 21.5, 28, 34.5, 41].map((x, i) => new V3(x - 6, Math.sin(i * 1.3) * 0.8, Math.cos(i * 0.9) * 0.6));
+      const closedPos = [], closedQ = [], openQ = [];
+      for (let i = 0; i < N; i++) {
+        const a = i * 2 * Math.PI / 5;
+        closedPos.push(new V3(-2 + Math.cos(a) * 4.4, -6.5 + i * 1.35, Math.sin(a) * 4.4));
+        closedQ.push(new THREE.Quaternion().setFromEuler(new THREE.Euler(Math.PI / 2 - 0.35, -a, 0)));
+        openQ.push(new THREE.Quaternion().setFromEuler(new THREE.Euler(0.25 * Math.sin(i), 0.35 * Math.cos(i * 1.7), 0.1)));
+      }
+      // nucleosome cores: two layers of four histone lobes, with H3 tails that carry marks
+      const shades = [1, 0.8, 0.65, 0.9].map(f => CC.histone.clone().multiplyScalar(f));
+      const nucs = [];
+      const tailMat = std(CC.histone.clone().multiplyScalar(0.7), { emissiveIntensity: 0.2 });
+      const acMat = std(CC['acetyl-mark'], { emissiveIntensity: 0.6 }), meMat = std(CC['methyl-mark'], { emissiveIntensity: 0.6 });
+      for (let i = 0; i < N; i++) {
+        const g = new THREE.Group(); gChrom.add(g);
+        for (let k = 0; k < 8; k++) {
+          const a = (k % 4) / 4 * Math.PI * 2 + (k > 3 ? Math.PI / 4 : 0);
+          const m = mesh(lumpy(1, 0.08, k + i), std(shades[k % 4], { emissiveIntensity: 0.18 }), g, [Math.cos(a) * 0.75, Math.sin(a) * 0.75, k > 3 ? 0.55 : -0.55], [0.85, 0.85, 0.62]);
+          m.scale.multiplyScalar(OCT_R / 1.55);
+        }
+        const tails = [];
+        for (let k = 0; k < 2; k++) {
+          const dir = new V3(k ? -1 : 1, 0.6, k ? -0.5 : 0.5).normalize();
+          const a = dir.clone().multiplyScalar(1.4), b = dir.clone().multiplyScalar(3.1);
+          const t = mesh(stick, tailMat, g); setStick(t, a, b, 0.14);
+          const ac = mesh(atomGeo, acMat, g, b.clone().add(dir.clone().multiplyScalar(0.25)), 0.3);
+          const me = mesh(atomGeo, meMat, g, a.clone().lerp(b, 0.6).add(new V3(0, 0.3, 0)), 0.3);
+          tails.push({ ac, me });
+        }
+        nucs.push({ g, tails });
+      }
+      const MAXB = 1500;
+      const dnaBeads = new THREE.InstancedMesh(atomGeo, new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.4, emissive: 0x101826 }), MAXB);
+      gChrom.add(dnaBeads);
+      const methylDots = new THREE.InstancedMesh(atomGeo, meMat, 8); gChrom.add(methylDots);
+      const cA = CC['strand-a'], cB = CC['strand-b'];
+      // transcription machinery
+      const tfG = new THREE.Group(); gChrom.add(tfG);
+      const tfDefs = [['NEUROD1', 0.16, CC.tf], ['MAFA', 0.33, CC.tf.clone().lerp(new THREE.Color(0xff79c6), 0.35)], ['PDX1', 0.5, CC.tf.clone().lerp(new THREE.Color(0xffe45e), 0.4)]];
+      const tfs = tfDefs.map(([name, u, c], k) => {
+        const o = new THREE.Group(); tfG.add(o);
+        mesh(lumpy(1, 0.12, k + 3), std(c, { emissiveIntensity: 0.4 }), o, null, [1.1, 0.95, 1]);
+        o.add(glow(c, 3.2));
+        addLabel(name, 'tf', o, new V3(0, 1.9, 0), ['chromatin']);
+        return { o, u };
+      });
+      const mediator = mesh(lumpy(1, 0.14, 11), std(CC.co2, { emissiveIntensity: 0.15, transparent: true, opacity: 0.75 }), tfG, null, [3.2, 1.3, 1.6]);
+      addLabel('Mediator', 'co2', mediator, new V3(0, 1.4, 0), ['chromatin']);
+      const pol = new THREE.Group(); tfG.add(pol);
+      mesh(lumpy(1, 0.1, 7), std(CC.rnapol, { emissiveIntensity: 0.35 }), pol, null, [1.9, 1.7, 1.7]);
+      addLabel('RNA polymerase II', 'rnapol', pol, new V3(0, 2.6, 0), ['chromatin']);
+      const rna = new THREE.InstancedMesh(atomGeo, std(CC.rna, { emissiveIntensity: 0.4 }), 40); tfG.add(rna);
+      const markers = new THREE.Group(); gChrom.add(markers);
+      addLabel('Histone octamer', 'histone', nucs[1].g, new V3(0, -3.4, 0), ['chromatin']);
+      const acHolder = new THREE.Group(), meHolder = new THREE.Group(); nucs[2].g.add(acHolder); nucs[7].g.add(meHolder);
+      addLabel('Acetylated tails', 'acetyl-mark', acHolder, new V3(1.5, 3.8, 0), ['chromatin']);
+      addLabel('Methyl marks', 'methyl-mark', meHolder, new V3(1.5, 3.8, 0), ['chromatin']);
+      const promHolder = new THREE.Group(); markers.add(promHolder);
+      addLabel('Promoter · nucleosome-free', 'strand-a', promHolder, new V3(0, -2.2, 0), ['chromatin']);
+      const linkHolder = new THREE.Group(); markers.add(linkHolder);
+      addLabel('Linker DNA', 'strand-a', linkHolder, new V3(0, -1.4, 0), ['chromatin']);
+      const compactHolder = new THREE.Group(); compactHolder.position.set(-2, 7.5, 0); markers.add(compactHolder);
+      addLabel('Compact heterochromatin', 'histone', compactHolder, new V3(0, 0, 0), ['chromatin']);
+      // geometry of one wrap, in the nucleosome's own frame (axis along z)
+      const wrapPt = (th) => new V3(WR * Math.sin(th), -WR * Math.cos(th), PITCH * th / (2 * Math.PI));
+      const wrapTan = (th) => new V3(WR * Math.cos(th), WR * Math.sin(th), PITCH / (2 * Math.PI)).normalize();
+      const TH = TURNS * Math.PI;
+      const st = { o: W.gene === 'beta' ? 1 : 0, elapsed: 0, key: '' };
+      const m4 = new THREE.Matrix4(), q0 = new THREE.Quaternion(), s3 = new V3();
+      let promCurve = null;
+      function bez(p0, t0, p1, t1, k) { const d = p0.distanceTo(p1) * 0.4; return new THREE.CubicBezierCurve3(p0, p0.clone().add(t0.clone().multiplyScalar(d * k)), p1.clone().sub(t1.clone().multiplyScalar(d * k)), p1); }
+      function layout(o, t) {
+        const e = ease.inOut(o);
+        const frames = nucs.map((n, i) => {
+          const p = closedPos[i].clone().lerp(openPos[i], e);
+          if (!reduceMotion) p.y += Math.sin(t * 0.6 + i) * 0.12 * e;
+          const q = closedQ[i].clone().slerp(openQ[i], e);
+          n.g.position.copy(p); n.g.quaternion.copy(q);
+          n.tails.forEach(tl => { tl.ac.visible = o > 0.5; tl.me.visible = o < 0.5; tl.ac.scale.setScalar(0.3 * Math.max(0.01, (o - 0.5) * 2)); tl.me.scale.setScalar(0.3 * Math.max(0.01, (0.5 - o) * 2)); });
+          return { p, q };
+        });
+        // walk the DNA path and drop beads every 0.42 units
+        const pts = [];
+        const toW = (f, v) => v.clone().applyQuaternion(f.q).add(f.p);
+        const dirW = (f, v) => v.clone().applyQuaternion(f.q);
+        const pushCurve = (c, n) => { for (let k = 0; k <= n; k++) pts.push(c.getPoint(k / n)); };
+        const first = frames[0], last = frames[N - 1];
+        const entry0 = toW(first, wrapPt(-TH)), tan0 = dirW(first, wrapTan(-TH));
+        pushCurve(new THREE.LineCurve3(entry0.clone().sub(tan0.clone().multiplyScalar(5)), entry0), 12);
+        frames.forEach((f, i) => {
+          for (let k = 0; k <= 48; k++) pts.push(toW(f, wrapPt(-TH + 2 * TH * k / 48)));
+          if (i < N - 1) {
+            const a = toW(f, wrapPt(TH)), ta = dirW(f, wrapTan(TH)), nf = frames[i + 1];
+            const b = toW(nf, wrapPt(-TH)), tb = dirW(nf, wrapTan(-TH));
+            const c = bez(a, ta, b, tb, 1);
+            if (i === PROM) promCurve = c;
+            pushCurve(c, Math.max(4, Math.ceil(a.distanceTo(b) / 0.3)));
+          }
+        });
+        const exitL = toW(last, wrapPt(TH)), tanL = dirW(last, wrapTan(TH));
+        pushCurve(new THREE.LineCurve3(exitL, exitL.clone().add(tanL.multiplyScalar(5))), 12);
+        let n = 0, acc = 0;
+        for (let k = 1; k < pts.length && n < MAXB; k++) {
+          acc += pts[k].distanceTo(pts[k - 1]);
+          if (acc < 0.42) continue;
+          acc = 0; s3.setScalar(0.5); m4.compose(pts[k], q0, s3); dnaBeads.setMatrixAt(n, m4); dnaBeads.setColorAt(n, n % 2 ? cA : cB); n++;
+        }
+        dnaBeads.count = n; dnaBeads.instanceMatrix.needsUpdate = true; if (dnaBeads.instanceColor) dnaBeads.instanceColor.needsUpdate = true;
+        // marks and machinery placed along the promoter linker
+        const me = Math.max(0, 1 - o * 2);
+        for (let k = 0; k < 8; k++) { const p = promCurve.getPoint(0.12 + k * 0.1).add(new V3(0, 0.7, 0)); s3.setScalar(0.28 * Math.max(0.01, me)); m4.compose(p, q0, s3); methylDots.setMatrixAt(k, m4); }
+        methylDots.instanceMatrix.needsUpdate = true; methylDots.visible = me > 0.02;
+        const tfOn = Math.max(0, (o - 0.55) / 0.45);
+        tfG.visible = tfOn > 0.01;
+        // labels hide only when their own parent is hidden, so toggle each machinery piece too
+        tfs.forEach(({ o: g_ }) => { g_.visible = tfG.visible; }); mediator.visible = pol.visible = tfG.visible;
+        tfs.forEach(({ o: g_, u }, k) => { const p = promCurve.getPoint(u); p.y += 1.2 + (1 - tfOn) * 6; g_.position.copy(p); g_.scale.setScalar(Math.max(0.01, tfOn)); });
+        const mid = promCurve.getPoint(0.34); mediator.position.set(mid.x + 1, mid.y + 4 + (1 - tfOn) * 6, mid.z); mediator.scale.set(3.2, 1.3, 1.6).multiplyScalar(Math.max(0.01, tfOn));
+        const tss = promCurve.getPoint(0.72); pol.position.set(tss.x, tss.y + 1.1 + (1 - tfOn) * 8, tss.z); pol.scale.setScalar(Math.max(0.01, tfOn));
+        const grow = tfOn >= 0.99 ? Math.min(40, Math.floor(((reduceMotion ? 6 : st.elapsed) % 8) * 7)) : 0;
+        for (let k = 0; k < 40; k++) { const p = new V3(pol.position.x + 1.4 + Math.sin(k * 0.5) * 0.6, pol.position.y + 1.2 + k * 0.32, pol.position.z + Math.cos(k * 0.5) * 0.6); s3.setScalar(k < grow ? 0.3 : 0.001); m4.compose(p, q0, s3); rna.setMatrixAt(k, m4); }
+        rna.instanceMatrix.needsUpdate = true;
+        promHolder.position.copy(promCurve.getPoint(0.5)); promHolder.visible = o > 0.7;
+        linkHolder.position.copy(frames[6].p.clone().lerp(frames[7].p, 0.5)); linkHolder.visible = o > 0.7;
+        compactHolder.visible = o < 0.3;
+        acHolder.visible = o > 0.6; meHolder.visible = o < 0.4;
+      }
+      return {
+        enter() { st.elapsed = 0; st.key = ''; if (!Object.hasOwn(LESSON, 'pf-chromatin')) LESSON['pf-chromatin'] = W.gene; st.o = LESSON['pf-chromatin'] === 'beta' ? 1 : 0; layout(st.o, 0); },
+        tick(t, dt) {
+          const want = (LESSON['pf-chromatin'] || W.gene) === 'beta' ? 1 : 0;
+          if (!reduceMotion) st.elapsed += dt;
+          st.o = reduceMotion ? want : st.o + Math.sign(want - st.o) * Math.min(Math.abs(want - st.o), dt * 0.45);
+          layout(st.o, st.elapsed);
+          const key = LESSON['pf-chromatin'];
+          if (key !== st.key) { st.key = key; const el = $('#chromCaption'); if (el) el.textContent = CHROMATIN_TEXT[key]; }
+        },
+      };
+    })();
+
     const POSES = {
+      chromatin: { pos: new V3(-4, 9, 58), target: new V3(1, 1, 0), group: 'pfChromatin', w: 33 },
       gene: { pos: new V3(0, 2, 56), target: new V3(0, -2, 0), group: 'pfGene', w: 25 },
       mrna: { pos: new V3(0, 0, 58), target: new V3(1, -2, 0), group: 'pfRna', w: 32 },
       translate: { pos: new V3(0, 3, 56), target: new V3(0, 4.2, 0), group: 'pfRibo', w: 16 },
@@ -697,6 +877,7 @@ CellCity.register('protein', {
     };
     const enter = (id, extra) => () => { current = id; timers.clear(); if (extra) extra(); syncPlay(); renderRead(); };
     const B = {
+      chromatin: chromatinBehavior,
       gene: { enter: enter('gene', () => { gst.x = -8; }), tick: geneTick },
       mrna: { enter: enter('mrna', () => { W.step = 0; W.play = !reduceMotion; rst.s = 0; rst.since = 0; }), tick: rnaTick },
       translate: { enter: enter('translate', () => { W.codon = 1; W.tplay = !reduceMotion; shownCodon = -1; }), tick: riboTick },
@@ -712,11 +893,11 @@ CellCity.register('protein', {
     };
 
     return {
-      groups: { pfGene: gGene, pfRna: gRna, pfRibo: gRibo, pfEr: gEr, pfGolgi: gGolgi, pfGran: gGran, pfExo: gExo },
-      unitsPerNm: {},
-      fog: { pfGene: 0.003, pfRna: 0.002, pfRibo: 0.002, pfEr: 0.002, pfGolgi: 0.002, pfGran: 0.001, pfExo: 0.002 },
-      depth: { pfGene: 3.1, pfRna: 3.05, pfRibo: 3.2, pfEr: 2.2, pfGolgi: 1.6, pfGran: 2.6, pfExo: 1.3 },
-      fadeText: { pfGene: 'Into the nucleus', pfRibo: 'To the ribosome', pfEr: 'To the ER', pfGolgi: 'To the Golgi', pfGran: 'Into a granule', pfExo: 'To the cell edge' },
+      groups: { pfChromatin: gChrom, pfGene: gGene, pfRna: gRna, pfRibo: gRibo, pfEr: gEr, pfGolgi: gGolgi, pfGran: gGran, pfExo: gExo },
+      unitsPerNm: { pfChromatin: 0.5 },
+      fog: { pfChromatin: 0.003, pfGene: 0.003, pfRna: 0.002, pfRibo: 0.002, pfEr: 0.002, pfGolgi: 0.002, pfGran: 0.001, pfExo: 0.002 },
+      depth: { pfChromatin: 3.3, pfGene: 3.1, pfRna: 3.05, pfRibo: 3.2, pfEr: 2.2, pfGolgi: 1.6, pfGran: 2.6, pfExo: 1.3 },
+      fadeText: { pfChromatin: 'Into the nucleus', pfGene: 'Onto the gene', pfRibo: 'To the ribosome', pfEr: 'To the ER', pfGolgi: 'To the Golgi', pfGran: 'Into a granule', pfExo: 'To the cell edge' },
       poses: POSES, behaviors: B,
     };
   },

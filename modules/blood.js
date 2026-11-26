@@ -1,4 +1,5 @@
-/* Blood module: red cell, the five white cell types and platelets, drawn to scale (1 unit = 1 µm). */
+/* Blood module: red cell, the five white cell types and platelets, drawn to scale (1 unit = 1 µm),
+   then platelets and fibrin sealing a breached vessel (not to scale). */
 (() => {
 'use strict';
 
@@ -16,6 +17,7 @@ const BLOOD = [
   { id: 'neut', name: 'Neutrophil', short: 'Neutrophil', tag: 'Granulocyte · first responder', pct: [40, 60], size: 'about 12–15 µm',
     look: 'A nucleus in 2 to 5 lobes joined by fine threads, with fine pale-lilac granules. Young <i>band</i> forms in the blood suggest a “left shift”. Six or more lobes points toward B12 or folate deficiency.',
     job: 'Arrives first at bacterial infection, swallows microbes and kills them with enzymes and reactive oxygen. It can also throw out DNA nets. Dead neutrophils are a major part of pus.',
+    more: '<a href="#cyto-crawl">Watch a neutrophil roll, crawl and squeeze out of a vessel →</a>',
     life: 'Only hours in the blood, longer once in tissue. Estimates differ between methods.',
     energy: 'Has few mitochondria and leans heavily on <b>glycolysis</b>. For its “respiratory burst”, the enzyme NADPH oxidase turns oxygen into microbe-killing oxidants. When that enzyme fails, the result is chronic granulomatous disease.',
     action: 'Bacteria are engulfed into a phagosome. Granules converge and an oxidative burst destroys them.',
@@ -63,9 +65,26 @@ const BLOOD = [
     energy: 'Has no nucleus but keeps a few mitochondria, so it uses both glycolysis and oxidative phosphorylation. Activation sharply raises its energy use. Because a platelet cannot make new proteins from genes, <b>aspirin</b> blocks its thromboxane production for the rest of its life.',
     action: 'Platelets are activated: they flatten, spread and clump together into a plug, as they would at a cut in a vessel wall.',
     rad: 'A fresh clot is often <b>bright (hyperdense) on unenhanced CT</b> because packed cells and fibrin raise its density, as in the hyperdense artery sign of an acute stroke. On <b>CT angiography</b>, a thrombus shows as a dark filling defect inside the contrast-filled vessel. Before biopsies and other image-guided procedures, teams check the platelet count and any antiplatelet drugs, because bleeding risk depends on both. Thresholds depend on the procedure, so follow local and society guidelines.',
+    more: '<a href="#clotting">Watch platelets and fibrin seal a breached vessel →</a>',
     refs: [['https://openstax.org/books/anatomy-and-physiology-2e/pages/18-5-hemostasis', 'OpenStax, hemostasis'], ['https://doi.org/10.1016/j.jvir.2019.04.017', 'SIR periprocedural bleeding risk guideline, part II (Patel et al. 2019)']] },
 ];
 const bloodState = { id: null, sub: 'b' };
+/* Clotting chapter: the marrow, then five steps at a breached vessel. Times (s) index one shared timeline. */
+const CLOT_STEPS = [
+  ['mk', 'Marrow', 'A megakaryocyte pushes proplatelet extensions through a sinusoid wall. Flowing blood pinches platelets off their tips.'],
+  ['auto', 'Play injury', ''],
+  ['0', 'Injury', 'The endothelium is breached. Collagen underneath is exposed, and von Willebrand factor stuck to it unfolds in the fast flow.'],
+  ['1', 'Adhesion', 'Passing platelets catch on von Willebrand factor with their GPIb receptors, slow down, then stick firmly to collagen.'],
+  ['2', 'Activation', 'Stuck platelets change from smooth discs to spiky spheres and release ADP and thromboxane A₂, which activate more platelets.'],
+  ['3', 'Aggregation', 'Activated GPIIb/IIIa receptors bind fibrinogen, which bridges platelet to platelet. A soft plug fills the gap.'],
+  ['4', 'Fibrin', 'Tissue factor and the platelet surface drive the cascade to thrombin. Thrombin turns fibrinogen into fibrin strands that knit the plug and trap red cells.'],
+];
+const CLOT_T = [0, 3, 7, 11, 15, 20];
+function clotText(v) {
+  if (v === 'auto') return 'Playing primary hemostasis, then the fibrin step. Choose a step to hold it.';
+  const s = CLOT_STEPS.find(x => x[0] === v);
+  return s ? `${s[1]}: ${s[2]}` : '';
+}
 let bloodView = null;                              // set by the 3D scene when WebGL is available
 function bloodCardHTML() {
   const c = BLOOD.find(x => x.id === bloodState.id);
@@ -88,6 +107,7 @@ function bloodCardHTML() {
       <dt>Energy</dt><dd>${c.energy}</dd>
     </dl>
     <p><span class="eyebrow">In the 3D view</span><br>${sub ? sub.action : c.action}</p>
+    ${c.more ? `<p>${c.more}</p>` : ''}
     <div class="callout"><span class="eyebrow">Radiology link</span><p>${c.rad}</p></div>${mri}${c.refs ? `<p class="credit">Radiology references: ${c.refs.map(([u, t]) => `<a href="${u}" target="_blank" rel="noopener">${t}</a>`).join(' · ')}.</p>` : ''}`;
 }
 function selectBlood(id, scroll) {
@@ -112,7 +132,8 @@ const CHAPTERS = [
     id: 'blood', short: 'Blood', where: 'A drop of blood · cells to scale',
     title: 'Blood: couriers and defenders',
     legend: [['rbc', 'Red cell'], ['neut', 'Neutrophil'], ['lymph', 'Lymphocyte'], ['mono', 'Monocyte'], ['eos', 'Eosinophil'], ['baso', 'Basophil'], ['plt', 'Platelet'], ['mito', 'Mitochondria']],
-    details: { rbc: () => selectBlood('rbc', true), plt: () => selectBlood('plt', true) },
+    // Every card has a deep link, such as #blood/rbc or #blood/plt.
+    details: Object.fromEntries(BLOOD.map(c => [c.id, () => selectBlood(c.id, true)])),
     html: () => `
       <p class="lede">Blood is the city’s delivery network and its security force. Red cells haul the oxygen that the electron transport chain consumes. White cells, the leukocytes, are mobile defenders that mostly use the blood to travel.</p>
       <div class="orgs">${BLOOD.map(c => `<button class="org" type="button" data-cell="${c.id}" style="--c:var(--${c.id})"><i></i><span><b>${c.name}</b><small>${c.tag.split(' · ')[1]}</small></span></button>`).join('')}
@@ -126,11 +147,38 @@ const CHAPTERS = [
       </div>
       <ul class="facts">
         <li>Red cells vastly outnumber white cells, by several hundred to one. The 3D line-up is for comparing size and shape, not numbers.</li>
-        <li><b>Platelets</b> are not white cells. They are small fragments shed by marrow megakaryocytes that help blood clot. Choose Platelets above for their card.</li>
+        <li><b>Platelets</b> are not white cells. They are small fragments shed by marrow megakaryocytes that help blood clot. Choose Platelets above for their card, or <a href="#clotting">watch a clot form</a>.</li>
         <li>All of these arise from blood-forming stem cells, mostly in the marrow. T cells mature in the thymus.</li>
         <li>Mast cells, macrophages and dendritic cells do much of their work in tissue and are not part of the routine differential.</li>
       </ul>
       <p class="credit">The 3D cells are schematic: granule numbers are reduced and actions are sped up. The red cell outline follows the Evans–Fung biconcave profile. Sizes and lifespans are approximate and vary between references. For learning, not diagnosis.</p>`,
+  },
+  {
+    id: 'clotting', short: 'Clotting', where: 'A breached vessel wall · and the marrow that makes platelets',
+    title: 'Platelets and fibrin seal a leak',
+    legend: [['plt', 'Platelet'], ['vwf', 'von Willebrand factor'], ['collagen', 'Exposed collagen'], ['thrombin', 'Thrombin activity'], ['fibrin', 'Fibrin'], ['rbc', 'Red cell']],
+    html: () => `
+      <p class="lede">A cut vessel has to be sealed in seconds without blocking the rest of the circulation. Platelets build a quick plug, then a protein cascade reinforces it with fibrin. Start in the marrow, where platelets are made.</p>
+      ${lessonSeg('clot-step', 'Scene', CLOT_STEPS.map(([v, name]) => [v, name]), 'auto')}
+      <p id="clotCaption" class="lesson-phase" aria-live="polite">${clotText(LESSON['clot-step'] || 'auto')}</p>
+      <h3>Making platelets</h3>
+      <p><b>Megakaryocytes</b> are giant marrow cells whose nucleus copies its DNA many times without dividing. Each pushes long <b>proplatelet</b> extensions through the wall of a marrow sinusoid, and the flowing blood pinches off thousands of platelets from their tips. The hormone <b>thrombopoietin</b>, made mainly by the liver, drives the process. Studies in mice suggest the lungs also release platelets from megakaryocytes that lodge there.</p>
+      <h3>Two overlapping stages</h3>
+      <div class="table-wrap"><table class="ledger"><thead><tr><th></th><th>Primary hemostasis</th><th>Secondary hemostasis</th></tr></thead><tbody>
+        <tr><td>Main players</td><td>Platelets, von Willebrand factor (vWF), collagen</td><td>Clotting factors, mostly made by the liver</td></tr>
+        <tr><td>Key steps</td><td>Adhesion (GPIb binds vWF), activation and shape change, release of ADP and thromboxane A₂, aggregation as fibrinogen bridges GPIIb/IIIa</td><td>Tissue factor with factor VIIa starts a cascade that converges on factor Xa and thrombin. Thrombin turns fibrinogen into fibrin, and factor XIIIa cross-links it</td></tr>
+        <tr><td>Result</td><td>A soft platelet plug within minutes</td><td>A stable fibrin mesh that traps red cells</td></tr>
+        <tr><td>When it fails</td><td>Skin and mucosal bleeding, such as nosebleeds and easy bruising (low platelets, von Willebrand disease, aspirin)</td><td>Deep bleeding into joints and muscles (hemophilia A and B, anticoagulants)</td></tr>
+      </tbody></table></div>
+      <ul class="facts">
+        <li>In the body the two stages overlap. The activated platelet surface is where the cascade runs fastest, and thrombin is itself a strong platelet activator. This is the cell-based model of coagulation.</li>
+        <li>The classic intrinsic and extrinsic pathways describe laboratory tests: the PT/INR mainly reflects tissue factor, factor VII and the common pathway, and the aPTT reflects the intrinsic pathway.</li>
+        <li>Brakes keep the clot local: antithrombin, the protein C system and an intact endothelium. Later, plasmin dissolves fibrin, and D-dimer is one of its breakdown products.</li>
+        <li>Drugs act at each stage: aspirin and P2Y12 blockers on platelet activation, heparin through antithrombin, and warfarin or direct oral anticoagulants on clotting factors.</li>
+      </ul>
+      <div class="callout"><span class="eyebrow">Radiology link</span><p><b>Bleeding:</b> non-contrast CT is the first test for suspected intracranial hemorrhage, because clotted blood is denser than brain and looks bright. On CT angiography, contrast leaking into a hematoma (for example the “spot sign” in brain hemorrhage) suggests ongoing bleeding.<br><b>Clots that block vessels:</b> a fresh thrombus can look bright on non-contrast CT, as in the hyperdense artery sign of stroke. With contrast it appears as a dark filling defect, as in pulmonary embolism on CT pulmonary angiography. Deep vein thrombosis in the legs is usually diagnosed with compression ultrasound: the clotted vein will not squash flat.</p></div>
+      <p><a href="#blood/plt">Back to the platelet card</a> · <a href="#blood">The full blood line-up</a> · <a href="#cyto-crawl">How white cells leave vessels</a></p>
+      <p class="credit">Sources: <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/18-2-production-of-the-formed-elements" target="_blank" rel="noopener">OpenStax Anatomy &amp; Physiology 2e, 18.2 Production of the formed elements</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/18-5-hemostasis" target="_blank" rel="noopener">OpenStax, 18.5 Hemostasis</a> · <a href="https://doi.org/10.1038/nature21706" target="_blank" rel="noopener">Lefrançais et al., the lung as a site of platelet biogenesis (Nature, 2017)</a>. The scene is not to scale and compresses minutes into seconds. Real plugs hold many more platelets, the cascade has many more factors than shown, and imaging appearances vary with timing, hematocrit and technique. For learning, not diagnosis.</p>`,
   },
 ];
 
@@ -473,12 +521,187 @@ CellCity.register('blood', {
     exit() { bloodView = null; resetBlood(); },
   };
 
+  /* ================= CLOTTING GROUP (not to scale) ================= */
+  const clotGroup = new THREE.Group(); scene.add(clotGroup);
+  const CK = {};
+  ['vwf', 'collagen', 'thrombin', 'fibrin', 'membrane', 'nucleus', 'plt', 'rbc', 'atp'].forEach(k => CK[k] = col(k));
+  const vessel = new THREE.Group(), marrow = new THREE.Group();
+  clotGroup.add(vessel, marrow);
+  const BREACH = 2.6;
+  {
+    const endoMat = std(CK.membrane.clone().multiplyScalar(0.75), { emissiveIntensity: 0.05, roughness: 0.75 });
+    for (let i = 0; i < 8; i++) for (let j = 0; j < 2; j++) {
+      const x = -20 + i * 5.2 + (i >= 4 ? 1.6 : 0);
+      if (Math.abs(x) < BREACH + 1.4) continue;
+      const m = new THREE.Mesh(lumpy(1, 0.05, i + j * 3, 24), endoMat); m.position.set(x, -0.3, j ? -2.3 : 2.3); m.scale.set(2.5, 0.42, 2.25); vessel.add(m);
+    }
+    const colMat = std(CK.collagen, { emissiveIntensity: 0.3 });
+    for (let k = 0; k < 7; k++) {
+      const z = -4 + k * 1.35, pts = [];
+      for (let i = 0; i <= 12; i++) { const x = -9 + i * 1.5; pts.push(new V3(x, -1.05 + Math.sin(x * 0.7 + k) * 0.12, z + Math.sin(x * 0.4 + k * 2) * 0.3)); }
+      vessel.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 48, 0.16, 6, false), colMat));
+    }
+  }
+  const vwfMat = std(CK.vwf, { emissiveIntensity: 0.4 });
+  const vwf = [];
+  for (let k = 0; k < 6; k++) {
+    const pts = []; const z = -2.5 + k, x0 = -2 + (k % 3) * 1.6;
+    for (let i = 0; i <= 10; i++) pts.push(new V3(x0 + i * 0.32, i * 0.03, z + Math.sin(i * 1.4 + k) * 0.25));
+    const m = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 30, 0.07, 5, false), vwfMat);
+    m.position.y = -0.9; vessel.add(m); vwf.push(m);
+  }
+  // platelets: the first 4 stick to the wall, 5–9 join on activation, 10–17 complete the plug
+  const pltMat = std(CK.plt, { emissiveIntensity: 0.35 });
+  const spikeGeo = new THREE.ConeGeometry(0.09, 0.9, 5);
+  const PLUG = [];
+  [[-1.6, 0], [0, 0.3], [1.6, -0.2], [0.4, -1.6], [-0.9, 1.6], [0.9, 1.5], [-1.7, -1.5], [1.9, 1.4], [-0.2, 0]].forEach(([x, z], i) => PLUG.push(new V3(x, i < 4 ? -0.55 : 0.25, z)));
+  [[-1, 0.6], [1, 0.4], [0.1, -1], [-0.3, 1.5], [1.4, -0.9], [-1.5, -0.6], [0, 0.4], [0.6, 1.2], [-0.7, -1.6]].forEach(([x, z], i) => PLUG.push(new V3(x, i < 6 ? 1.05 : 1.75, z)));
+  const CATCH = PLUG.map((_, i) => (i < 4 ? 3.2 + i * 0.8 : i < 9 ? 7.4 + (i - 4) * 0.7 : 11.2 + (i - 9) * 0.45));
+  const plts = PLUG.map((target, i) => {
+    const g = new THREE.Group(); vessel.add(g);
+    const disc = new THREE.Mesh(lumpy(0.75, 0.08, i + 2, 20), pltMat); disc.scale.set(1, 0.45, 1); g.add(disc);
+    const spikes = new THREE.Group(); g.add(spikes);
+    for (let k = 0; k < 7; k++) { const s = new THREE.Mesh(spikeGeo, pltMat); const d = new V3(rr(-1, 1), rr(-0.4, 0.6), rr(-1, 1)).normalize(); s.position.copy(d.clone().multiplyScalar(0.8)); s.quaternion.setFromUnitVectors(new V3(0, 1, 0), d); spikes.add(s); }
+    return { g, disc, spikes, target, catchT: CATCH[i], lane: new V3(0, rr(1.5, 4.6), rr(-3, 3)), spin: rr(0.5, 1.5) };
+  });
+  const passers = Array.from({ length: 6 }, (_, i) => { const m = new THREE.Mesh(lumpy(0.75, 0.08, 30 + i, 20), pltMat); m.scale.set(1, 0.45, 1); m.position.set(-20 + i * 7, rr(2.5, 5.5), rr(-3, 3)); vessel.add(m); return m; });
+  const rbcs = Array.from({ length: 8 }, (_, i) => {
+    const m = new THREE.Mesh(redCellGeo(1.7), std(CK.rbc, { emissiveIntensity: 0.18, roughness: 0.45 }));
+    m.position.set(-20 + i * 5.1, rr(2.4, 6), rr(-3.5, 3.5)); m.rotation.set(rr(0, 3), rr(0, 3), 0); vessel.add(m); return m;
+  });
+  const TRAPPED = [new V3(-3.1, 1.1, 1.6), new V3(3.2, 1.0, -1.4)];
+  // fibrinogen bridges between neighbors, then a fibrin mesh that grows over the plug
+  const bridgeMat = new THREE.LineBasicMaterial({ color: CK.fibrin, transparent: true, opacity: 0 });
+  const bridgePts = [];
+  PLUG.forEach((a, i) => PLUG.forEach((b, j) => { if (j > i && a.distanceTo(b) < 1.9) bridgePts.push(a, b); }));
+  const bridges = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(bridgePts), bridgeMat); vessel.add(bridges);
+  const fibrinG = new THREE.Group(); vessel.add(fibrinG);
+  const fibMat = std(CK.fibrin, { emissiveIntensity: 0.45, roughness: 0.4 });
+  const fibers = [];
+  for (let k = 0; k < 30; k++) {
+    const a = rr(0, Math.PI * 2), b = a + rr(1.6, 3.2), R1 = rr(2.2, 3.8), R2 = rr(2.2, 3.8);
+    const p0 = new V3(Math.cos(a) * R1, rr(-0.7, 0.4), Math.sin(a) * R1 * 0.8), p2 = new V3(Math.cos(b) * R2, rr(-0.7, 0.4), Math.sin(b) * R2 * 0.8);
+    const p1 = p0.clone().lerp(p2, 0.5); p1.y = rr(1.8, 3.0);
+    const geo = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([p0, p1, p2]), 24, 0.075, 5, false);
+    const m = new THREE.Mesh(geo, fibMat); fibrinG.add(m); fibers.push({ m, n: geo.index.count, d: rr(0, 0.35) });
+  }
+  const sparks = Array.from({ length: 10 }, () => { const s = glow(CK.thrombin, 1.4); s.position.set(rr(-2, 2), rr(0.2, 2), rr(-1.8, 1.8)); fibrinG.add(s); return s; });
+  const puffs = Array.from({ length: 12 }, (_, i) => { const s = glow(CK.atp, 0.9); s.userData.dir = new V3(rr(-1, 1), rr(0.3, 1), rr(-1, 1)).normalize(); s.userData.src = i % 4; vessel.add(s); return s; });
+  const plugMark = new THREE.Group(); vessel.add(plugMark);
+  addLabel('Endothelium', 'membrane', vessel, new V3(-12, -0.3, 4.6), ['clotting']);
+  addLabel('Exposed collagen', 'collagen', vessel, new V3(-6.8, -1.3, 4.4), ['clotting']);
+  addLabel('von Willebrand factor', 'vwf', vessel, new V3(3.2, -0.7, -3.2), ['clotting']);
+  addLabel('Red cell', 'rbc', rbcs[2], new V3(0, 2.4, 0), ['clotting']);
+  addLabel('Platelet plug', 'plt', plugMark, new V3(0, 3.6, 0), ['clotting']);
+  addLabel('Fibrin mesh', 'fibrin', fibrinG, new V3(3.6, 2.6, 0), ['clotting']);
+  addLabel('Blood flow →', 'rbc', vessel, new V3(-8, 6.8, 0), ['clotting']);
+  /* marrow: a megakaryocyte reaching through a sinusoid wall */
+  const mkCell = new THREE.Group(); mkCell.position.set(-3, -6.5, 0); marrow.add(mkCell);
+  mkCell.add(new THREE.Mesh(lumpy(5.2, 0.05, 4, 48), new THREE.MeshStandardMaterial({ color: CK.plt, transparent: true, opacity: 0.2, depthWrite: false })));
+  mkCell.add(new THREE.Mesh(lumpy(5.2, 0.05, 4, 48), fresnelMat(CK.plt, 1, 2.4)));
+  const mkNuc = std(new THREE.Color(0x6d4bd0), { emissiveIntensity: 0.3, roughness: 0.7 });
+  [[-1.4, 0.2, 0.5], [0.6, 1.2, -0.4], [1.6, -0.6, 0.6], [-0.4, -1.4, -0.6], [0.3, 0.1, 1.3]].forEach((q, i) => { const m = new THREE.Mesh(lumpy(1.5, 0.08, i + 9, 24), mkNuc); m.position.set(...q); mkCell.add(m); });
+  const wallMat = std(CK.membrane, { emissiveIntensity: 0.12, roughness: 0.7, transparent: true, opacity: 0.8 });
+  for (let i = 0; i < 7; i++) { if (i === 3) continue; const m = new THREE.Mesh(lumpy(1, 0.05, i, 24), wallMat); m.position.set(-18 + i * 5.2 + (i > 3 ? 1.2 : 0) - 1, 0, 0); m.scale.set(2.4, 0.4, 3.4); marrow.add(m); }
+  const proMat = std(CK.plt, { emissiveIntensity: 0.4 });
+  const pros = [[-4, 0.5], [-2.6, -0.8], [-1.6, 0.9]].map(([x, z], k) => {
+    const pts = [new V3(x, -2.2, z), new V3(x + 0.2, 0.2, z), new V3(x + 2.2 + k, 2.4, z * 1.2), new V3(x + 6 + k * 1.5, 3.6 + k * 0.4, z * 1.4)];
+    const curve = new THREE.CatmullRomCurve3(pts);
+    marrow.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 40, 0.2, 6, false), proMat));
+    for (let i = 1; i <= 5; i++) { const b = new THREE.Mesh(atomGeo, proMat); b.scale.set(0.42, 0.3, 0.42); b.position.copy(curve.getPointAt(0.4 + i * 0.11)); marrow.add(b); }
+    return curve;
+  });
+  const shed = Array.from({ length: 9 }, (_, i) => { const m = new THREE.Mesh(lumpy(0.5, 0.08, 50 + i, 16), pltMat); m.scale.set(1, 0.45, 1); marrow.add(m); return { m, k: i % 3, ph: i / 9 }; });
+  addLabel('Megakaryocyte', 'plt', marrow, new V3(-3, -12.4, 0), ['clotting']);
+  addLabel('Sinusoid wall', 'membrane', marrow, new V3(-13, -0.9, 3.4), ['clotting']);
+  addLabel('Proplatelets', 'plt', marrow, new V3(1.5, 2.6, 2.4), ['clotting']);
+  addLabel('New platelets', 'plt', marrow, new V3(10, 5.8, 0), ['clotting']);
+  POSES.clotting = { pos: new V3(-3, 14, 25), target: new V3(0, 0.6, 0), group: 'clotting', w: 14 };
+  const MARROW_POSE = { pos: new V3(-1, 1, 36), target: new V3(0, -3, 0), group: 'clotting', w: 15 };
+  const clotPoseFor = (step) => (step === 'mk' ? MARROW_POSE : POSES.clotting);
+  const clot = { elapsed: 0, key: '' };
+  const lerpV = (a, b, u) => a.clone().lerp(b, u);
+  function clotPose(T, dt) {
+    const mk = (LESSON['clot-step'] || 'auto') === 'mk';
+    vessel.visible = !mk; marrow.visible = mk;
+    rbcs.forEach(r => { r.visible = !mk; });
+    if (mk) { plugMark.visible = false; fibrinG.visible = false; }
+    if (mk) {
+      const tt = reduceMotion ? 1.5 : clot.elapsed;
+      shed.forEach(s => { const u = (tt * 0.22 + s.ph) % 1, p = pros[s.k].getPointAt(1).clone(); p.x += u * 12; p.y += Math.sin(u * 6 + s.k) * 0.6 + u * 1.2; s.m.position.copy(p); s.m.rotation.y = tt + s.ph * 6; s.m.scale.set(1, 0.45, 1).multiplyScalar(Math.min(1, u * 5)); });
+      mkCell.rotation.y = reduceMotion ? 0 : Math.sin(tt * 0.3) * 0.08;
+      return;
+    }
+    const ph = T < CLOT_T[1] ? 0 : T < CLOT_T[2] ? 1 : T < CLOT_T[3] ? 2 : T < CLOT_T[4] ? 3 : 4;
+    const unfurl = Math.min(1, T / 2.2);
+    vwf.forEach((m, k) => { m.scale.set(0.35 + 0.65 * unfurl, 1, 1); m.rotation.z = (1 - unfurl) * 0.6 + Math.sin(clot.elapsed * 2 + k) * 0.04; });
+    const v = 6;
+    plts.forEach((p, i) => {
+      const s = p.catchT;
+      let pos;
+      if (T < s) { pos = new V3(p.target.x - 6 - v * (s - T), p.lane.y, p.lane.z); p.g.visible = pos.x > -20; }
+      else { const u = ease.out(Math.min(1, (T - s) / 1.3)); pos = lerpV(new V3(p.target.x - 6, p.lane.y, p.lane.z), p.target, u); p.g.visible = true; }
+      p.g.position.copy(pos);
+      const act = Math.max(0, Math.min(1, (T - Math.max(s + 1, CLOT_T[2])) / 1.4));
+      p.spikes.visible = act > 0.01; p.spikes.scale.setScalar(Math.max(0.01, act));
+      p.disc.scale.set(1 + 0.1 * act, 0.45 + 0.45 * act, 1 + 0.1 * act);
+      p.g.rotation.y = T < s ? T * p.spin : s * p.spin;
+    });
+    const bridgeU = Math.max(0, Math.min(1, (T - CLOT_T[3] - 0.8) / 2.5));
+    bridgeMat.opacity = bridgeU * 0.7;
+    plugMark.visible = T > CLOT_T[2] + 0.5;
+    const fu = Math.max(0, (T - CLOT_T[4]) / 4);
+    fibrinG.visible = T >= CLOT_T[4];
+    fibers.forEach(f => { const u = Math.max(0, Math.min(1, (fu - f.d) / 0.6)); f.m.geometry.setDrawRange(0, Math.floor(u * f.n / 6) * 6); });
+    sparks.forEach((s, i) => { s.material.opacity = fibrinG.visible ? 0.35 + 0.35 * Math.sin(clot.elapsed * 5 + i * 1.7) : 0; });
+    puffs.forEach((s, i) => {
+      const src = plts[s.userData.src], age = ((clot.elapsed * 0.9 + i * 0.37) % 1.6) / 1.6;
+      const on = T > CLOT_T[2] + 0.6 && T < CLOT_T[4] + 1;
+      s.visible = on; if (!on) return;
+      s.position.copy(src.target).add(s.userData.dir.clone().multiplyScalar(age * 2.6)); s.material.opacity = (1 - age) * 0.8;
+    });
+    rbcs.forEach((r, i) => {
+      if (i < 2 && T > CLOT_T[4] + 1) { const u = ease.out(Math.min(1, (T - CLOT_T[4] - 1) / 1.6)); if (!r.userData.from) r.userData.from = r.position.clone(); r.position.copy(lerpV(r.userData.from, TRAPPED[i], u)); return; }
+      r.userData.from = null;
+      if (!reduceMotion) { r.position.x += dt * (i < 2 ? 5 : 7); r.rotation.x += dt * 0.8; }
+      if (r.position.x > 20) r.position.x = -20;
+    });
+    passers.forEach((m, i) => { if (!reduceMotion) { m.position.x += dt * 7.5; m.rotation.y += dt; } if (m.position.x > 20) m.position.x = -20; });
+    return ph;
+  }
+  function clotTick(dt) {
+    const step = LESSON['clot-step'] || 'auto';
+    let T;
+    if (step === 'mk') T = 0;
+    else if (step === 'auto') T = reduceMotion ? 19 : clot.elapsed % (CLOT_T[5] + 2);
+    else { const k = +step, dur = CLOT_T[k + 1] - CLOT_T[k]; T = reduceMotion ? CLOT_T[k + 1] - 0.01 : CLOT_T[k] + Math.min(dur - 0.01, clot.elapsed % (dur + 1.5)); }
+    const ph = clotPose(Math.min(T, CLOT_T[5]), dt);
+    const key = step === 'auto' ? 'a' + ph : step;
+    if (key !== clot.key) { clot.key = key; const el = $('#clotCaption'); if (el) el.textContent = step === 'auto' ? clotText(String(ph)) : clotText(step); }
+  }
+  let clotMode = null;
+  whenLesson('clot-step', (v) => {
+    clot.elapsed = 0; rbcs.forEach(r => { r.userData.from = null; });
+    const mode = v === 'mk' ? 'mk' : 'vessel';
+    if (stageId === 'clotting' && mode !== clotMode) tweenTo(fitPose(clotPoseFor(v)), 1.2);
+    clotMode = mode;
+  });
+  B.clotting = {
+    reset() { tweenTo(fitPose(clotPoseFor(LESSON['clot-step'] || 'auto')), 1.2); },
+    enter() {
+      clot.elapsed = 0; clot.key = ''; clotTick(0);
+      const step = LESSON['clot-step'] || 'auto'; clotMode = step === 'mk' ? 'mk' : 'vessel';
+      if (step === 'mk') setTimeout(() => { if (stageId === 'clotting') tweenTo(fitPose(MARROW_POSE), 1.0); }, reduceMotion ? 0 : 420);
+    },
+    tick(t, dt) { if (!reduceMotion) clot.elapsed += dt; clotTick(dt); },
+  };
+
     return {
-      groups: { blood: bloodGroup },
+      groups: { blood: bloodGroup, clotting: clotGroup },
       unitsPerNm: { blood: 0.001 },
-      fog: { blood: 0.002 },
-      depth: { blood: 0 },
-      fadeText: { blood: 'To the bloodstream' },
+      fog: { blood: 0.002, clotting: 0.003 },
+      depth: { blood: 0, clotting: 0.5 },
+      fadeText: { blood: 'To the bloodstream', clotting: 'To a damaged vessel' },
       poses: POSES, behaviors: B,
     };
   },

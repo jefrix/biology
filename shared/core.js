@@ -35,20 +35,23 @@ let stageId = null;
 const MANIFEST = [
   /* Cell mechanisms: what happens inside one cell */
   { key: 'energy', name: 'Energy', c: 'atp', eyebrow: 'From your plate to ATP', title: 'Following one glucose molecule',
-    blurb: 'Tour the cell, then follow food through glycolysis, the Krebs cycle with real 3D molecules and carbon tracing, and the electron transport chain.',
-    ids: ['cell', 'fuel', 'glycolysis', 'link', 'krebs', 'etc', 'tally'], names: ['Cell city', 'Fuel', 'Glycolysis', 'Link', 'Krebs', 'ETC', 'Ledger'] },
+    blurb: 'Tour the cell, follow food through glycolysis, the Krebs cycle with real 3D molecules and carbon tracing, and the electron transport chain, then see how the cell regulates the cycle, branches into the pentose phosphate pathway, and why tumors light up on FDG-PET.',
+    ids: ['cell', 'fuel', 'glycolysis', 'link', 'krebs', 'etc', 'tally', 'branches', 'warburg'], names: ['Cell city', 'Fuel', 'Glycolysis', 'Link', 'Krebs', 'ETC', 'Ledger', 'Branches', 'Warburg'] },
   { key: 'protein', name: 'Protein factory', c: 'exon', eyebrow: 'The protein factory', title: 'One protein, from gene to export',
-    blurb: 'Follow real human insulin from its gene through splicing, codon-by-codon translation, the ER and Golgi, to its real 3D structure and release.',
-    ids: ['gene', 'mrna', 'translate', 'er', 'golgi', 'granule', 'export'], names: ['Gene', 'mRNA', 'Ribosome', 'ER', 'Golgi', 'Granule', 'Export'] },
+    blurb: 'See why the insulin gene is open in a beta cell, then follow real human insulin from its gene through splicing, codon-by-codon translation, the ER and Golgi, to its real 3D structure and release.',
+    ids: ['chromatin', 'gene', 'mrna', 'translate', 'er', 'golgi', 'granule', 'export'], names: ['Chromatin', 'Gene', 'mRNA', 'Ribosome', 'ER', 'Golgi', 'Granule', 'Export'] },
   { key: 'cleanup', name: 'Recycling & cleanup', c: 'lyso', eyebrow: 'Recycling and cleanup', title: 'The city’s recycling service',
     blurb: 'See how a cell brings things in, digests them in lysosomes, shreds single proteins, salvages worn-out parts, handles tough fats, and what happens when cleanup fails.',
     ids: ['intake', 'lysosome', 'proteasome', 'autophagy', 'peroxisome', 'storage'], names: ['Intake', 'Lysosome', 'Proteasome', 'Autophagy', 'Peroxisome', 'Breakdowns'] },
-  { key: 'transport', name: 'Membranes & transport', c: 'pump', eyebrow: 'Membrane transport', title: 'Across the red blood cell membrane',
-    blurb: 'Watch oxygen, glucose and sodium cross a membrane by three different routes, see water reshape a red blood cell, and follow the sodium–potassium pump through one ATP-driven cycle.',
-    ids: ['permeability', 'osmosis', 'pump'], names: ['Selective passage', 'Red cell osmosis', 'Ion pump'] },
+  { key: 'transport', name: 'Membranes & transport', c: 'pump', eyebrow: 'Membrane transport', title: 'How cells move things across membranes',
+    blurb: 'Watch oxygen, glucose and sodium cross a membrane by different routes, see water reshape a red blood cell, run the sodium–potassium pump, compare channels with carriers, spend the sodium gradient on cotransport, and see how epithelia move cargo in one direction.',
+    ids: ['permeability', 'osmosis', 'pump', 'channels', 'cotransport', 'epithelia'], names: ['Selective passage', 'Red cell osmosis', 'Ion pump', 'Channels & carriers', 'Cotransport', 'Epithelia'] },
   { key: 'division', name: 'Division & radiation', c: 'sphase', eyebrow: 'Cell division, DNA and radiation', title: 'Copying the city’s archive safely',
-    blurb: 'Follow the cell cycle and mitosis, see how radiation damages DNA and how cells repair it, then explore fractionation and dose in radiology.',
-    ids: ['cycle', 'mitosis', 'damage', 'repair', 'fate', 'survival', 'dose'], names: ['Cycle', 'Mitosis', 'Damage', 'Repair', 'Fate', 'Survival', 'Dose'] },
+    blurb: 'Follow the cell cycle and mitosis, see how radiation damages DNA and how cells repair it, watch apoptosis dismantle a cell cleanly, then explore fractionation and dose in radiology.',
+    ids: ['cycle', 'mitosis', 'damage', 'repair', 'fate', 'apoptosis', 'survival', 'dose'], names: ['Cycle', 'Mitosis', 'Damage', 'Repair', 'Fate', 'Apoptosis', 'Survival', 'Dose'] },
+  { key: 'cytoskeleton', name: 'Cytoskeleton', slideName: 'Cyto&shy;skeleton', c: 'cyto', eyebrow: 'Cytoskeleton and cell motility', title: 'The city’s roads, rails and engines',
+    blurb: 'Build actin filaments, microtubules and intermediate filaments, watch kinesin, dynein and myosin walk on ATP, then follow a white blood cell as it rolls, crawls and squeezes out of a vessel.',
+    ids: ['cyto-filaments', 'cyto-motors', 'cyto-crawl'], names: ['Filaments', 'Motor proteins', 'Crawling cells'] },
   /* Cells in tissues: specialized cells and the body systems they build */
   { key: 'neural', name: 'Neural cells', c: 'dendrite', eyebrow: 'Neurons and glia', title: 'The city’s communications network',
     blurb: 'Meet neurons and glia, run a live action potential simulation, send signals across a synapse, and see how stroke and MS show up on MRI.',
@@ -58,8 +61,10 @@ const MANIFEST = [
     ids: ['muscle-contraction', 'muscle-structure', 'muscle-fibers', 'muscle-tissues'],
     names: ['Signal to force', 'Inside the fiber', 'Fiber types', 'Three muscle tissues'] },
   { key: 'blood', name: 'Blood', c: 'rbc', eyebrow: 'Blood cells', title: 'Couriers and defenders',
-    blurb: 'A to-scale line-up of the red cell, every kind of white cell and platelets. Watch each one at work, with radiology links.',
-    ids: ['blood'], names: ['Red cell', 'Neutrophil', 'Lymphocytes', 'Monocyte', 'Eosinophil', 'Basophil', 'Platelets'] },
+    blurb: 'A to-scale line-up of the red cell, every kind of white cell and platelets, then watch platelets and fibrin seal a breached vessel. Each with radiology links.',
+    ids: ['blood', 'clotting'], names: ['Cell line-up', 'Platelets & clotting'], cells: 7,
+    // The line-up is one chapter with a card per cell; each card has its own deep link.
+    pills: [['Red cell', 'blood/rbc'], ['Neutrophil', 'blood/neut'], ['Lymphocytes', 'blood/lymph'], ['Monocyte', 'blood/mono'], ['Eosinophil', 'blood/eos'], ['Basophil', 'blood/baso'], ['Platelets', 'blood/plt'], ['Clotting', 'clotting']] },
   { key: 'hormones', name: 'Hormones & endocrine', c: 'insulin', eyebrow: 'Endocrine signaling · insulin and glucose', title: 'How hormones coordinate the body',
     blurb: 'Map the glands and their receptor routes, follow insulin from the islet and beta cell to muscle, see what goes wrong in diabetes and why it matters before an FDG-PET scan, then trace the feedback loops behind reproductive hormones.',
     ids: ['endocrine-map', 'endocrine-receptors', 'endocrine-secretion', 'islet', 'beta', 'receptor', 'balance', 'diabetes', 'petprep', 'endocrine-patterns', 'endocrine-feedback'],
@@ -69,7 +74,7 @@ const MANIFEST = [
     blurb: 'Watch blood filtration, glucose recovery, the loop of Henle, and hormone control in the collecting duct.',
     ids: ['nephron-overview', 'glomerular-filtration', 'proximal-tubule', 'nephron-loop', 'collecting-duct'],
     names: ['Follow the filtrate', 'Filter blood', 'Reclaim glucose', 'Build a gradient', 'Adjust the final mix'] },
-  { key: 'reproduction', name: 'Reproductive cells', c: 'chrom-a', eyebrow: 'Reproductive cells and fertilization',
+  { key: 'reproduction', name: 'Reproductive cells', slideName: 'Repro&shy;ductive cells', c: 'chrom-a', eyebrow: 'Reproductive cells and fertilization',
     title: 'From gametes to a blastocyst', blurb: 'Compare sperm and oocytes, track chromosomes through meiosis, and see fertilization and early cleavage in 3D.',
     ids: ['gametes', 'human-meiosis', 'fertilization', 'early-cleavage'], names: ['Sperm and oocyte', 'Meiosis', 'Fertilization', 'Early cleavage'] },
 ];
@@ -78,6 +83,26 @@ const CellCity = { register(key, def) { registry[key] = def; } };
 const moduleFor = (id) => MANIFEST.find(x => x.ids.includes(id));
 // Old chapter links that moved when modules were merged, so bookmarks still land somewhere sensible.
 const ALIASES = { 'endocrine-targets': 'endocrine-receptors' };
+
+/* ---------- a shared segmented control for chapter scenes ----------
+   lessonSeg('clot-step', 'Step', [['auto', 'Play all'], ['0', 'Injury']]) renders buttons; LESSON['clot-step'] holds the choice,
+   and functions in onLesson['clot-step'] run when it changes, so a 3D scene and its caption stay in step. */
+const LESSON = {}, onLesson = {};
+function lessonSeg(key, label, options, fallback) {
+  if (!Object.hasOwn(LESSON, key)) LESSON[key] = fallback ?? options[0][0];
+  return `<div><div class="eyebrow seg-label">${label}</div><div class="seg" role="group" aria-label="${label}">${options.map(([v, t]) =>
+    `<button type="button" class="btn${LESSON[key] === v ? ' on' : ''}" data-lesson="${key}" data-val="${v}" aria-pressed="${LESSON[key] === v}">${t}</button>`).join('')}</div></div>`;
+}
+function setLesson(key, value) {
+  LESSON[key] = value;
+  document.querySelectorAll(`[data-lesson="${key}"]`).forEach(b => { const on = b.dataset.val === value; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+  (onLesson[key] || []).forEach(fn => fn(value));
+}
+const whenLesson = (key, fn) => (onLesson[key] ||= []).push(fn);
+document.addEventListener('click', (e) => {
+  const b = e.target.closest && e.target.closest('[data-lesson]');
+  if (b) setLesson(b.dataset.lesson, b.dataset.val);
+});
 
 /* ---------- 3D world shared by all modules ---------- */
 const GROUPS = {}, UNITS_PER_NM = {}, FOG = {}, DEPTH = {}, FADE_TEXT = {}, POSES = {}, B = {}, ambients = [];
@@ -391,6 +416,8 @@ function initWorld() {
 }
 
 /* ---------- loading a module the first time it is opened ---------- */
+// Bump with the ?v= in index.html on each deploy so GitHub Pages visitors never mix cached and new files.
+const ASSET_VERSION = 3;
 const loading = {};
 const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
 const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';
@@ -415,7 +442,7 @@ function loadModule(key) {
   if (!loading[key]) {
     loading[key] = new Promise((resolve, reject) => {
       const el = document.createElement('script');
-      el.src = `modules/${key}.js`;
+      el.src = `modules/${key}.js?v=${ASSET_VERSION}`;
       el.onload = () => (registry[key] ? resolve(registry[key]) : reject(new Error(key + ' did not register')));
       el.onerror = () => { el.remove(); reject(new Error('could not load ' + key)); };
       document.head.appendChild(el);
@@ -519,30 +546,32 @@ const MOTIFS = {
   blood: '<circle class="f" cx="30" cy="34" r="15"/><circle cx="30" cy="34" r="6" opacity=".5"/><circle class="f" cx="66" cy="28" r="14"/><circle cx="66" cy="28" r="5.5" opacity=".5"/><circle class="f" cx="68" cy="70" r="15"/><circle cx="68" cy="70" r="6" opacity=".5"/><circle cx="28" cy="72" r="13" opacity=".8"/><path class="thick" d="M21 72c2-6 7-6 8 0s6 6 7 0" /><circle class="d" cx="48" cy="52" r="2"/><circle class="d" cx="86" cy="48" r="1.6"/><circle class="d" cx="50" cy="86" r="1.6"/>',
   hormones: '<circle class="f" cx="50" cy="50" r="38" opacity=".7"/><circle cx="38" cy="38" r="8"/><circle cx="56" cy="34" r="8"/><circle cx="66" cy="50" r="8"/><circle cx="56" cy="66" r="8"/><circle cx="38" cy="64" r="8"/><circle cx="30" cy="50" r="7"/><circle cx="48" cy="50" r="7"/><circle class="d" cx="38" cy="38" r="2"/><circle class="d" cx="56" cy="34" r="2"/><circle class="d" cx="66" cy="50" r="2"/><circle class="d" cx="48" cy="50" r="2"/><circle class="d" cx="56" cy="66" r="2"/>',
   nephron: '<path d="M44 16a26 26 0 1 0 6 51"/><circle class="f" cx="38" cy="38" r="9"/><circle class="f" cx="30" cy="48" r="8"/><circle class="f" cx="44" cy="50" r="9"/><circle class="f" cx="36" cy="58" r="7"/><path d="M50 67c14 0 10-14 22-14s8 18 16 18M88 71v18M80 89V74"/><path d="M18 30l-8-10M24 22L16 10" opacity=".6"/>',
+  cytoskeleton: '<path class="f" d="M50 10c22 0 40 14 40 34 0 12-6 18-4 30 1 8-10 16-24 16-10 0-14-6-26-6-14 0-28-8-28-24 0-14 8-20 8-30C16 18 30 10 50 10z" opacity=".5"/><path d="M14 62c4-3 4 3 8 0s4 3 8 0M12 50c4-3 4 3 8 0M84 30c3 3-3 4 0 8"/><circle class="d" cx="48" cy="48" r="3.4"/><path d="M48 48L22 24M48 48L76 18M48 48L88 52M48 48L70 82M48 48L30 84M48 48L14 46M48 48L58 12"/><path class="thick" d="M8 70c6-6 12-8 18-6M6 58c6-2 10-2 14 2"/>',
   reproduction: '<circle cx="44" cy="56" r="32" stroke-dasharray="3 3"/><circle class="f" cx="44" cy="56" r="26"/><circle class="d" cx="38" cy="50" r="5"/><ellipse class="f" cx="83" cy="18" rx="6" ry="4.4" transform="rotate(35 83 18)"/><path d="M78 14c-4-4-4 4-8 0s-4 4-8 0"/>',
 };
 const SLIDE_PREP = {
   energy: 'Mitochondrial fluorescence', protein: 'Anti-insulin immunostain', cleanup: 'Lysosome fluorescence',
-  transport: 'Membrane dye', division: 'DNA stain, anaphase', neural: 'Golgi silver stain', muscle: 'Striated muscle, H&E',
+  transport: 'Membrane dye', division: 'DNA stain, anaphase', cytoskeleton: 'Phalloidin + anti-tubulin', neural: 'Golgi silver stain', muscle: 'Striated muscle, H&E',
   blood: 'Wright–Giemsa smear', hormones: 'Islet immunostain', nephron: 'PAS, kidney cortex', reproduction: 'Phase contrast',
 };
-// Blood is one chapter with a card per cell; the cards that have their own routes get deep links.
-const SLIDE_LINKS = { blood: { 'Red cell': 'blood/rbc', Platelets: 'blood/plt' } };
 const TRAYS = [
-  { id: 'mechanisms', name: 'Cell mechanisms', tag: 'CM', note: 'What happens inside one cell', from: 0, to: 5 },
-  { id: 'tissues', name: 'Cells in tissues', tag: 'CT', note: 'Specialized cells and the systems they build', from: 5, to: MANIFEST.length },
+  { id: 'mechanisms', name: 'Cell mechanisms', tag: 'CM', note: 'What happens inside one cell', from: 0, to: 6 },
+  { id: 'tissues', name: 'Cells in tissues', tag: 'CT', note: 'Specialized cells and the systems they build', from: 6, to: MANIFEST.length },
 ];
 const OBJECTIVES = { 4: 0.66, 10: 1, 40: 1.85 };
 let benchKey = null;
 
 const trayOf = (i) => TRAYS.find(t => i >= t.from && i < t.to);
 const slideNo = (i) => { const t = trayOf(i); return t.tag + '-' + String(i - t.from + 1).padStart(2, '0'); };
-const slideCount = (x) => (x.ids.length > 1 ? x.ids.length + ' ch' : x.names.length + ' cells');
+const slideCount = (x) => x.ids.length + ' ch';
+// Chapter pills on the readout: one per chapter, unless the module lists deep links of its own.
+const slidePills = (x) => x.pills || x.names.map((n, k) => [n, x.ids[k]]);
 const motif = (key, cls) => `<svg class="motif ${cls}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">${MOTIFS[key] || ''}</svg>`;
 const setAttr = (el, name, value) => { if (el && el.setAttribute) el.setAttribute(name, value); };
 
 function slideMarkup(x, i, onStage) {
-  const inner = `<span class="slide-label"><span class="slide-no">${slideNo(i)}</span><span class="slide-name">${x.name}</span><span class="slide-ch">${slideCount(x)}</span></span>
+  // Narrow tray slides can break long single words; a module may give a soft-hyphenated label (slideName) for them.
+  const inner = `<span class="slide-label"><span class="slide-no">${slideNo(i)}</span><span class="slide-name">${onStage ? x.name : (x.slideName || x.name)}</span><span class="slide-ch">${slideCount(x)}</span></span>
       <span class="slide-glass"><span class="coverslip">${motif(x.key, 'mini')}</span></span>`;
   if (onStage) return `<div class="slide on-stage" style="--c:var(--${x.c})">${inner}</div>`;
   return `<button type="button" class="slide" data-key="${x.key}" style="--c:var(--${x.c})" aria-pressed="false" title="${x.title}">${inner}</button>`;
@@ -582,14 +611,11 @@ function selectSlide(key, animate = true) {
   $('#scopeTitle').textContent = x.name;
   $('#scopeSub').textContent = x.title;
   $('#scopeBlurb').textContent = x.blurb;
-  $('#scopeCount').textContent = x.ids.length > 1 ? String(x.ids.length) : `1 · ${x.names.length} cells`;
+  $('#scopeCount').textContent = x.cells ? `${x.ids.length} · ${x.cells} cell cards` : String(x.ids.length);
   $('#scopeStain').textContent = SLIDE_PREP[x.key];
   $('#scopeTray').textContent = tray.name;
-  const links = SLIDE_LINKS[x.key] || {};
-  $('#scopeChapters').innerHTML = x.names.map((n, k) => {
-    const route = x.ids.length > 1 ? x.ids[k] : (links[n] || x.ids[0]);
-    return `<li><a href="#${route}"><span>${String(k + 1).padStart(2, '0')}</span>${n}</a></li>`;
-  }).join('');
+  $('#scopeChapters').innerHTML = slidePills(x).map(([n, route], k) =>
+    `<li><a href="#${route}"><span>${String(k + 1).padStart(2, '0')}</span>${n}</a></li>`).join('');
   $('#scopeOpen').href = '#' + x.ids[0];
   document.querySelectorAll('.slide[data-key]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.key === x.key)));
   if (animate && !reduceMotion) {

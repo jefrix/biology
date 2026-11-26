@@ -89,6 +89,25 @@
   --golgi: #c9a6ff;
   --lyso: #8fd16a;
   --membrane: #4aa3b5;
+  /* cytoskeleton, clotting, chromatin, cell death and metabolic branches */
+  --cyto: #c77dff;
+  --actin: #ff5c8a;
+  --tubulin: #5fe3a1;
+  --ifil: #e9cf7a;
+  --myosin: #9d8cff;
+  --fibrin: #f4f0e0;
+  --vwf: #7fd8ff;
+  --collagen: #e8b04a;
+  --thrombin: #ff8a3d;
+  --histone: #6f8cff;
+  --acetyl-mark: #3ee6d0;
+  --methyl-mark: #ff4fd8;
+  --tf: #ffb347;
+  --cytc: #ff4d5e;
+  --caspase: #ffb02e;
+  --nadph: #46e8ff;
+  --lactate: #ff7aa2;
+  --biomass: #b6f36a;
 
   --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;

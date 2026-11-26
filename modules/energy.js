@@ -98,6 +98,35 @@ MOLS.scoa = (() => {                              // schematic: one single-bonde
   return m;
 })();
 
+/* Metabolic branches and the Warburg effect: sources and captions shared by the panel and the 3D scenes. */
+const enLink = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
+const energySources = (items, limits) => `<p class="credit">Sources: ${items.join(' · ')}. ${limits}</p>`;
+const EN_SRC = {
+  reg: enLink('https://openstax.org/books/biology-2e/pages/7-7-regulation-of-cellular-respiration', 'OpenStax Biology 2e, 7.7 Regulation of Cellular Respiration'),
+  connect: enLink('https://openstax.org/books/biology-2e/pages/7-6-connections-of-carbohydrate-protein-and-lipid-metabolic-pathways', 'OpenStax Biology 2e, 7.6 Connections between pathways'),
+  anaer: enLink('https://openstax.org/books/biology-2e/pages/7-5-metabolism-without-oxygen', 'OpenStax Biology 2e, 7.5 Metabolism without Oxygen'),
+  denton: enLink('https://doi.org/10.1016/j.bbabio.2009.01.005', 'Denton, regulation of mitochondrial dehydrogenases by calcium ions (BBA, 2009)'),
+  g6pd: enLink('https://medlineplus.gov/genetics/condition/glucose-6-phosphate-dehydrogenase-deficiency/', 'MedlinePlus Genetics, G6PD deficiency'),
+  vh: enLink('https://doi.org/10.1126/science.1160809', 'Vander Heiden, Cantley &amp; Thompson, understanding the Warburg effect (Science, 2009)'),
+  eanm: enLink('https://doi.org/10.1007/s00259-014-2961-x', 'Boellaard et al., EANM FDG PET/CT tumor imaging guideline 2.0 (2015)'),
+};
+function branchText() {
+  const state = LESSON['en-state'] || 'rest', need = LESSON['en-need'] || 'atp', low = (LESSON['en-g6pd'] || 'normal') === 'low';
+  const krebs = state === 'rest' ? 'At rest, high ATP and NADH hold the control points partly closed, so the cycle turns slowly.' : 'In working muscle, ADP and mitochondrial Ca²⁺ open the control points and the cycle speeds up.';
+  const ppp = need === 'atp' ? 'Little glucose-6-phosphate enters the pentose phosphate pathway; most continues down glycolysis.'
+    : need === 'nadph' ? 'Under oxidative stress, more glucose-6-phosphate enters the oxidative branch to make NADPH for glutathione, and the leftover sugars are recycled into glycolysis.'
+    : 'A dividing cell sends carbon on to ribose-5-phosphate for new DNA and RNA.';
+  return krebs + ' ' + ppp + (low ? ' With G6PD deficient, little NADPH is made, glutathione runs low and peroxide damage builds up, which red cells cannot survive for long.' : '');
+}
+function warburgText() {
+  const fdg = (LESSON['en-tracer'] || 'glucose') === 'fdg', low = (LESSON['en-o2'] || 'present') === 'low';
+  if (fdg) return 'FDG enters both cells but is trapped after one step. The dividing cell, with more GLUT1 and hexokinase 2, collects far more tracer and glows: that is what a PET scan maps.';
+  if (low) return 'With low oxygen, both cells turn pyruvate into lactate. The differentiated cell now looks like the tumor cell, which is ordinary anaerobic glycolysis.';
+  return 'With plenty of oxygen, the differentiated cell (left) sends pyruvate into its mitochondria for about 32 ATP per glucose. The dividing cell (right) takes up far more glucose, exports most as lactate for about 2 ATP each, and keeps some carbon to build new cells.';
+}
+['en-state', 'en-need', 'en-g6pd'].forEach(k => whenLesson(k, () => { const el = $('#branchCaption'); if (el) el.textContent = branchText(); }));
+['en-tracer', 'en-o2'].forEach(k => whenLesson(k, () => { const el = $('#warburgCaption'); if (el) el.textContent = warburgText(); }));
+
 const CHAPTERS = [
   {
     id: 'cell', short: 'Cell city', where: 'The whole cell · about 20 µm across',
@@ -152,7 +181,7 @@ const CHAPTERS = [
       <div class="callout">
         <span class="eyebrow">Radiology link · FDG-PET</span>
         <p><b>¹⁸F-FDG</b> is glucose with one oxygen swapped for radioactive fluorine. It enters through the same GLUT gates and hexokinase phosphorylates it, but FDG-6-phosphate cannot continue down glycolysis, so it stays trapped in the cell.</p>
-        <p>A PET scan maps that trapped tracer. Tissues burning lots of glucose light up: brain, heart, active muscle and many tumors, which lean heavily on glycolysis (the Warburg effect). Watch for the orange molecule in the 3D view.</p>
+        <p>A PET scan maps that trapped tracer. Tissues burning lots of glucose light up: brain, heart, active muscle and many tumors, which lean heavily on glycolysis (the <a href="#warburg">Warburg effect</a>). Watch for the orange molecule in the 3D view.</p>
       </div>
       <details>
         <summary>All ten steps</summary>
@@ -266,7 +295,52 @@ const CHAPTERS = [
         <li>All six carbons of glucose leave as the CO₂ you exhale. The oxygen you inhale ends up as water.</li>
         <li>ATP is spent almost as fast as it is made. An average person uses and remakes about <b>50 kg</b> of it a day (Bolsover et al., <i>Cell Biology</i>, 2004).</li>
       </ul>
-      <div class="eq">C₆H₁₂O₆ + 6 O₂ → 6 ${m('CO₂', 'co2')} + 6 H₂O + ≈32 ${m('ATP', 'atp')}</div>`,
+      <div class="eq">C₆H₁₂O₆ + 6 O₂ → 6 ${m('CO₂', 'co2')} + 6 H₂O + ≈32 ${m('ATP', 'atp')}</div>
+      <p><a href="#branches">Next: how the cell throttles the cycle and branches off glucose</a></p>`,
+  },
+  {
+    id: 'branches', short: 'Branches', where: 'Metabolic map · regulation and side roads',
+    title: 'Throttles and side roads: Krebs control and the pentose phosphate pathway',
+    legend: [['glucose', 'Carbon from glucose'], ['co2', 'CO₂'], ['nadph', 'NADPH'], ['atp', 'Control point activity'], ['exon', 'Ribose-5-phosphate']],
+    html: () => `
+      <p class="lede">Glucose does not have to follow one road. The cell throttles the Krebs cycle to match its demand for ATP, and sends some glucose-6-phosphate down the <b>pentose phosphate pathway</b> to make NADPH and the sugars for DNA and RNA.</p>
+      ${lessonSeg('en-state', 'Energy state', [['rest', 'Resting: ATP and NADH high'], ['work', 'Working muscle: ADP and Ca²⁺ high']])}
+      ${lessonSeg('en-need', 'What the cell needs most', [['atp', 'ATP'], ['nadph', 'NADPH (oxidative stress)'], ['ribose', 'Ribose (dividing cell)']])}
+      ${lessonSeg('en-g6pd', 'G6PD enzyme', [['normal', 'Normal'], ['low', 'Deficient']])}
+      <p id="branchCaption" class="lesson-phase" aria-live="polite">${branchText()}</p>
+      <h3>Krebs cycle control points</h3>
+      <div class="table-wrap"><table class="ledger"><thead><tr><th>Enzyme</th><th>Slowed by</th><th>Sped up by</th></tr></thead><tbody>
+        <tr><td>Pyruvate dehydrogenase<small>entry to the matrix</small></td><td>Acetyl-CoA, NADH, ATP (through PDH kinase)</td><td>Ca²⁺, pyruvate, ADP (through PDH phosphatase or by blocking the kinase)</td></tr>
+        <tr><td>Citrate synthase</td><td>ATP, NADH, citrate, succinyl-CoA</td><td>More oxaloacetate and acetyl-CoA</td></tr>
+        <tr><td>Isocitrate dehydrogenase</td><td>ATP, NADH</td><td>ADP, Ca²⁺</td></tr>
+        <tr><td>α-Ketoglutarate dehydrogenase</td><td>NADH, succinyl-CoA</td><td>Ca²⁺</td></tr>
+      </tbody></table></div>
+      <ul class="facts">
+        <li>When a muscle contracts, the same calcium that triggers contraction enters the mitochondria and speeds up three of these dehydrogenases, so ATP supply rises with demand.</li>
+        <li>The oxidative branch of the pentose phosphate pathway starts with <b>glucose-6-phosphate dehydrogenase (G6PD)</b>. It makes 2 NADPH and releases one carbon as CO₂, leaving ribulose-5-phosphate.</li>
+        <li>NADPH powers building (fatty acids, cholesterol, nucleotides) and keeps <b>glutathione</b> in its reduced form, which neutralizes hydrogen peroxide. The non-oxidative branch reshuffles sugars, either to supply ribose-5-phosphate for nucleotides or to return carbon to glycolysis.</li>
+        <li>Red blood cells have no mitochondria, so this pathway is their only source of NADPH. In <b>G6PD deficiency</b>, the most common human enzyme deficiency, oxidant stress from certain drugs, fava beans or infection can damage hemoglobin and burst red cells (hemolysis).</li>
+      </ul>
+      <p><a href="#krebs">Back to the Krebs cycle</a> · <a href="#blood/rbc">The red blood cell</a> · <a href="#muscle-contraction">Calcium in muscle contraction</a></p>
+      ${energySources([EN_SRC.reg, EN_SRC.denton, EN_SRC.connect, EN_SRC.g6pd], 'The map is a diagram, not to scale, and shows only the steps discussed. Real control also involves hormone signaling, enzyme amounts and the supply of substrates.')}`,
+  },
+  {
+    id: 'warburg', short: 'Warburg', where: 'Two cells side by side',
+    title: 'The Warburg effect: why tumors light up on FDG-PET',
+    legend: [['glucose', 'Glucose'], ['lactate', 'Lactate exported'], ['biomass', 'Carbon kept for building'], ['atp', 'ATP'], ['fdg', 'FDG trapped as FDG-6-phosphate']],
+    html: () => `
+      <p class="lede">Most differentiated cells burn glucose completely in their mitochondria when oxygen is available. Many rapidly dividing cells, including most cancers, instead take up far more glucose and turn much of it into <b>lactate</b> even when oxygen is plentiful. Otto Warburg described this <b>aerobic glycolysis</b> in tumors in the 1920s.</p>
+      ${lessonSeg('en-tracer', 'Tracer', [['glucose', 'Glucose'], ['fdg', '¹⁸F-FDG']])}
+      ${lessonSeg('en-o2', 'Oxygen', [['present', 'Plenty'], ['low', 'Low']])}
+      <p id="warburgCaption" class="lesson-phase" aria-live="polite">${warburgText()}</p>
+      <ul class="facts">
+        <li><b>Why waste glucose?</b> A dividing cell must double its contents. Fast glycolysis supplies ATP quickly and, more importantly, carbon skeletons and NADPH for nucleotides, lipids and amino acids. Exporting lactate regenerates NAD⁺ so glycolysis can keep running. Most tumors still have working mitochondria.</li>
+        <li>Growth signals and oncogenes such as MYC, PI3K–AKT and HIF-1α raise glucose transporters (GLUT1 and GLUT3) and glycolytic enzymes such as hexokinase 2. Activated lymphocytes switch to aerobic glycolysis too, so this is a feature of proliferation, not only of cancer.</li>
+        <li>Without oxygen, even a normal cell shifts to lactate. That is ordinary anaerobic glycolysis, as in a sprinting muscle or a <a href="#blood/rbc">red blood cell</a>.</li>
+      </ul>
+      <div class="callout"><span class="eyebrow">Radiology link · FDG-PET</span><p>FDG enters through the same GLUT transporters and is phosphorylated by hexokinase, but FDG-6-phosphate is not processed further and most tissues have little enzyme to remove the phosphate, so it stays trapped. Avid tumors therefore glow on PET, and the standardized uptake value (SUV) gives a semi-quantitative measure. Uptake is not specific: inflammation, infection, healing tissue, brown fat and active muscle also take up FDG. Some cancers take up little, such as many prostate cancers and some slow-growing or mucinous tumors, and very small lesions can be missed. High blood glucose and insulin shift FDG away from tumors, which is why <a href="#petprep">PET preparation</a> matters.</p></div>
+      <p><a href="#glycolysis">Back to glycolysis and FDG trapping</a> · <a href="#cycle">The cell cycle these cells are racing through</a> · <a href="#branches">The pentose phosphate pathway</a></p>
+      ${energySources([EN_SRC.vh, EN_SRC.anaer, EN_SRC.eanm], 'The two cells are schematic. Real tumors mix well-oxygenated and hypoxic regions, use other fuels such as glutamine and lactate, and vary widely in FDG uptake. For learning, not diagnosis.')}`,
   },
 ];
 
@@ -692,7 +766,208 @@ CellCity.register('energy', {
   addLabel('ATP synthase', 'atp', etcGroup, new V3(X.SYN + 3.6, -6, 0), ['etc']);
 
   const glyTarget = SPLIT.clone().add(new V3(0, -0.6, 0));
+  /* ================= METABOLIC BRANCHES (diagram, no single scale) ================= */
+  const brGroup = new THREE.Group(); scene.add(brGroup);
+  const E = {};
+  ['glucose', 'co2', 'nadph', 'atp', 'exon', 'pyruvate', 'acetyl', 'proton', 'fdg', 'lactate', 'biomass', 'mito', 'nucleus', 'membrane', 'fadh'].forEach(k => E[k] = col(k));
+  const estd = (c, extra = {}) => new THREE.MeshStandardMaterial(Object.assign({ color: c, emissive: c, emissiveIntensity: 0.3, roughness: 0.45 }, extra));
+  const rodGeo = new THREE.CylinderGeometry(1, 1, 1, 8);
+  function erod(parent, mat, a, b, r) { const m = new THREE.Mesh(rodGeo, mat); const d = b.clone().sub(a); m.position.copy(a).add(b).multiplyScalar(0.5); m.scale.set(r, Math.max(0.001, d.length()), r); m.quaternion.setFromUnitVectors(UP, d.normalize()); parent.add(m); return m; }
+  function polyAt(pts, u) {
+    let total = 0; const L = [0];
+    for (let i = 1; i < pts.length; i++) { total += pts[i].distanceTo(pts[i - 1]); L.push(total); }
+    const d = u * total; let i = 1; while (i < pts.length - 1 && L[i] < d) i++;
+    return pts[i - 1].clone().lerp(pts[i], (d - L[i - 1]) / Math.max(1e-6, L[i] - L[i - 1]));
+  }
+  const br = (() => {
+    const N = {
+      glc: new V3(-3, 10, 0), g6p: new V3(-3, 6.5, 0), f6p: new V3(-3, 3.5, 0), pyr: new V3(-3, -0.5, 0), acoa: new V3(-3, -3.5, 0),
+      pg: new V3(2.5, 7.5, 0.5), ru5p: new V3(6.5, 5.5, 0.5), r5p: new V3(9.5, 2.2, 0.5), dna: new V3(11.5, -1, 0.5), gsh: new V3(7, 10.5, 0.5), h2o2: new V3(11.5, 11, 0.5),
+    };
+    const KC = new V3(-3, -9.5, 0), KR = 3.4;
+    const ring = Array.from({ length: 8 }, (_, i) => { const a = Math.PI / 2 - i / 8 * Math.PI * 2; return KC.clone().add(new V3(Math.cos(a) * KR, Math.sin(a) * KR, 0)); });
+    const names = { glc: 'Glucose', g6p: 'Glucose-6-P', f6p: 'Fructose-6-P', pyr: 'Pyruvate', acoa: 'Acetyl-CoA', pg: '6-Phosphogluconate', ru5p: 'Ribulose-5-P', r5p: 'Ribose-5-P', dna: 'Nucleotides', gsh: 'Glutathione (GSH)', h2o2: 'H₂O₂ → H₂O' };
+    const ringNames = ['Oxaloacetate', 'Citrate', 'Isocitrate', 'α-Ketoglutarate', 'Succinyl-CoA', 'Succinate', 'Fumarate', 'Malate'];
+    const colorOf = { glc: E.glucose, g6p: E.glucose, f6p: E.glucose, pyr: E.pyruvate, acoa: E.acetyl, pg: E.nadph, ru5p: E.nadph, r5p: E.exon, dna: E.exon, gsh: E.nadph, h2o2: E.proton };
+    const nodeMeshes = {};
+    Object.entries(N).forEach(([k, p]) => {
+      const m = new THREE.Mesh(atomGeo, estd(colorOf[k])); m.scale.setScalar(0.42); m.position.copy(p); brGroup.add(m); nodeMeshes[k] = m;
+      const t = textSprite(names[k], colorOf[k], 0.52); t.position.copy(p).add(new V3(0, 0.75, 0)); brGroup.add(t);
+    });
+    ring.forEach((p, i) => { const m = new THREE.Mesh(atomGeo, estd(E.acetyl)); m.scale.setScalar(0.36); m.position.copy(p); brGroup.add(m); const t = textSprite(ringNames[i], E.acetyl, 0.42); t.position.copy(p).add(new V3(i > 0 && i < 4 ? 1.5 : i > 4 ? -1.5 : 0, i === 0 ? -0.6 : i === 4 ? -0.65 : 0.55, 0)); brGroup.add(t); });
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0x3a4a60, emissive: 0x1a2533, roughness: 0.6 });
+    [['glc', 'g6p'], ['g6p', 'f6p'], ['f6p', 'pyr'], ['pyr', 'acoa'], ['g6p', 'pg'], ['pg', 'ru5p'], ['ru5p', 'r5p'], ['r5p', 'dna'], ['gsh', 'h2o2']].forEach(([a, b]) => erod(brGroup, edgeMat, N[a], N[b], 0.07));
+    const recycle = []; for (let i = 0; i <= 10; i++) { const u = i / 10; recycle.push(N.ru5p.clone().lerp(N.f6p, u).add(new V3(0, -Math.sin(u * Math.PI) * 1.4, 0))); }
+    for (let i = 0; i < 10; i += 2) erod(brGroup, edgeMat, recycle[i], recycle[i + 1], 0.05);
+    ring.forEach((p, i) => erod(brGroup, edgeMat, p, ring[(i + 1) % 8], 0.07));
+    erod(brGroup, edgeMat, N.acoa, ring[1].clone().lerp(ring[0], 0.5), 0.06);
+    // control points: rings around the steps they gate
+    const valve = (a, b, name, c) => {
+      const g_ = new THREE.Group(); g_.position.copy(a.clone().lerp(b, 0.5)); brGroup.add(g_);
+      const t = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.1, 8, 24), estd(c, { emissiveIntensity: 0.8 })); t.quaternion.setFromUnitVectors(new V3(0, 0, 1), b.clone().sub(a).normalize()); g_.add(t);
+      const gl = glow(c, 2.2); g_.add(gl);
+      addLabel(name, 'atp', g_, new V3(0.4, 0, 0), ['branches']);
+      return { t, gl };
+    };
+    const valves = {
+      pdh: valve(N.pyr, N.acoa, 'PDH', E.atp), cs: valve(ring[0], ring[1], 'Citrate synthase', E.atp),
+      idh: valve(ring[2], ring[3], 'Isocitrate DH', E.atp), kgdh: valve(ring[3], ring[4], 'α-KG DH', E.atp), g6pd: valve(N.g6p, N.pg, 'G6PD', E.nadph),
+    };
+    addLabel('Glycolysis', 'glucose', brGroup, new V3(-5.6, 1.6, 0), ['branches']);
+    addLabel('Pentose phosphate pathway', 'nadph', brGroup, new V3(9.2, 7.6, 0.5), ['branches']);
+    addLabel('Krebs cycle', 'acetyl', brGroup, KC, ['branches']);
+    addLabel('Non-oxidative branch back to glycolysis', 'co2', brGroup, recycle[5].clone().add(new V3(0, -0.7, 0)), ['branches']);
+    const pool = Array.from({ length: 70 }, () => { const m = new THREE.Mesh(atomGeo, estd(E.glucose, { emissiveIntensity: 0.6 })); m.scale.setScalar(0.2); m.visible = false; brGroup.add(m); return m; });
+    const nadphPool = Array.from({ length: 24 }, () => { const s = glow(E.nadph, 1.0); s.visible = false; brGroup.add(s); return s; });
+    const co2Pool = Array.from({ length: 24 }, () => { const s = glow(E.co2, 0.9); s.visible = false; brGroup.add(s); return s; });
+    const peroxide = Array.from({ length: 10 }, (_, i) => { const s = glow(E.proton, 1.3); s.position.copy(N.h2o2).add(new V3(rr(-1.2, 1.2), rr(-1, 1), rr(-0.6, 0.6))); brGroup.add(s); return s; });
+    const toks = [], puffs = [];
+    const ringPath = (from) => { const pts = []; for (let k = 0; k <= 8; k++) pts.push(ring[(from + k) % 8]); return pts; };
+    function spawnPuff(list, at, to, dur) { const s = list.find(x => !x.visible); if (!s) return; s.visible = true; puffs.push({ s, at: at.clone(), to: to.clone(), t: 0, dur }); }
+    let acc = 0, elapsed = 0;
+    function step(dt) {
+      const state = LESSON['en-state'] || 'rest', need = LESSON['en-need'] || 'atp', low = (LESSON['en-g6pd'] || 'normal') === 'low';
+      const act = state === 'work' ? 1 : 0.35;
+      const pppShare = low ? 0.04 : need === 'atp' ? 0.1 : need === 'nadph' ? 0.6 : 0.5;
+      Object.entries(valves).forEach(([k, v]) => {
+        const a = k === 'g6pd' ? (low ? 0.12 : pppShare * 1.5) : act;
+        v.t.material.emissiveIntensity = 0.2 + a; v.gl.material.opacity = 0.15 + 0.6 * a * (0.8 + 0.2 * Math.sin(elapsed * 4));
+        v.t.scale.setScalar(0.75 + 0.35 * a);
+      });
+      const stress = need === 'nadph' ? (low ? 1 : 0.25) : low ? 0.4 : 0;
+      peroxide.forEach((s, i) => { s.visible = i < Math.round(stress * 10); s.material.opacity = 0.5 + 0.4 * Math.sin(elapsed * 3 + i); });
+      nodeMeshes.gsh.material.emissiveIntensity = low ? 0.08 : 0.3 + 0.4 * pppShare;
+      if (reduceMotion) return;
+      acc += dt * 1.8;
+      while (acc >= 1) {
+        acc -= 1;
+        const m = pool.find(x => !x.visible); if (!m) break;
+        m.visible = true; m.material.color.copy(E.glucose); m.material.emissive.copy(E.glucose);
+        let path, speed;
+        if (rnd() < pppShare) {
+          const toRibose = need === 'ribose' ? rnd() < 0.85 : need === 'nadph' ? rnd() < 0.1 : rnd() < 0.5;
+          path = [N.glc, N.g6p, N.pg, N.ru5p].concat(toRibose ? [N.r5p, N.dna] : recycle.concat([N.pyr, N.acoa]));
+          speed = 0.16;
+        } else { path = [N.glc, N.g6p, N.f6p, N.pyr, N.acoa]; speed = 0.2; }
+        const tok = { m, path, u: 0, speed, ppp: path.includes(N.pg), krebs: path[path.length - 1] === N.acoa, emitted: {} };
+        toks.push(tok);
+      }
+      for (let i = toks.length - 1; i >= 0; i--) {
+        const k = toks[i];
+        k.u += dt * k.speed * (k.inRing ? act * 2.2 : 1);
+        if (k.ppp && !k.emitted.a && k.u > 0.18) { k.emitted.a = 1; spawnPuff(nadphPool, valves.g6pd.t.getWorldPosition(new V3()).sub(brGroup.position), N.gsh, 1.3); }
+        if (k.ppp && !k.emitted.b && k.u > 0.3) { k.emitted.b = 1; spawnPuff(nadphPool, N.pg.clone().lerp(N.ru5p, 0.5), N.gsh, 1.3); spawnPuff(co2Pool, N.pg.clone().lerp(N.ru5p, 0.5), N.pg.clone().lerp(N.ru5p, 0.5).add(new V3(1, 2, 2)), 1.4); }
+        if (k.u >= 1) {
+          if (k.krebs && !k.inRing) { k.inRing = true; k.path = [N.acoa, ring[1]].concat(ringPath(1).slice(1)); k.u = 0; k.speed = 0.12; k.m.material.color.copy(E.acetyl); k.m.material.emissive.copy(E.acetyl); continue; }
+          k.m.visible = false; toks.splice(i, 1); continue;
+        }
+        if (k.inRing) {
+          if (!k.emitted.c && k.u > 0.38) { k.emitted.c = 1; spawnPuff(co2Pool, ring[3], ring[3].clone().add(new V3(3, 0.5, 2)), 1.4); }
+          if (!k.emitted.d && k.u > 0.5) { k.emitted.d = 1; spawnPuff(co2Pool, ring[4], ring[4].clone().add(new V3(2.6, -1, 2)), 1.4); }
+        }
+        k.m.position.copy(polyAt(k.path, k.u));
+      }
+      for (let i = puffs.length - 1; i >= 0; i--) {
+        const p = puffs[i]; p.t += dt; const u = Math.min(1, p.t / p.dur);
+        p.s.position.copy(p.at.clone().lerp(p.to, ease.out(u))); p.s.material.opacity = u < 0.7 ? 0.9 : (1 - u) / 0.3 * 0.9;
+        if (u >= 1) { p.s.visible = false; puffs.splice(i, 1); }
+      }
+    }
+    return {
+      enter() { elapsed = 0; acc = 0; toks.splice(0).forEach(k => { k.m.visible = false; }); puffs.splice(0).forEach(p => { p.s.visible = false; }); step(0); if (reduceMotion) { for (let i = 0; i < 9; i++) { pool[i].visible = true; pool[i].position.copy(polyAt([N.glc, N.g6p, N.f6p, N.pyr, N.acoa], i / 9)); } } },
+      tick(t, dt) { elapsed += dt; step(dt); },
+    };
+  })();
+
+  /* ================= WARBURG: two cells side by side (not to scale) ================= */
+  const wbGroup = new THREE.Group(); scene.add(wbGroup);
+  const wb = (() => {
+    function makeCell(x, nGlut, label, color) {
+      const g_ = new THREE.Group(); g_.position.set(x, 0, 0); wbGroup.add(g_);
+      const geo = new THREE.SphereGeometry(5, 48, 36);
+      g_.add(new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, transparent: true, opacity: 0.07, depthWrite: false, side: THREE.DoubleSide })));
+      g_.add(new THREE.Mesh(geo, fresnelMat(color, 1.0, 2.5)));
+      const nuc = new THREE.Mesh(new THREE.SphereGeometry(1.6, 32, 24), estd(E.nucleus, { emissiveIntensity: 0.2, transparent: true, opacity: 0.8 })); nuc.position.set(-1.2, -1.3, -1); g_.add(nuc);
+      const mitoGeo = new THREE.CapsuleGeometry(0.4, 1.2, 6, 10), mitoMat = estd(E.mito, { emissiveIntensity: 0.35 });
+      const mitos = [[2.2, 0.4, 1], [1.4, -2.4, 0.5], [-2.6, 1.2, 1.2], [0.6, 2.4, -1.4]].map(q => { const m = new THREE.Mesh(mitoGeo, mitoMat); m.position.set(...q); m.rotation.set(rr(0, 3), rr(0, 3), rr(0, 3)); g_.add(m); return m; });
+      const gluts = [];
+      for (let i = 0; i < nGlut; i++) { const a = Math.PI / 2 + (i - (nGlut - 1) / 2) * 0.32; const m = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.9, 10), estd(E.glucose, { emissiveIntensity: 0.5 })); m.position.set(Math.cos(a) * 5, Math.sin(a) * 5, 0.6); m.quaternion.setFromUnitVectors(UP, new V3(Math.cos(a), Math.sin(a), 0)); g_.add(m); gluts.push(m.position.clone()); }
+      const mct = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.9, 10), estd(E.lactate, { emissiveIntensity: 0.5 })); mct.position.set(x < 0 ? -5 : 5, -0.6, 0.6); mct.rotation.z = Math.PI / 2; g_.add(mct);
+      const glowFDG = glow(E.fdg, 12); glowFDG.material.opacity = 0; g_.add(glowFDG);
+      const biomass = new THREE.Group(); biomass.position.set(-1.2, -1.3, -1); g_.add(biomass);
+      const bm = Array.from({ length: 30 }, (_, i) => { const m = new THREE.Mesh(atomGeo, estd(E.biomass, { emissiveIntensity: 0.5 })); m.scale.setScalar(0.24); const d = new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)).normalize().multiplyScalar(2 + rr(0, 0.9)); m.position.copy(d); m.visible = false; biomass.add(m); return m; });
+      addLabel(label, x < 0 ? 'membrane' : 'proton', g_, new V3(0, -6.4, 0), ['warburg']);
+      addLabel('GLUT1 ×' + nGlut, 'glucose', g_, new V3(0, 6.3, 0), ['warburg']);
+      addLabel('Lactate out', 'lactate', g_, new V3(x < 0 ? -6.6 : 6.6, -1.6, 0), ['warburg']);
+      const bmLabel = new THREE.Group(); biomass.add(bmLabel); if (x > 0) addLabel('Carbon kept for new cells', 'biomass', bmLabel, new V3(0, -3.2, 1.5), ['warburg']);
+      return { g: g_, x, gluts, mitos, glowFDG, bm, bmLabel, mctPos: mct.position.clone(), trapped: 0, built: 0, acc: 0 };
+    }
+    const normal = makeCell(-7.5, 2, 'Differentiated cell', E.membrane);
+    const tumor = makeCell(7.5, 6, 'Rapidly dividing cell', E.proton);
+    const pool = Array.from({ length: 120 }, () => { const m = new THREE.Mesh(atomGeo, estd(E.glucose, { emissiveIntensity: 0.6 })); m.scale.setScalar(0.22); m.visible = false; wbGroup.add(m); return m; });
+    const sparks = Array.from({ length: 60 }, () => { const s = glow(E.atp, 0.9); s.visible = false; wbGroup.add(s); return s; });
+    const toks = [], fx = [];
+    let elapsed = 0, lastKey = '';
+    function spark(at) { const s = sparks.find(x => !x.visible); if (!s) return; s.visible = true; fx.push({ s, at: at.clone(), t: 0 }); }
+    function setColor(m, c) { m.material.color.copy(c); m.material.emissive.copy(c); }
+    function reset() { toks.splice(0); pool.forEach(m => { m.visible = false; }); fx.splice(0).forEach(f => { f.s.visible = false; }); [normal, tumor].forEach(c => { c.trapped = 0; c.built = 0; c.acc = 0; c.bm.forEach(b => { b.visible = false; }); c.glowFDG.material.opacity = 0; }); }
+    function step(dt) {
+      const fdg = (LESSON['en-tracer'] || 'glucose') === 'fdg', low = (LESSON['en-o2'] || 'present') === 'low';
+      const key = fdg + '|' + low;
+      if (key !== lastKey) { lastKey = key; reset(); if (reduceMotion && fdg) { normal.trapped = 4; tumor.trapped = 30; } }
+      [normal, tumor].forEach(c => {
+        const isT = c === tumor;
+        c.glowFDG.material.opacity = fdg ? Math.min(0.85, c.trapped / 34) : 0;
+        c.bm.forEach((b, i) => { b.visible = !fdg && i < c.built; });
+        c.bmLabel.visible = !fdg && c.built > 3;
+        if (reduceMotion) { if (!fdg && isT) c.built = 12; return; }
+        const rate = isT ? 3.2 : (low ? 2 : 0.9);
+        c.acc += dt * rate;
+        while (c.acc >= 1) {
+          c.acc -= 1;
+          const m = pool.find(x => !x.visible); if (!m) break;
+          m.visible = true; setColor(m, fdg ? E.fdg : E.glucose);
+          const gate = c.gluts[Math.floor(rnd() * c.gluts.length)].clone().add(c.g.position);
+          const start = gate.clone().add(new V3(rr(-1, 1), 3.2, rr(-1, 1)));
+          const inside = gate.clone().lerp(c.g.position, 0.25);
+          let fate;
+          if (fdg) fate = 'trap';
+          else if (isT) { const r = rnd(); fate = low ? (r < 0.85 ? 'lactate' : 'build') : r < 0.65 ? 'lactate' : r < 0.85 ? 'build' : 'mito'; }
+          else fate = low ? (rnd() < 0.92 ? 'lactate' : 'mito') : (rnd() < 0.9 ? 'mito' : 'lactate');
+          const center = c.g.position.clone().add(new V3(rr(-0.8, 0.8), 0.6, rr(-0.5, 0.5)));
+          let path;
+          if (fate === 'trap') path = [start, gate, inside.clone().add(new V3(rr(-1.2, 1.2), rr(-0.6, 0.3), rr(-1, 1)))];
+          else if (fate === 'lactate') path = [start, gate, center, c.mctPos.clone().add(c.g.position), c.mctPos.clone().add(c.g.position).add(new V3(c.x < 0 ? -3.5 : 3.5, rr(-1.5, 0.5), rr(-1, 1)))];
+          else if (fate === 'build') path = [start, gate, center, c.g.position.clone().add(new V3(-1.2, -1.3, -1))];
+          else { const mi = c.mitos[Math.floor(rnd() * c.mitos.length)].position.clone().add(c.g.position); path = [start, gate, center, mi, mi.clone().add(new V3(rr(-1, 1), 4, 2))]; }
+          toks.push({ m, path, u: 0, fate, cell: c, done: {} });
+        }
+      });
+      if (reduceMotion) return;
+      for (let i = toks.length - 1; i >= 0; i--) {
+        const k = toks[i];
+        k.u += dt * (k.fate === 'trap' ? 0.55 : 0.32);
+        if (!k.done.g && k.u > 0.45 && k.fate !== 'trap') { k.done.g = 1; spark(k.m.position); if (k.fate === 'lactate') setColor(k.m, E.lactate); if (k.fate === 'build') setColor(k.m, E.biomass); }
+        if (k.fate === 'mito' && !k.done.m && k.u > 0.72) { k.done.m = 1; for (let j = 0; j < 6; j++) spark(k.m.position.clone().add(new V3(rr(-1, 1), rr(-1, 1), rr(-1, 1)))); setColor(k.m, E.co2); }
+        if (k.u >= 1) {
+          if (k.fate === 'trap') { k.cell.trapped++; if (k.cell.trapped > (k.cell === tumor ? 60 : 10)) { k.m.visible = false; toks.splice(i, 1); } else { toks.splice(i, 1); } continue; }
+          if (k.fate === 'build') { k.cell.built = Math.min(30, k.cell.built + 1); if (k.cell.built >= 30) k.cell.built = 4; }
+          k.m.visible = false; toks.splice(i, 1); continue;
+        }
+        k.m.position.copy(polyAt(k.path, Math.min(1, k.u)));
+      }
+      for (let i = fx.length - 1; i >= 0; i--) { const f = fx[i]; f.t += dt; f.s.position.copy(f.at).add(new V3(0, f.t * 1.4, 0)); f.s.material.opacity = Math.max(0, 1 - f.t / 0.9); if (f.t > 0.9) { f.s.visible = false; fx.splice(i, 1); } }
+    }
+    return {
+      enter() { elapsed = 0; lastKey = ''; step(0); },
+      tick(t, dt) { elapsed += dt; step(dt); },
+      exit() { reset(); },
+    };
+  })();
+
   const POSES = {
+    branches: { pos: new V3(2, -0.5, 46), target: new V3(2.5, -1, 0), group: 'enBranches', w: 15.5 },
+    warburg: { pos: new V3(0, 3, 36), target: new V3(0, 0, 0), group: 'enWarburg', w: 16 },
     cell: { pos: new V3(10, 9, 30), target: new V3(0, 0, 0), group: 'cell', auto: true, w: 14 },
     fuel: { pos: new V3(8, 8, 43), target: new V3(0, 0, 3), group: 'cell', w: 19 },
     glycolysis: { pos: glyTarget.clone().add(D.clone().multiplyScalar(9)).add(SIDE.clone().multiplyScalar(7)).add(new V3(0, 4.5, 0)), target: glyTarget, group: 'cell', w: 7 },
@@ -703,6 +978,8 @@ CellCity.register('energy', {
   };
 
   const B = {};
+  B.branches = br;
+  B.warburg = wb;
   let cristaeTarget = 0.3;
 
   function selectOrg(id) {
@@ -1082,10 +1359,11 @@ CellCity.register('energy', {
   };
 
     return {
-      groups: { cell: cellGroup, mito: mitoGroup, etc: etcGroup },
+      groups: { cell: cellGroup, mito: mitoGroup, etc: etcGroup, enBranches: brGroup, enWarburg: wbGroup },
       unitsPerNm: { cell: 0.0012, mito: 0.015, etc: 0.33 },
-      fog: { cell: 0.006, mito: 0.008, etc: 0.007 },
-      depth: { cell: 1, mito: 2, etc: 3 },
+      fog: { cell: 0.006, mito: 0.008, etc: 0.007, enBranches: 0.002, enWarburg: 0.003 },
+      depth: { cell: 1, mito: 2, etc: 3, enBranches: 0.5, enWarburg: 0.8 },
+      fadeText: { enBranches: 'To the metabolic map', enWarburg: 'Comparing two cells' },
       poses: POSES, behaviors: B,
       ambient(dt) {
     // ambient life
