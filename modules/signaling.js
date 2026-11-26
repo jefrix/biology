@@ -211,7 +211,7 @@ CellCity.register('signaling', {
         el += reduceMotion ? 0 : dt;
         const dimer = v === 'egf';
         rtks.forEach(r => {
-          const x = r.s * (dimer ? 0.75 : 2.6);
+          const x = r.s * (dimer ? 0.75 : 2.6 + (reduceMotion ? 0 : 0.35 * Math.sin(el * 0.9 + r.s)));   // apart, the monomers drift in the membrane
           r.grp.position.x = reduceMotion ? x : lerp(r.grp.position.x || x, x, Math.min(1, dt * 3));
           r.egf.visible = dimer; r.ps.forEach(p => { p.visible = dimer; });
         });

@@ -93,7 +93,7 @@ const CHAPTERS = [
 CellCity.register('immune', {
   chapters: CHAPTERS,
   build(g) {
-    const k = sceneKit(g), { C, std, ghost, ball, rod, tube, body, add, lbl, stream, curve, V } = k;
+    const k = sceneKit(g), { C, std, ghost, ball, rod, tube, body, blob, add, lbl, stream, curve, V } = k;
     const { behaviors } = k.out;
     const virusGeo = new THREE.IcosahedronGeometry(1, 0);
     function virus(parent, r, pos) { const m = new THREE.Mesh(virusGeo, std(C('lesion'), { emissiveIntensity: 0.4, flatShading: true })); m.scale.setScalar(r); m.position.copy(pos); parent.add(m); return m; }
@@ -113,18 +113,18 @@ CellCity.register('immune', {
     /* ================= MHC class I vs class II ================= */
     {
       const id = 'immune-mhc', root = new THREE.Group();
-      add(id, root, { target: V(0, 0, 0), pos: V(0, 4, 30), w: 17 }, { fade: 'At the immune synapse' });
+      add(id, root, { target: V(-2.2, 0.3, 0), pos: V(-1, 4, 26), w: 12.5 }, { fade: 'At the immune synapse' });
       const c1 = new THREE.Group(), c2 = new THREE.Group(); root.add(c1); root.add(c2);
       const CELL = V(-6, 0, 0), RAD = 4.2;
       // class I: an ordinary infected cell
-      body(c1, C('membrane'), RAD, CELL, 0.14);
+      blob(c1, C('membrane'), RAD, CELL, 0.14, 0.04, 2);
       ball(c1, std(C('nucleus')), 1.3, V(-8, 1.2, 0));
       const viruses = [V(-8.5, -1.6, 1), V(-7, -2.4, -1), V(-9, 0, -1.5)].map(p => virus(c1, 0.45, p));
       const prot = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 1.4, 16), std(C('lyso'), { emissiveIntensity: 0.4 })); prot.position.set(-6.2, -1.5, 0.5); prot.rotation.z = 1; c1.add(prot);
       tube(c1, std(C('golgi'), { emissiveIntensity: 0.25 }), [V(-5.8, 1.6, -0.5), V(-4.6, 0.4, 0.5), V(-5, -0.6, -0.4), V(-3.8, -1.4, 0.4)], 0.3);
       const pep1 = stream(c1, std(C('peptide'), { emissiveIntensity: 0.7 }), 0.14, curve([V(-8, -1.8, 0.5), V(-6.2, -1.5, 0.5), V(-5, -0.4, 0.2), V(-4.2, 0.6, 0), V(-2.2, 0.4, 0)]), 6, 0.25, C('peptide'));
       // class II: a dendritic cell with an endosome full of bacteria
-      body(c2, C('mono'), RAD, CELL, 0.14);
+      blob(c2, C('mono'), RAD, CELL, 0.14, 0.06, 5);
       const dMat = std(C('mono'), { emissiveIntensity: 0.25, transparent: true, opacity: 0.6 });
       for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2 + 0.6; if (Math.cos(a) > 0.5) continue; rod(c2, dMat, CELL.clone().add(V(Math.cos(a) * 3.6, Math.sin(a) * 3.6, 0)), CELL.clone().add(V(Math.cos(a) * 7, Math.sin(a) * 6.4, rr(-1, 1))), 0.35); }
       ball(c2, std(C('nucleus')), 1.3, V(-8, 1.4, 0));
@@ -133,10 +133,15 @@ CellCity.register('immune', {
       [0, 1].forEach(i => { const b = bug.clone(); b.position.set(-7.3 + i * 0.6, -1.6, 0.8); b.rotation.z = i; c2.add(b); });
       const pep2 = stream(c2, std(C('peptide'), { emissiveIntensity: 0.7 }), 0.14, curve([V(-7, -1.6, 0.8), V(-5, -0.8, 0.4), V(-3.4, 0.2, 0), V(-2.2, 0.4, 0)]), 6, 0.25, C('peptide'));
       // MHC molecules on the face toward the T cell
-      [c1, c2].forEach((grp, i) => { for (let j = -3; j <= 3; j++) { const a = j * 0.22, n = V(Math.cos(a), Math.sin(a), 0); mhc(grp, i ? 'mhc2' : 'mhc1', CELL.clone().add(n.clone().multiplyScalar(RAD)), n); } });
+      const slots = [], carriers = [];
+      [c1, c2].forEach((grp, i) => { for (let j = -3; j <= 3; j++) { const a = j * 0.22, n = V(Math.cos(a), Math.sin(a), 0), m = mhc(grp, i ? 'mhc2' : 'mhc1', CELL.clone().add(n.clone().multiplyScalar(RAD)), n); if (!j) slots[i] = m; } });
+      // each cycle one newly loaded MHC travels from where it picked up its peptide (ER or endosome) to the surface facing the T cell
+      const routes = [curve([V(-5.4, 0.9, -0.3), V(-4, 0.5, 0.5), V(-2.9, 0.15, 0.3), V(-1.8, 0, 0)]), curve([V(-7, -1.6, 0.8), V(-5.2, -1.1, 0.7), V(-3.2, -0.3, 0.3), V(-1.8, 0, 0)])];
+      [c1, c2].forEach((grp, i) => { carriers[i] = mhc(grp, i ? 'mhc2' : 'mhc1', routes[i].getPointAt(0), V(0, 1, 0)); });
+      const qUp = new THREE.Quaternion(), qOut = new THREE.Quaternion().setFromUnitVectors(V(0, 1, 0), V(1, 0, 0));
       // the T cell
       const T = new THREE.Group(); root.add(T);
-      body(T, C('lymph'), 2.6, null, 0.2); ball(T, std(C('nucleus')), 1.7, V(0.3, 0, 0));
+      blob(T, C('lymph'), 2.6, null, 0.2, 0.035, 7); ball(T, std(C('nucleus')), 1.7, V(0.3, 0, 0));
       const tcrMat = std(C('lymph'), { emissiveIntensity: 0.5 });
       for (let j = -2; j <= 2; j++) { const a = Math.PI + j * 0.3; rod(T, tcrMat, V(Math.cos(a) * 2.5, Math.sin(a) * 2.5, 0), V(Math.cos(a) * 3.2, Math.sin(a) * 3.2, 0), 0.09); }
       const co1 = new THREE.Group(), co2 = new THREE.Group(); T.add(co1); T.add(co2);
@@ -165,6 +170,10 @@ CellCity.register('immune', {
         syn.material.opacity = docked ? 0.8 + 0.2 * Math.sin(el * 6) : 0.1;
         cyto.visible = docked && !one; cyto.update(dt);
         (one ? pep1 : pep2).update(dt);
+        const i = one ? 0 : 1, travelU = reduceMotion ? 1 : Math.min(1, cyc / 2.6), car = carriers[i];
+        car.gr.visible = travelU < 1; slots[i].gr.visible = travelU >= 1;
+        car.gr.position.copy(routes[i].getPointAt(travelU)); car.gr.quaternion.slerpQuaternions(qUp, qOut, Math.min(1, travelU * 1.4));
+        slots[i].pep.scale.set(0.28 * (docked ? 1.25 + 0.2 * Math.sin(el * 8) : 1), 0.08, 0.1);
         viruses.forEach((v, i) => { v.rotation.x += dt * (0.5 + i * 0.2); v.rotation.y += dt * 0.4; });
         prot.rotation.y += reduceMotion ? 0 : dt * 2; endo.scale.setScalar(1.3 + 0.05 * Math.sin(el * 2)); void d;
       }

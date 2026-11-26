@@ -1002,7 +1002,10 @@ const ENDOCRINE = (() => {
           centered.position.copy(bounds.getCenter(new V3())).negate();
           overlays.set(spec,{bucket,dimensions});
         }
-        draw=()=>{
+        draw=(time=0)=>{
+          // the highlighted glands pulse as if releasing hormone, and the body turns a little so it reads in 3D
+          highlight.emissiveIntensity=reduceMotion ? 1 : .7+.5*Math.sin(time*2.2);
+          root.rotation.y=reduceMotion ? 0 : .2*Math.sin(time*.3);
           const selected=map ? $('#endocrineRegion')?.value || 'brain' : 'gonads';
           const anatomy=$(map ? '#endocrineAnatomy' : '#endocrinePattern')?.value || 'ovaries';
           const current=models.get(anatomy) || startAvatar(anatomy);

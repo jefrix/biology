@@ -9,8 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="shared/core.css?v=7">
-<link rel="stylesheet" href="shared/microscope.css?v=7">
+<link rel="stylesheet" href="shared/core.css?v=9">
+<link rel="stylesheet" href="shared/microscope.css?v=9">
 
 <div class="app">
   <section class="stage" id="stage" aria-label="3D view of the cell">
@@ -18,12 +18,13 @@
     <div class="labels" id="labels"></div>
     <div class="hud hud-top">
       <span class="hint">Drag to orbit · scroll or pinch to zoom</span>
-      <button class="ghost-btn" id="resetView" type="button">Reset view</button>
+      <div class="hud-btns"><button class="ghost-btn" id="watchBtn" type="button" aria-pressed="false" title="Play this module chapter by chapter">Watch</button><button class="ghost-btn" id="resetView" type="button">Reset view</button></div>
     </div>
     <div class="hud hud-bottom">
       <div class="legend" id="legend"></div>
       <div class="scale" aria-hidden="true"><span id="scaleTxt">5 µm</span><div class="bar" id="scaleBar"></div></div>
     </div>
+    <div class="watch-bar" aria-hidden="true"><i id="watchBar"></i></div>
     <div class="fade" id="fade"><span id="fadeTxt">Zooming in</span></div>
   </section>
 
@@ -52,6 +53,13 @@
       <div class="brand-row"><h1>Cellular <em>Biology</em></h1><span class="maker">jef<span class="rix">rix</span> <span class="soft">software</span></span></div>
       <p class="lede">Every cell runs like a small industrial city. Pick a glass slide from the trays, load it onto the microscope stage and inspect the specimen: start inside one cell with energy, proteins, recycling, transport, division, the cytoskeleton, signaling, cell junctions, cholesterol, the mitochondrial network and how stem cells turn into every other kind of cell, then see cells at work in tissues, from nerve, muscle and the heart’s pacemaker, blood and clotting to hormones, the kidney nephron and reproduction, and on to the liver, bone, cancer, immune defenses, the blood–brain barrier and the gut.</p>
     </header>
+
+    <div class="search" role="search">
+      <label class="eyebrow" for="homeSearch">Search every chapter</label>
+      <input id="homeSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Try SGLT2, Krebs, osteoclast, PINK1…" aria-describedby="searchCount">
+      <p id="searchCount" class="search-count" aria-live="polite"></p>
+      <ol id="searchResults" class="search-results" hidden></ol>
+    </div>
 
     <section class="bench" id="bench" aria-label="Virtual microscope">
       <div class="scope" id="scope">
@@ -103,4 +111,4 @@
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.module.js"}}</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
-<script src="shared/core.js?v=7"></script>
+<script src="shared/core.js?v=9"></script>

@@ -148,6 +148,21 @@ function sceneKit(g) {
     if (pos) grp.position.copy(pos);
     parent.add(grp); return grp;
   }
+  // like body(), but with a gently lumpy surface so cells look less like perfect spheres
+  function blob(parent, color, r, pos, opacity = 0.2, amp = 0.05, seed = 1) {
+    const geo = new THREE.SphereGeometry(1, 40, 28), p = geo.attributes.position, v = new THREE.Vector3();
+    for (let i = 0; i < p.count; i++) {
+      v.fromBufferAttribute(p, i);
+      const n = Math.sin(v.x * 3.1 + seed) * Math.cos(v.y * 2.7 + seed * 1.7) + Math.sin(v.z * 3.7 + seed * 2.3) * 0.6;
+      v.multiplyScalar(1 + n * amp); p.setXYZ(i, v.x, v.y, v.z);
+    }
+    geo.computeVertexNormals();
+    const grp = new THREE.Group();
+    grp.add(new THREE.Mesh(geo, ghost(color, opacity)), new THREE.Mesh(geo, g.fresnelMat(color, 1.1, 2.4)));
+    if (Array.isArray(r)) grp.scale.set(...r); else grp.scale.setScalar(r);
+    if (pos) grp.position.copy(pos);
+    parent.add(grp); return grp;
+  }
   function add(id, root, pose, opts = {}) {
     out.groups[id] = root; g.scene.add(root);
     out.fog[id] = opts.fog ?? 0.003; out.depth[id] = opts.depth ?? 2;
@@ -185,7 +200,7 @@ function sceneKit(g) {
     parent.add(mesh);
     return { mesh, ctx: c.getContext('2d'), canvas: c, draw(fn) { fn(this.ctx, c.width, c.height); tex.needsUpdate = true; } };
   }
-  return { out, C, std, ghost, ball, rod, setRod, tube, body, add, lbl, stream, curve, panel, sphere, rodGeo, glow: g.glow, fresnelMat: g.fresnelMat, V: (x, y, z) => new THREE.Vector3(x, y, z) };
+  return { out, C, std, ghost, ball, rod, setRod, tube, body, blob, add, lbl, stream, curve, panel, sphere, rodGeo, glow: g.glow, fresnelMat: g.fresnelMat, V: (x, y, z) => new THREE.Vector3(x, y, z) };
 }
 
 /* ---------- a shared segmented control for chapter scenes ----------
@@ -458,7 +473,7 @@ function initWorld() {
   const scaleTxt = $('#scaleTxt'), scaleBar = $('#scaleBar');
   const clock = new THREE.Clock();
   const tmp = new V3();
-  let lastScaleUpdate = 0;
+  let lastScaleUpdate = 0, sway = false;
   function isIn(obj, root) { let o = obj; while (o) { if (o === root) return true; o = o.parent; } return false; }
   function frame() {
     requestAnimationFrame(frame);
@@ -471,6 +486,11 @@ function initWorld() {
       camera.position.lerpVectors(tween.p0, tween.p1, e);
       controls.target.lerpVectors(tween.t0, tween.t1, e);
       if (u >= 1) tween = null;
+    }
+    if (sway && !tween && !reduceMotion) {             // Watch mode: drift gently from side to side
+      const off = camera.position.clone().sub(controls.target);
+      off.applyAxisAngle(UP, 0.06 * Math.cos(now * 0.35) * dt);
+      camera.position.copy(controls.target).add(off);
     }
     controls.update();
     ambients.forEach(fn => fn(dt));
@@ -515,13 +535,14 @@ function initWorld() {
   return {
     scene, camera, controls, C, UP, fresnelMat, glow, textSprite, atomGeo, atomMat, layout, molecule, disposeObj,
     clearAgents, travel, emit, every, addLabel, labels, fitPose, tweenTo, goStage, enterStage, rest,
+    sway(on) { sway = on; },
     get group() { return currentGroup; },
   };
 }
 
 /* ---------- loading a module the first time it is opened ---------- */
 // Bump with the ?v= in index.html on each deploy so GitHub Pages visitors never mix cached and new files.
-const ASSET_VERSION = 7;
+const ASSET_VERSION = 9;
 const loading = {};
 const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
 const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';
@@ -542,15 +563,24 @@ function loadAnatomyAvatar(sex) {
   return anatomyFile(avatarBase+'anatomy-'+sex+'.glb');
 }
 
-function loadModule(key) {
-  if (!loading[key]) {
-    loading[key] = new Promise((resolve, reject) => {
+// Loads a module's script once; search uses this on its own so it can read chapter text without building scenes.
+const scripts = {};
+function loadScript(key) {
+  if (registry[key]) return Promise.resolve(registry[key]);
+  if (!scripts[key]) {
+    scripts[key] = new Promise((resolve, reject) => {
       const el = document.createElement('script');
       el.src = `modules/${key}.js?v=${ASSET_VERSION}`;
       el.onload = () => (registry[key] ? resolve(registry[key]) : reject(new Error(key + ' did not register')));
       el.onerror = () => { el.remove(); reject(new Error('could not load ' + key)); };
       document.head.appendChild(el);
-    }).then((def) => {
+    }).catch((err) => { delete scripts[key]; throw err; });
+  }
+  return scripts[key];
+}
+function loadModule(key) {
+  if (!loading[key]) {
+    loading[key] = loadScript(key).then((def) => {
       if (G3 && def.build) {
         const built = def.build(G3);
         Object.assign(GROUPS, built.groups); Object.assign(UNITS_PER_NM, built.unitsPerNm); Object.assign(FOG, built.fog);
@@ -570,6 +600,7 @@ let chapters = [], moduleKey = null, chapterIndex = -1, routeToken = 0;
 
 function showHome() {
   routeToken++;
+  stopWatch();
   if (G3) G3.rest();
   // Coming back from a lesson puts that module's slide back on the stage; a first visit loads Energy.
   const back = moduleKey || benchKey || MANIFEST[0].key;
@@ -638,6 +669,113 @@ function go(route) {
   });
 }
 function goHome() { setHash('home'); showHome(); }
+/* ---------- Watch mode: plays the open module chapter by chapter ----------
+   Each chapter runs for its `watch` seconds (default WATCH_SECONDS). If the chapter has a row of switch buttons,
+   Watch picks "Play all" when there is one, or else steps through every option in turn. Any click, key or drag stops it. */
+const WATCH_SECONDS = 22;
+const watch = { on: false, t0: 0, idx: -1, step: -1, timer: null, auto: false };
+function watchChoices() {
+  const seg = $('#chapter .seg');
+  if (!seg) return [];
+  const btns = [...seg.querySelectorAll('button')];
+  const all = btns.find(b => b.dataset.val === 'auto');
+  return all ? [all] : btns;
+}
+function watchAuto(fn) { watch.auto = true; try { fn(); } finally { watch.auto = false; } }
+function syncWatch() {
+  const b = $('#watchBtn');
+  b.setAttribute('aria-pressed', String(watch.on));
+  b.textContent = watch.on ? 'Stop' : 'Watch';
+  document.body.classList.toggle('watching', watch.on);
+  $('#watchBar').style.transform = 'scaleX(0)';
+}
+function startWatch() {
+  if (!moduleKey || watch.on) return;
+  watch.on = true; watch.idx = -1; syncWatch();
+  watch.timer = setInterval(watchTick, 200);
+  watchTick();
+}
+function stopWatch() {
+  if (!watch.on) return;
+  watch.on = false; clearInterval(watch.timer); syncWatch();
+  if (G3) G3.sway(false);
+}
+function watchTick() {
+  if (!watch.on) return;
+  if (!moduleKey || chapterIndex < 0) { stopWatch(); return; }
+  const t = performance.now() / 1000;
+  if (watch.idx !== chapterIndex) { watch.idx = chapterIndex; watch.t0 = t; watch.step = -1; if (G3) G3.sway(true); }
+  const ch = chapters[chapterIndex], u = (t - watch.t0) / (ch.watch || WATCH_SECONDS);
+  const choices = watchChoices();
+  const step = Math.min(choices.length - 1, Math.floor(u * choices.length));
+  if (choices.length && step !== watch.step) { watch.step = step; watchAuto(() => choices[step].click()); }
+  $('#watchBar').style.transform = `scaleX(${Math.min(1, u).toFixed(3)})`;
+  if (u >= 1) {
+    if (chapterIndex < chapters.length - 1) watchAuto(() => showChapter(chapterIndex + 1));
+    else stopWatch();
+  }
+}
+function initWatch() {
+  $('#watchBtn').addEventListener('click', () => (watch.on ? stopWatch() : startWatch()));
+  document.addEventListener('click', (e) => { if (watch.on && !watch.auto && !e.target.closest('#watchBtn')) stopWatch(); }, true);
+  canvas.addEventListener('pointerdown', stopWatch);
+  canvas.addEventListener('wheel', stopWatch, { passive: true });
+  addEventListener('keydown', (e) => { if (watch.on && e.key !== 'Shift') stopWatch(); }, true);
+}
+
+/* ---------- search across every chapter ----------
+   The first time the box is used, every module script is loaded (without building its 3D scene) so chapter text can be searched. */
+let searchIndex = null, searchLoading = null;
+const escapeHTML = (s) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function plainText(html) { const t = document.createElement('template'); t.innerHTML = html; return t.content.textContent.replace(/\s+/g, ' ').trim(); }
+function buildSearchIndex() {
+  if (!searchLoading) {
+    searchLoading = Promise.all(MANIFEST.map(m => loadScript(m.key).then(def => ({ m, def }), () => ({ m, def: null })))).then(list => {
+      searchIndex = [];
+      list.forEach(({ m, def }) => {
+        const chs = def ? def.chapters : m.ids.map((id, i) => ({ id, short: m.names[i] || id, title: m.names[i] || id, where: '', html: () => '' }));
+        chs.forEach(ch => {
+          let body = '';
+          try { body = plainText(ch.html()); } catch (e) { /* a chapter that needs its live page is still found by its title */ }
+          const head = `${m.name} ${ch.short} ${ch.title} ${ch.where || ''}`;
+          searchIndex.push({ id: ch.id, module: m.name, c: m.c, title: ch.title || ch.short, short: ch.short, head: head.toLowerCase(), body, low: body.toLowerCase() });
+        });
+      });
+    });
+  }
+  return searchLoading;
+}
+function snippet(e, terms) {
+  const at = terms.map(t => e.low.indexOf(t)).filter(i => i >= 0).sort((a, b) => a - b)[0];
+  if (at === undefined) return '';
+  const from = Math.max(0, at - 60), to = Math.min(e.body.length, at + 110);
+  let s = escapeHTML((from ? '…' : '') + e.body.slice(from, to) + (to < e.body.length ? '…' : ''));
+  terms.forEach(t => { s = s.replace(new RegExp(escapeHTML(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), (x) => `<mark>${x}</mark>`); });
+  return s;
+}
+function runSearch() {
+  const q = $('#homeSearch').value, out = $('#searchResults'), count = $('#searchCount');
+  const terms = q.toLowerCase().split(/\s+/).filter(t => t.length > 1);
+  if (!terms.length) { out.hidden = true; out.innerHTML = ''; count.textContent = ''; return; }
+  if (!searchIndex) { count.textContent = 'Loading every chapter…'; buildSearchIndex().then(runSearch, () => { count.textContent = 'Search could not load. Check your connection.'; }); return; }
+  const hits = searchIndex.map(e => {
+    let score = 0;
+    for (const t of terms) { const h = e.head.includes(t), b = e.low.includes(t); if (!h && !b) return null; score += h ? 3 : 1; }
+    return { e, score };
+  }).filter(Boolean).sort((a, b) => b.score - a.score);
+  count.textContent = hits.length ? (hits.length === 1 ? '1 chapter matches' : `${hits.length} chapters match`) : 'No chapters match. Try a shorter or different word.';
+  out.hidden = !hits.length;
+  out.innerHTML = hits.slice(0, 12).map(({ e }) => `<li><a href="#${e.id}" style="--c:var(--${e.c})"><span class="eyebrow">${escapeHTML(e.module)} · ${escapeHTML(e.short)}</span><b>${escapeHTML(e.title)}</b><small>${snippet(e, terms)}</small></a></li>`).join('');
+}
+function initSearch() {
+  const box = $('#homeSearch');
+  box.addEventListener('focus', () => { buildSearchIndex().catch(() => {}); }, { once: true });
+  box.addEventListener('input', runSearch);
+  box.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { const first = $('#searchResults a'); if (first) { e.preventDefault(); first.click(); } }
+    if (e.key === 'Escape') { box.value = ''; runSearch(); }
+  });
+}
 
 /* ---------- microscope bench: glass slide trays and the stage ---------- */
 // Specimen motifs drawn on a 100×100 grid: .f is a stained fill, .d a solid dot, everything else a stroke.
@@ -795,6 +933,8 @@ function initBench() {
 
 function startCellCity() {
   initBench();
+  initSearch();
+  initWatch();
   $('#rail').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showChapter(+b.dataset.i); });
   $('#prevBtn').addEventListener('click', () => (chapterIndex > 0 ? showChapter(chapterIndex - 1) : goHome()));
   $('#nextBtn').addEventListener('click', () => (chapterIndex < chapters.length - 1 ? showChapter(chapterIndex + 1) : goHome()));
@@ -821,6 +961,8 @@ function startCellCity() {
     stageEl.appendChild(notice);
     $('#resetView').disabled = true;
   }
+  // index.html?check=playback runs the real-time playback check in tools/playback-check.js
+  if (/[?&]check=playback(&|$)/.test(location.search)) { const el = document.createElement('script'); el.src = `tools/playback-check.js?v=${ASSET_VERSION}`; document.head.appendChild(el); }
   go(location.hash.slice(1));
 }
 startCellCity();

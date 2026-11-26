@@ -32,7 +32,7 @@
     const stages=examples[id];
     return `<fieldset id="reproControls" hidden><div class="lesson-control">
       <label>Stage <select id="reproStage">${stages.map(([title],i)=>`<option value="${i}">${title}</option>`).join('')}</select></label>
-      <label><input type="checkbox" id="reproPlay"> Play sequence</label>
+      <label><input type="checkbox" id="reproPlay" checked> Play sequence</label>
     </div></fieldset><ol class="lesson-sequence">${stages.map(([title,detail])=>`<li><b>${title}.</b> ${detail}</li>`).join('')}</ol>`;
   }
   const chapters = [
@@ -289,11 +289,11 @@
           if(index+1<stages.length) {
             index++;stageTime=0;selector.value=String(index);
           } else {
-            play.checked=false;
+            index=0;stageTime=0;selector.value='0';          // loop back to the first stage
           }
         }
         const phase=reduceMotion || !automatic ? 1 : Math.min(1,.12+stageTime/2.15);
-        stages.forEach(({object},i)=>{object.visible=i===index;});
+        stages.forEach(({object},i)=>{object.visible=i===index; object.rotation.y=reduceMotion ? 0 : .22*Math.sin(elapsed*.35);});
         stages[index].draw(elapsed,phase);
       }
       behaviors[id]={

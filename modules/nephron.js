@@ -26,12 +26,12 @@
   const transportSource = '<p class="credit">Sources: <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/25-6-tubular-reabsorption" target="_blank" rel="noopener">OpenStax · Tubular reabsorption</a>.</p>';
   const overview = {
     id:'nephron-overview', short:'Follow the filtrate', where:'The whole nephron', title:'One continuous route from filtrate to urine',
-    legend:[['rbc','Blood path'],['atp','Tubule and collecting duct'],['electron','Fluid in the tubule']],
+    legend:[['rbc','Blood'],['exon','Proximal tubule'],['dendrite','Thin limbs'],['g2','Thick ascending limb'],['fadh','Distal tubule'],['atp','Collecting duct'],['electron','Filtrate']],
     html:()=>`<p class="lede">Follow the moving markers. Blood flows through the glomerulus. Filtrate leaves Bowman’s capsule, travels through the nephron, and drains into a collecting duct shared by several nephrons.</p>
       <ol class="lesson-sequence"><li><b>Filtration.</b> Water and small solutes pass out of the glomerular capillaries into Bowman’s space.</li>
       <li><b>Reabsorption.</b> Tubule cells return useful material such as glucose, salts, and water toward the blood.</li>
       <li><b>Secretion.</b> Tubule cells move selected substances from the tissue fluid into the tubule, including hydrogen ions and some wastes.</li></ol>
-      <p>From the collecting ducts, urine drains through the renal pelvis and ureter to the bladder. The model shows segment order and the two routes schematically.</p>${anatomySource}`,
+      <p>From the collecting ducts, urine drains through the renal pelvis and ureter to the bladder. Each segment has its own color. The shading behind is the cortex (top) and the medulla, which gets saltier with depth. The model shows segment order and the two routes schematically, not to scale.</p>${anatomySource}`,
   };
   const filtration = {
     id:'glomerular-filtration', short:'Filter blood', where:'Glomerulus and Bowman’s capsule', title:'A capillary tuft filters fluid into Bowman’s space',
@@ -99,27 +99,68 @@
       const label=(text,color,x,y,z=.50)=>addLabel(text,color,root,new V3(x,y,z),[key]);
       let animate;
       if (chapter===overview) {
-        const route=path([[-4.28,2.66],[-3.43,2.63],[-2.85,1.99],[-2.60,2.64],[-2.15,2.53],[-2.07,1.49],
-          [-1.80,.11],[-1.75,-2.54],[-1.1,-3.02],[-.40,-2.55],[-.36,.18],[-.23,2.13],[.37,2.73],[1.05,2.20],
-          [1.51,2.74],[2.21,2.24],[3.13,1.72],[3.14,-3.45]]);
-        const capsule=bead(root,gold,.60);capsule.position.set(-4.38,2.82,-.16);
-        const tuft=bead(root,blood,.37);tuft.position.set(-4.41,2.85,.30);
-        const circulation=path([[-5.7,3.24,.20],[-5,3.29,.3],[-4.45,2.80,.51],[-4.68,1.68,-.22],[-4.93,.56,-.44],[-5.52,-.1,-.44]]);
-        tube(root,circulation,.13,blood);
-        tube(root,route,.19,gold,.40);
-        const ductBranch=path([[4.6,1.12],[3.79,.75],[3.14,.28]]);
-        tube(root,ductBranch,.14,gold,.40);
-        const filtrate=flow(root,route,aqua,19,.087,.09);
-        const bloodFlow=flow(root,circulation,0xf06c85,7,.24,.095);
-        label('Bowman’s capsule','atp',-4.32,3.63);
-        label('Proximal tubule','atp',-2.89,1.24);
-        label('Descending limb','electron',-2.58,-.65);
-        label('Ascending limb','atp',.43,-.68);
-        label('Loop of Henle','electron',-1.10,-3.50);
-        label('Distal tubule','atp',.94,3.26);
-        label('Collecting duct','atp',4.30,.13);
-        label('Toward renal pelvis','atp',3.82,-3.83);
-        animate=time=>{filtrate(time);bloodFlow(time);};
+        // Cortex and medulla behind the nephron; the medulla darkens with depth to show the salt gradient.
+        const band=(y0,y1,c0,c1,opacity)=>{
+          const geo=new THREE.PlaneGeometry(11.6,y1-y0,1,12), colors=[], p=geo.attributes.position;
+          for (let i=0;i<p.count;i++) { const u=(p.getY(i)+(y1-y0)/2)/(y1-y0); const c=new THREE.Color(c0).lerp(new THREE.Color(c1),1-u); colors.push(c.r,c.g,c.b); }
+          geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+          const m=mesh(root,geo,new THREE.MeshBasicMaterial({vertexColors:true,transparent:true,opacity,depthWrite:false}));
+          m.position.set(0,(y0+y1)/2,-.9); return m;
+        };
+        band(.5,3.95,0x3a3048,0x3a3048,.5);
+        band(-4.2,.5,0x24344d,0x8a5a2a,.6);
+        const edge=mesh(root,new THREE.PlaneGeometry(11.6,.03),new THREE.MeshBasicMaterial({color:0x8c9bb0,transparent:true,opacity:.5}));
+        edge.position.set(0,.5,-.85);
+        const hex=name=>col(name).getHex();
+        const SEG={pct:hex('exon'),thin:hex('dendrite'),thick:hex('g2'),dct:hex('fadh'),cd:hex('atp')};
+        const segs={
+          pct:[[-2.0,2.45],[-2.6,2.95],[-3.2,2.5],[-3.7,3.0],[-4.25,2.55],[-3.95,2.0],[-3.4,2.1],[-3.25,1.4],[-3.2,.4]],
+          thin:[[-3.2,.4],[-3.2,-2.0],[-3.1,-3.1],[-2.7,-3.55],[-2.3,-3.1],[-2.2,-1.4]],
+          thick:[[-2.2,-1.4],[-2.15,.4],[-2.0,1.6],[-1.75,2.15]],
+          dct:[[-1.75,2.15],[-1.0,1.85],[-.3,2.4],[.35,1.8],[.9,2.45],[1.5,1.95],[2.1,2.35],[2.7,2.05]],
+          cd:[[2.7,2.05],[2.74,0],[2.78,-2],[2.8,-3.95]],
+        };
+        tube(root,path(segs.pct),.21,SEG.pct,.55);
+        tube(root,path(segs.thin),.1,SEG.thin,.7);
+        tube(root,path(segs.thick),.17,SEG.thick,.6);
+        tube(root,path(segs.dct),.17,SEG.dct,.55);
+        tube(root,path([[2.68,3.55],...segs.cd]),.26,SEG.cd,.45);
+        tube(root,path([[4.4,3.15],[3.5,2.75],[2.72,2.4]]),.15,SEG.cd,.3);           // another nephron joining the duct
+        const route=path([...segs.pct,...segs.thin.slice(1),...segs.thick.slice(1),...segs.dct.slice(1),...segs.cd.slice(1)]);
+        // glomerulus: a knot of capillary loops inside Bowman's capsule, open at the vascular pole
+        const G=new V3(-1.4,2.75,0), gap=1.1;
+        const cup=mesh(root,new THREE.SphereGeometry(.66,32,20,Math.PI+gap/2,Math.PI*2-gap),
+          new THREE.MeshStandardMaterial({color:SEG.cd,transparent:true,opacity:.28,side:THREE.DoubleSide,depthWrite:false}));
+        cup.position.copy(G); cup.rotation.z=.45;
+        const loops=[];
+        for (let i=0;i<6;i++) {
+          const a=i/6*Math.PI*2, c=new V3(Math.cos(a)*.18,Math.sin(a)*.18,Math.sin(a*2)*.12);
+          loops.push([G.x+.42,G.y+.12,0],[G.x+c.x*2.1,G.y+c.y*2.1+.05,c.z*2],[G.x+c.x*1.2-.05,G.y+c.y*1.2,c.z-.15]);
+        }
+        const tuft=path([[G.x+.55,G.y+.22,0],...loops,[G.x+.55,G.y-.1,0]]);
+        tube(root,tuft,.07,blood);
+        const afferent=[[1.1,3.8,0],[-.1,3.4,0],[G.x+.75,G.y+.25,0]];
+        const efferent=[[G.x+.72,G.y-.12,0],[-.45,2.15,-.2],[-1.55,1.55,-.4],[-2.72,.8,-.45],[-2.85,-2.55,-.45],[-2.68,-2.95,-.45],[-2.52,-2.55,-.45],[-2.45,.55,-.45],[-1.2,1.0,-.45],[1.4,1.15,-.45],[5.2,1.3,-.45]];
+        tube(root,path(afferent),.12,blood); tube(root,path(efferent),.075,blood,.75);
+        const circulation=path([...afferent,...loops,...efferent]);
+        const filtrate=flow(root,route,aqua,26,.06,.085);
+        const bloodFlow=flow(root,circulation,0xf06c85,14,.07,.085);
+        // what leaves where: water from the thin descending limb, salt from the thick ascending limb
+        const sideFlows=[-.6,-1.6,-2.5].map(y=>flow(root,path([[-3.2,y,.1],[-3.75,y-.05,.15],[-4.3,y-.1,.1]]),aqua,2,.3,.06))
+          .concat([-.8,.4].map(y=>flow(root,path([[-2.15,y,.1],[-1.6,y+.05,.15],[-1.05,y+.1,.1]]),gold,2,.3,.06)));
+        label('Glomerulus in Bowman’s capsule','rbc',-2.3,4.15);
+        label('Afferent arteriole','rbc',1.95,3.25);
+        label('Proximal tubule','exon',-4.3,3.4);
+        label('Thin limb · water out','dendrite',-4.1,-1.75);
+        label('Thick ascending limb · salt out','g2',.55,-.95);
+        label('Loop of Henle','dendrite',-2.7,-3.95);
+        label('Distal tubule','fadh',.6,2.85);
+        label('Collecting duct','atp',3.85,.2);
+        label('Vasa recta','rbc',-1.1,.55);
+        label('Cortex','muted',4.6,3.55);
+        label('Medulla · saltier deeper','muted',3.95,-2.4);
+        label('Toward renal pelvis','atp',2.8,-4.3);
+        animate=time=>{filtrate(time);bloodFlow(time);sideFlows.forEach(d=>d(time));};
       } else if (chapter===filtration) {
         poses[key].pos.set(1.1,1.2,16);
         const shell=mesh(root,new THREE.SphereGeometry(2.10,48,28,Math.PI*.47,Math.PI*1.40),
@@ -289,11 +330,11 @@
     label('Filtrate','electron',-4.17,2.57);
     label('Brush-border cell','rbc',-.10,2.57);
     label('Peritubular capillary','rbc',4.66,2.57);
-    label('Apical brush border','rbc',-3.42,-.22);
+    label('Apical brush border','rbc',-3.3,-1.3);
     label('Basolateral membrane','rbc',2.95,-2.56);
-    label('SGLT2 · sodium + glucose','electron',-2.49,1.18);
-    label('GLUT2 · glucose exit','atp',2.25,1.18);
-    label('Tissue fluid','electron',3.49,1.82);
+    label('SGLT2 · sodium + glucose','electron',-3.6,1.65);
+    label('GLUT2 · glucose exit','atp',2.6,1.75,.6);
+    label('Tissue fluid','electron',3.6,-.35,.6);
     label('Na⁺/K⁺ pump','dendrite',2.40,-1.98);
 
     const glucoseRoute=track([[-5.10,.71,.58],[-3.45,.72,.59],[-2.42,.72,.59],
@@ -353,7 +394,7 @@
     }
     return {
       groups:{...anatomy.groups,[id]:group}, fog:{...anatomy.fog,[id]:.002}, depth:{...anatomy.depth,[id]:1},
-      poses:{...anatomy.poses,[id]:{group:id,target:new V3(),pos:new V3(0,1.55,17),w:6.1}},
+      poses:{...anatomy.poses,[id]:{group:id,target:new V3(0,.2,0),pos:new V3(6.5,4.2,15),w:6.3}},
       behaviors:{...anatomy.behaviors,[id]:{enter(){gradient=1;progress=0;elapsed=0;draw(0);},tick(_,dt){draw(dt);}}},
     };
   }

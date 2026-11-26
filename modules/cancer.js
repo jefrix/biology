@@ -175,7 +175,7 @@ CellCity.register('cancer', {
     /* ================= Angiogenesis and metastasis ================= */
     {
       const id = 'cancer-spread', root = new THREE.Group();
-      add(id, root, { target: V(0, -0.5, 0), pos: V(2, 6, 32), w: 21 }, { fade: 'A tumor and its blood supply' });
+      add(id, root, { target: V(-1.8, -0.6, 0), pos: V(0.5, 3.5, 26), w: 16 }, { fade: 'A tumor and its blood supply' });
       const tumor = new THREE.Group(); tumor.position.set(-7, 3, 0); root.add(tumor);
       const tMat = std(C('cancer'), { emissiveIntensity: 0.35 }), hMat = std(C('cancer').clone().multiplyScalar(0.45), { emissiveIntensity: 0.15 });
       const tCells = [];
@@ -184,8 +184,17 @@ CellCity.register('cancer', {
       const hole = new THREE.Mesh(new THREE.RingGeometry(0.2, 0.9, 24), std(C('cancer'), { side: THREE.DoubleSide, emissiveIntensity: 0.4 })); hole.rotation.x = -Math.PI / 2; hole.position.set(-4, -0.58, 0); root.add(hole);
       const vessel = tube(root, ghost(C('rbc'), 0.28), [V(-17, -4.5, 0), V(0, -4.8, 0), V(17, -4.5, 0)], 1.3);
       const sproutMat = std(C('rbc'), { emissiveIntensity: 0.35, transparent: true, opacity: 0.8 });
-      const sA = V(-9, -3.5, 0), sB = V(-8, 0.8, 0.5), sprout = rod(root, sproutMat, sA, sA.clone().add(V(0, 0.01, 0)), 0.45);
+      // a new vessel grows from the parent vessel toward the tumor, branching as it goes, then carries blood
+      const sCurve = curve([V(-9.2, -3.4, 0), V(-9.8, -2, 0.6), V(-8.6, -0.6, 0.3), V(-8.1, 0.4, 0.6), V(-7.4, 1, 0.4)]);
+      const SEG = 60, RAD = 10;
+      const sprout = new THREE.Mesh(new THREE.TubeGeometry(sCurve, SEG, 0.38, RAD, false), sproutMat); root.add(sprout);
+      const branches = [[0.4, V(-11.2, -1, 0.8)], [0.7, V(-6.2, -0.7, 1)]].map(([u, end]) => {
+        const a = sCurve.getPointAt(u), c = curve([a, a.clone().lerp(end, 0.5).add(V(0, 0.5, 0)), end]);
+        const m = new THREE.Mesh(new THREE.TubeGeometry(c, 24, 0.22, 8, false), sproutMat); root.add(m);
+        return { u, m };
+      });
       const tip = k.glow(C('rbc'), 2.2); root.add(tip);
+      const sBlood = stream(root, std(C('rbc'), { emissiveIntensity: 0.4 }), 0.17, sCurve, 5, 0.35);
       const vegf = stream(root, std(C('vegf'), { emissiveIntensity: 0.6 }), 0.18, curve([V(-7, 1.5, 0.5), V(-8, -1, 1), V(-9, -3.4, 0.5)]), 9, 0.35, C('vegf'));
       const organ = body(root, C('hepato'), [4.2, 3, 3], V(11, 1.5, 0), 0.14);
       const meta = new THREE.Group(); meta.position.set(11, 0, 0); root.add(meta);
@@ -211,12 +220,15 @@ CellCity.register('cancer', {
         if (step === 'auto' && ph !== lastPh) { lastPh = ph; setCaption('cancerSpreadCaption', SPREAD[ph][0] + ': ' + SPREAD[ph][1]); }
         vegf.visible = vLbl.visible = T < 8; vegf.update(dt);
         const grow = Math.min(1, Math.max(0, (T - 4) / 4));
-        const tipPos = sA.clone().lerp(sB, grow); k.setRod(sprout, sA, tipPos.clone().add(V(0, 0.01, 0)), 0.45); tip.position.copy(tipPos); tip.visible = grow > 0 && grow < 1;
+        sprout.visible = grow > 0; sprout.geometry.setDrawRange(0, Math.ceil(SEG * grow) * RAD * 6);
+        tip.position.copy(sCurve.getPointAt(Math.max(0.001, grow))); tip.visible = grow > 0 && grow < 1;
+        branches.forEach(b => { const g2 = Math.max(0, Math.min(1, (grow - b.u) / (1 - b.u) * 1.3)); b.m.visible = g2 > 0; b.m.geometry.setDrawRange(0, Math.ceil(24 * g2) * 8 * 6); });
+        sBlood.visible = grow >= 1; sBlood.update(dt);
         tCells.forEach((m, i) => { m.material = (grow > 0.9 && m.position.length() < 1.4) ? tMat : m.material; });
         hole.visible = T >= 9;
         // runner: invades, enters the vessel, travels and seeds
         runner.visible = T >= 8 && T < 17;
-        if (runner.visible) { const u = T < 11 ? (T - 8) / 3 * 0.3 : T < 14 ? 0.3 + (T - 11) / 3 * 0.45 : 0.75 + (T - 14) / 3 * 0.25; runner.position.copy(path.getPointAt(Math.min(1, u))); }
+        if (runner.visible) { const u = T < 11 ? (T - 8) / 3 * 0.3 : T < 14 ? 0.3 + (T - 11) / 3 * 0.45 : 0.75 + (T - 14) / 3 * 0.25; runner.position.copy(path.getPointAt(Math.min(1, u))); const squeeze = T > 10 && T < 12.2 ? Math.sin((T - 10) / 2.2 * Math.PI) : 0; runner.scale.set(1 - squeeze * 0.4, 1 + squeeze * 0.6, 1 - squeeze * 0.4); }
         const seeded = Math.max(0, (T - 15.5) / 2.5);
         metaCells.forEach((m, i) => { m.visible = i < seeded * metaCells.length; });
         flow.forEach(f => { if (!reduceMotion) { f.position.x += dt * 4; if (f.position.x > 16) f.position.x = -16; } });

@@ -259,11 +259,15 @@
         }
         annotate(3,'Repeating striations',-2.15,1.55);
         annotate(3,'Actin and myosin',3.17,-.93);
-        sarcomere(levels[4],0,.25)(0);
+        const squeeze=sarcomere(levels[4],0,.25); squeeze(0);
         annotate(4,'Z-disc',-3.82,1.10); annotate(4,'M-line',0,1.12);
         annotate(4,'Z-disc',3.82,1.10); annotate(4,'Thin actin',-2.3,-1.12);
         annotate(4,'Thick myosin',1.5,-1.12);
-        render=()=>levels.forEach((level,i)=>{level.visible=i===Number($('#muscleLevel')?.value||0);});
+        render=(time=0)=>levels.forEach((level,i)=>{
+          level.visible=i===Number($('#muscleLevel')?.value||0);
+          level.rotation.y=reduceMotion ? 0 : .18*Math.sin(time*.4);         // turn slowly so the layers read in 3D
+          if (i===4 && level.visible) squeeze(reduceMotion ? 0 : .5-.5*Math.cos(time*1.6));   // the sarcomere shortens and relaxes
+        });
       } else if (id==='muscle-fibers') {
         const strips=fibers.map(([name],i)=>{
           const y=2-i*1.85;label(name,-4.55,y+.35,'rbc');
@@ -288,7 +292,12 @@
         const atrMat=glowMat(red,.32), venMat=glowMat(red,.3), pathMat=new THREE.MeshStandardMaterial({color:gold,emissive:gold,emissiveIntensity:.35,roughness:.4});
         const atria=new THREE.Group(), vent=new THREE.Group(); group.add(atria); group.add(vent);
         [[-1.35,1.75,.1],[1.3,1.85,-.3]].forEach(([x,y,z])=>{const m=new THREE.Mesh(sphere,atrMat);m.position.set(x,y,z);m.scale.set(1.25,1.05,1.05);atria.add(m);});
-        [[-1,-1.4,.3,1.45,2.2,1.25],[.9,-1.5,-.1,1.6,2.5,1.45]].forEach(([x,y,z,a,b,c])=>{const m=new THREE.Mesh(sphere,venMat);m.position.set(x,y,z);m.scale.set(a,b,c);vent.add(m);});
+        // one ventricular mass that tapers to an apex, tipped toward the body's left, with the septum between the chambers
+        const venGeo=new THREE.SphereGeometry(1,48,32), vp=venGeo.attributes.position;
+        for (let i=0;i<vp.count;i++){const y=vp.getY(i), k=y<0?1+y*.58:1-y*y*.12; vp.setXYZ(i,vp.getX(i)*k,y,vp.getZ(i)*k);}
+        venGeo.computeVertexNormals();
+        const ventricles=new THREE.Mesh(venGeo,venMat); ventricles.position.set(.05,-1.35,.1); ventricles.scale.set(2.75,2.55,1.65); ventricles.rotation.z=.32; vent.add(ventricles);
+        const septum=new THREE.Mesh(new THREE.BoxGeometry(.16,3.5,1.3),glowMat(red,.5)); septum.position.set(.12,-1.55,.2); septum.rotation.z=.3; vent.add(septum);
         const P=(x,y,z)=>new V3(x,y,z);
         const tubeOn=(pts,r)=>{const c=new THREE.CatmullRomCurve3(pts);group.add(new THREE.Mesh(new THREE.TubeGeometry(c,40,r,8,false),pathMat));return c;};
         const SA=P(-1.95,2.65,.75), AV=P(-.3,.35,.75), HIS=P(0,-.35,.8);
@@ -343,23 +352,24 @@
         };
       } else {
         poses[id].pos.set(1,1.4,17);
+        const rows=['skeletal','cardiac','smooth'].map(()=>{const r=new THREE.Group();group.add(r);return r;});
         for (const y of [1.83,2.30,2.77]) {
-          bandedRod(group,.47,y,0,7.35,.21);
-          for (const x of [-2.65,-.65,2.50]) ellipsoid(group,plum,x,y+.11,.18,.21,.076,.064);
+          bandedRod(rows[0],.47,y,0,7.35,.21);
+          for (const x of [-2.65,-.65,2.50]) ellipsoid(rows[0],plum,x,y+.11,.18,.21,.076,.064);
         }
         label('Skeletal',-4.47,2.35,'rbc');
         label('Peripheral nuclei',2.55,3.28);
-        bandedRod(group,.45,.04,0,7.10,.24);
+        bandedRod(rows[1],.45,.04,0,7.10,.24);
         for (const side of [-1,1]) {
-          const branch = bandedRod(group,side*1.9+.45,side*.38,0,3.1,.20);
+          const branch = bandedRod(rows[1],side*1.9+.45,side*.38,0,3.1,.20);
           branch.rotation.z=side*.28;
         }
-        for (const x of [-2.4,0,2.65]) ellipsoid(group,plum,x,.04,.23,.23,.105,.07);
-        strand(group,0x622846,[[1.45,-.19,.12],[1.39,-.09,.23],[1.53,.01,.24],[1.45,.12,.23],[1.54,.25,.11]],.043);
+        for (const x of [-2.4,0,2.65]) ellipsoid(rows[1],plum,x,.04,.23,.23,.105,.07);
+        strand(rows[1],0x622846,[[1.45,-.19,.12],[1.39,-.09,.23],[1.53,.01,.24],[1.45,.12,.23],[1.54,.25,.11]],.043);
         label('Cardiac',-4.47,.04,'rbc');
         label('Intercalated disc',1.47,.99);
         for (const [x,y,angle] of [[-1.85,-2.06,.12],[1.48,-2.06,-.08],[.10,-2.70,.08]]) {
-          const cell = new THREE.Group(); group.add(cell);
+          const cell = new THREE.Group(); rows[2].add(cell);
           cell.position.set(x,y,0); cell.rotation.z=angle;
           const profile = [[0,-1.96],[.085,-1.34],[.17,-.62],[.25,0],[.17,.62],[.085,1.34],[0,1.96]];
           const spindle = mesh(cell,new THREE.LatheGeometry(profile.map(([radius,height])=>new THREE.Vector2(radius,height)),20),red);
@@ -368,7 +378,12 @@
         }
         label('Smooth',-4.47,-2.13,'rbc');
         label('Central nucleus',1.48,-3.11);
-        render=()=>{};
+        // skeletal twitches quickly, cardiac beats in rhythm, smooth muscle squeezes in slow waves
+        const twitch=t=>{const u=t%1.6;return u<.35 ? Math.sin(u/.35*Math.PI) : 0;}, beat=t=>Math.pow(Math.max(0,Math.sin(t*Math.PI/.83)),3);
+        render=(time=0)=>{
+          const k=reduceMotion ? [0,0,0] : [twitch(time),beat(time),.5-.5*Math.cos(time*1.05)];
+          rows.forEach((r,i)=>{r.scale.x=1-[.09,.07,.12][i]*k[i]; r.scale.y=r.scale.z=1+[.05,.04,.08][i]*k[i];});
+        };
       }
       let elapsed=0;
       behaviors[id]={enter(){elapsed=0;render(0);},tick(_,dt){elapsed+=dt;render(elapsed);},reset(){elapsed=0;goStage(id);render(0);}};

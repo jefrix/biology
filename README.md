@@ -2,6 +2,8 @@
 
 An interactive 3D atlas of human cell biology, with links to radiology and clinical practice, by jefrix software. Open a module from the home screen, use Previous and Next (or the arrow keys) to follow its chapters, or share a chapter URL such as `#krebs` or `#blood/rbc`. Every lesson also works in text mode if the 3D viewer cannot start.
 
+Two ways to get around without clicking through: the **search box** on the home screen searches the titles and text of every chapter (the first search loads all module scripts, without building their 3D scenes), and the **Watch** button above the 3D view plays the open module chapter by chapter. Watch gives each chapter its `watch` seconds (22 by default), picks a chapter's "Play all" switch when it has one or else steps through its first row of switches, and stops on any click, key press or drag.
+
 ## Modules
 
 **Cell mechanisms**
@@ -58,6 +60,10 @@ node check-chapters.cjs         # or: npm test
 ```
 
 The check loads `shared/core.js` and every module in a minimal text-mode browser stub. It confirms that each module registers exactly the chapters listed in `MANIFEST`, that every chapter route opens with no duplicates, that the bench shows 23 slides (11 + 12) with their slide numbers, prep labels, motifs and a distinct color token each, that every in-app link points at a real chapter and the promised cross-links are present, that chapter text uses US spelling, and that the ATP-ledger, red-cell osmosis and every lesson switch caption (including all switches in the six tissue modules, the four cross-cutting mechanism modules, the stem cell module and the pacemaker chapter) respond correctly. It does not render WebGL, so also open changed chapters in a browser.
+
+### Real-time playback check
+
+`check-chapters.cjs` cannot run WebGL, so it cannot tell whether a scene actually moves. For that, serve the site and open `http://localhost:8000/?check=playback` in a visible browser tab. It opens every chapter, lets each scene run for a few seconds and lists any chapter where nothing moved, where running animation helpers keep piling up, where an error was thrown, or where the animation clock stopped (usually because the tab was hidden). Add `&module=bone,nephron` to check only some modules and `&secs=4` to run each chapter longer. The script is `tools/playback-check.js`; the report also lands in `window.playbackResult`. Turn off reduced motion first, because scenes hold still on purpose when it is on.
 
 ## Add a chapter
 

@@ -38,7 +38,7 @@ whenLesson('bone-lesion', v => setCaption('boneLesionCaption', LESION[v]));
 
 const CHAPTERS = [
   {
-    id: 'bone-remodel', short: 'Remodeling trio', where: 'A remodeling site on a trabecula',
+    id: 'bone-remodel', short: 'Remodeling trio', where: 'A remodeling site on a trabecula', watch: 52,
     title: 'Osteoclasts dig, osteoblasts rebuild, osteocytes decide',
     legend: [['plt', 'Osteoclast'], ['proton', 'Acid (H⁺)'], ['osteoid', 'Osteoblasts and osteoid'], ['bone', 'Osteocyte in mineralized bone'], ['rankl', 'RANKL'], ['opg', 'OPG decoy']],
     html: () => `
@@ -54,6 +54,7 @@ const CHAPTERS = [
         <li>Osteoclasts come from the same lineage as the <a href="#blood/mono">monocyte</a>. A proton pump acidifies the sealed space under the ruffled border, like a giant external <a href="#lysosome">lysosome</a>, dissolving hydroxyapatite mineral.</li>
         <li>Osteocytes make up over 90% of bone cells and connect through tiny channels called canaliculi. Loading lowers their output of sclerostin, which otherwise brakes osteoblasts.</li>
         <li>At one site, resorption takes a few weeks and refilling takes a few months.</li>
+        <li>The 3D site runs one remodeling cycle on a loop: activation, resorption, reversal, formation and mineralization. Change the signal balance to see the net result of a cycle.</li>
       </ul>
       <p><a href="#bone-dexa">See what lost bone looks like on DEXA</a> · <a href="#bone-lesions">When tumors hijack this balance</a> · <a href="#stem-niches">The marrow niche inside bone</a></p>
       ${sources([SRC.osStructure, SRC.osFormation, SRC.boyle, SRC.teitelbaum, SRC.bonewald], 'The cells are drawn side by side on one surface to show the sequence. In life they work in a basic multicellular unit, osteoclasts leading and osteoblasts following, with many more osteocytes in the bone beneath. Not to scale.')}`,
@@ -104,55 +105,114 @@ CellCity.register('bone', {
     /* ================= Remodeling trio ================= */
     {
       const id = 'bone-remodel', root = new THREE.Group();
-      add(id, root, { target: V(0, -1.5, 0), pos: V(3, 8, 30), w: 19 }, { fade: 'Onto a bone surface' });
+      add(id, root, { target: V(0, -2, 0), pos: V(2, 15, 22), w: 17 }, { fade: 'Onto a bone surface' });
       const slab = new THREE.Mesh(new THREE.BoxGeometry(26, 5, 9), ghost(C('mineral'), 0.28)); slab.position.y = -5; root.add(slab);
-      // osteoclast and its pit
-      const pit = ball(root, std(new THREE.Color(0x1a1420), { emissiveIntensity: 0 }), 1, V(-6, -2.5, 0)); pit.scale.set(3.6, 0.6, 3);
-      const ocl = new THREE.Group(); ocl.position.set(-6, -1.2, 0); root.add(ocl);
+      // the bone surface is a height field, so one remodeling cycle can dig a pit and then refill it
+      const PX = -3, PZ = 0, RX = 3.6, RZ = 2.8, TOP = -2.5, RING = 0.55;
+      const surfGeo = new THREE.PlaneGeometry(26, 9, 130, 45); surfGeo.rotateX(-Math.PI / 2);
+      const sp = surfGeo.attributes.position, nV = sp.count, bowl = new Float32Array(nV);
+      for (let i = 0; i < nV; i++) {
+        const dx = (sp.getX(i) - PX) / RX, dz = (sp.getZ(i) - PZ) / RZ;
+        bowl[i] = Math.pow(Math.max(0, 1 - dx * dx - dz * dz), 0.6); sp.setY(i, TOP);
+      }
+      surfGeo.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(nV * 3), 3));
+      const surf = new THREE.Mesh(surfGeo, new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, emissive: 0x161616, side: THREE.DoubleSide })); root.add(surf);
+      const cMin = C('mineral').clone(), cOst = C('osteoid').clone(), cRaw = new THREE.Color(0x24162a), tmpC = new THREE.Color();
+      const sc = surfGeo.attributes.color;
+      function setSurface(depth, dig, fill, mineral) {
+        const osteoid = Math.min(1, fill * 4) * (1 - mineral);
+        for (let i = 0; i < nV; i++) {
+          const b = bowl[i];
+          sp.setY(i, TOP - b * depth * (dig - fill));
+          tmpC.copy(cMin);
+          if (b > 0) { tmpC.lerp(cRaw, Math.min(1, b * 1.6) * 0.85 * Math.max(0, dig - fill) / Math.max(dig, 0.01)); tmpC.lerp(cOst, Math.min(1, b * 3) * osteoid); }
+          sc.setXYZ(i, tmpC.r, tmpC.g, tmpC.b);
+        }
+        sp.needsUpdate = true; sc.needsUpdate = true; surfGeo.computeVertexNormals();
+      }
+      const ringB = Math.pow(1 - RING * RING, 0.6);
+      // the osteoclast: forms from precursors, seals onto the bone, digs, then dies by apoptosis
+      const ocl = new THREE.Group(); root.add(ocl);
       body(ocl, C('plt'), [3.8, 1.9, 3], null, 0.25);
       for (let i = 0; i < 5; i++) ball(ocl, std(C('baso'), { emissiveIntensity: 0.3 }), 0.5, V(-2 + i, 0.6 + (i % 2) * 0.3, (i % 3 - 1) * 0.8));
       const ruffle = tube(ocl, std(C('plt'), { emissiveIntensity: 0.4 }), Array.from({ length: 40 }, (_, i) => { const a = i / 40 * Math.PI * 2; return V(Math.cos(a) * 2.6, -1.4 + 0.2 * Math.sin(a * 8), Math.sin(a) * 2); }), 0.12, true);
-      const acid = stream(root, std(C('proton'), { emissiveIntensity: 0.6 }), 0.16, curve([V(-6, -2.4, 0), V(-6.5, -2.9, 0.4), V(-6, -3, -0.3)]), 8, 0.6, C('proton'));
-      // osteoblasts laying osteoid
-      const osteoid = new THREE.Mesh(new THREE.BoxGeometry(9, 1, 6), std(C('osteoid'), { emissiveIntensity: 0.25, transparent: true, opacity: 0.85 })); osteoid.position.set(6.5, -2.5, 0); root.add(osteoid);
+      const acidPath = curve([V(PX, TOP + 0.2, 0), V(PX - 0.8, TOP - 0.6, 0.5), V(PX + 0.9, TOP - 0.9, -0.4), V(PX, TOP + 0.2, 0)], true);
+      const acid = stream(root, std(C('proton'), { emissiveIntensity: 0.6 }), 0.16, acidPath, 10, 0.6, C('proton'));
+      // osteoblasts wait to the right, move into the pit, lay osteoid and ride up as it fills
       const blasts = [];
-      for (let i = 0; i < 5; i++) for (let j = 0; j < 2; j++) blasts.push(body(root, C('osteoid'), [0.85, 1.1, 0.85], V(3 + i * 1.8, -1.2, -1.2 + j * 2.4), 0.45));
+      for (let i = 0; i < 5; i++) for (let j = 0; j < 2; j++) {
+        const n = blasts.length, a = n / 10 * Math.PI * 2;
+        const b = body(root, C('osteoid'), [0.85, 1.1, 0.85], null, 0.45);
+        b.userData.wait = V(6.5 + i * 1.5, TOP + 1.1, -1.2 + j * 2.4);
+        b.userData.ring = V(PX + Math.cos(a) * RX * RING, 0, PZ + Math.sin(a) * RZ * RING);
+        blasts.push(b);
+      }
       // osteocyte with canaliculi
-      const ocy = new THREE.Group(); ocy.position.set(0, -5.2, 0); root.add(ocy);
+      const ocy = new THREE.Group(); ocy.position.set(4, -5.2, 0); root.add(ocy);
       body(ocy, C('bone'), [1.1, 0.6, 0.8], null, 0.6);
       const canMat = std(C('bone'), { emissiveIntensity: 0.5 });
       for (let i = 0; i < 9; i++) { const a = i / 9 * Math.PI * 2; rod(ocy, canMat, V(0, 0, 0), V(Math.cos(a) * 3.5, Math.sin(a) * 1.8 + 0.6, Math.sin(a * 2) * 2), 0.05); }
       // osteoclast precursor and the RANKL / OPG signals
       const pre = body(root, C('mono'), 1.1, V(-13, 0.5, 0), 0.4);
-      const rankl = stream(root, std(C('rankl'), { emissiveIntensity: 0.6 }), 0.2, curve([V(3, -1, 0), V(-3, 2.5, 1), V(-9, 2, 0.5), V(-12.2, 0.7, 0)]), 7, 0.22, C('rankl'));
-      const opg = stream(root, std(C('opg'), { emissiveIntensity: 0.6 }), 0.2, curve([V(4, -0.5, -1.5), V(-2, 3, -1), V(-6, 3, -0.5)]), 7, 0.25, C('opg'));
+      const rankl = stream(root, std(C('rankl'), { emissiveIntensity: 0.6 }), 0.2, curve([V(4, -3.6, 0), V(-3, 2.5, 1), V(-9, 2, 0.5), V(-12.2, 0.7, 0)]), 7, 0.22, C('rankl'));
+      const opg = stream(root, std(C('opg'), { emissiveIntensity: 0.6 }), 0.2, curve([V(6, -0.5, -1.5), V(-2, 3, -1), V(-6, 3, -0.5)]), 7, 0.25, C('opg'));
       lbl('Osteoclast · ruffled border', 'plt', ocl, V(0, 2.4, 0), id);
-      lbl('Resorption pit', 'proton', root, V(-6, -3.8, 3.2), id);
-      lbl('Osteoblasts', 'osteoid', root, V(7, 0.6, 0), id);
-      lbl('Osteoid', 'osteoid', osteoid, V(4, 0, 3.2), id);
+      const pitL = lbl('Resorption pit', 'proton', root, V(PX, TOP - 1.2, RZ + 0.6), id);
+      const blastL = lbl('Osteoblasts', 'osteoid', root, V(9.5, TOP + 2.8, 0), id);
+      const ostL = lbl('New osteoid', 'osteoid', root, V(PX + 1.6, TOP + 0.2, RZ + 0.4), id);
       lbl('Osteocyte in a lacuna', 'bone', ocy, V(1.5, -1.6, 2), id);
+      const buryL = lbl('Buried osteoblast → osteocyte', 'bone', root, V(PX + RX * RING, TOP - 0.6, 1.4), id);
       lbl('Precursor · RANK', 'mono', pre, V(0, 1.7, 0), id);
       lbl('RANKL', 'rankl', root, V(-3, 3.6, 1), id);
       lbl('OPG decoy', 'opg', root, V(1, 3.4, -1), id);
-      let dig = 0.6, lay = 0.6, el = 0;
-      const TARGET = { balanced: [0.6, 0.6, 7, 0.22], resorb: [1.15, 0.25, 7, 0.06], build: [0.25, 1.2, 2, 0.4] };
+      const phaseL = lbl('Resorption', 'fg', root, V(PX, 6.2, 0), id);
+      const show = (l, on) => { l.el.dataset.off = on ? '' : '1'; };
+      const text = (l, s) => { const e = l.el.querySelector('span'); if (e.textContent !== s) e.textContent = s; };
+      // depth of the pit and how much of it is refilled, for each signal balance
+      const TARGET = { balanced: [2.2, 1.0, 7, 0.22], resorb: [3.0, 0.55, 7, 0.06], build: [1.6, 1.3, 2, 0.4] };
+      const NET = { balanced: 'Net change this cycle: none', resorb: 'Net change this cycle: bone lost', build: 'Net change this cycle: bone gained' };
+      const PERIOD = 17, span = (u, a, b) => Math.max(0, Math.min(1, (u - a) / (b - a))), sm = (x) => x * x * (3 - 2 * x);
+      let el = 0, last = null;
       function draw(dt) {
-        const [d, l, nR, opgSpeed] = TARGET[LESSON['bone-balance'] || 'balanced'];
-        const kk = Math.min(1, dt * (reduceMotion ? 99 : 0.8)); el += dt;
-        dig += (d - dig) * kk; lay += (l - lay) * kk;
-        pit.scale.set(3.2 + dig * 1.2, 0.3 + dig * 0.9, 2.6 + dig * 0.8);
-        ocl.scale.setScalar(0.8 + dig * 0.35);
-        osteoid.scale.y = 0.2 + lay; osteoid.position.y = -2.5 + (0.2 + lay) * 0.5;
-        blasts.forEach(b => { b.position.y = -1.2 + lay; b.visible = lay > 0.3 || b.position.x < 7; });
+        const key = LESSON['bone-balance'] || 'balanced', [depth, fillTo, nR, opgSpeed] = TARGET[key];
+        if (key !== last) { last = key; el = 0; }
+        el = reduceMotion ? 11.5 : (el + dt) % PERIOD;
+        const u = el;
+        const arrive = sm(span(u, 0, 1.6)), dig = sm(span(u, 1.6, 6.2)), leave = sm(span(u, 6.2, 7.4));
+        const move = sm(span(u, 7.4, 8.8)), fill = sm(span(u, 8.8, 13.2)) * fillTo, mineral = sm(span(u, 11.4, 15.2)), back = sm(span(u, 15.4, 16.8));
+        const dug = dig * (1 - span(u, 16.8, 17));            // the next cycle starts on a fresh surface
+        setSurface(depth, dug, fill * (1 - span(u, 16.8, 17)), mineral);
+        // osteoclast
+        const seat = V(PX, TOP + 1.25, PZ), from = V(-13, 0.5, 0), gone = V(PX - 4, TOP + 6, 0);
+        ocl.position.copy(from).lerp(seat, arrive).lerp(gone, leave);
+        ocl.scale.setScalar(Math.max(0.001, (0.35 + 0.65 * arrive) * (1 - leave)));
+        ocl.visible = leave < 0.99;
+        acid.visible = dig > 0.02 && dig < 0.99;
+        // osteoblasts
+        const floorY = TOP - ringB * depth * (dug - fill);
+        blasts.forEach((b, i) => {
+          const inPit = b.userData.ring.clone(); inPit.y = floorY + 1.0;
+          b.position.copy(b.userData.wait).lerp(inPit, move * (1 - back));
+          const buried = i === 0 ? sm(span(u, 12.2, 14)) : 0;
+          if (buried) { b.position.y = floorY + 1.0 - buried * 1.6; }
+          b.scale.set(0.85 * (1 - buried * 0.45), 1.1 * (1 - buried * 0.55), 0.85 * (1 - buried * 0.45));
+          b.visible = !(i === 0 && back > 0.02);
+        });
+        text(phaseL, u < 1.6 ? 'Activation: precursors fuse into an osteoclast' : u < 6.2 ? 'Resorption: acid and enzymes dig a pit' : u < 8.8 ? 'Reversal: the osteoclast dies, osteoblasts arrive'
+          : u < 11.4 ? 'Formation: osteoblasts lay down osteoid' : u < 15.2 ? 'Mineralization: osteoid hardens into bone' : NET[key]);
+        show(pitL, dig > 0.3 && fill < 0.5 * dig);
+        show(ostL, fill > 0.1 && mineral < 0.8);
+        show(buryL, u > 12.6 && u < 15.4);
+        show(blastL, move < 0.1 || back > 0.9);
+        // signals
         rankl.items.forEach((m, i) => { m.userData.on = i < nR; });
         rankl.at = (m) => { m.visible = m.userData.on; };
         opg.speed = opgSpeed; opg.visible = opgSpeed > 0.1;
         [rankl, opg, acid].forEach(s => s.update(dt));
-        acid.visible = dig > 0.35;
         ruffle.rotation.y += reduceMotion ? 0 : dt * 0.6;
         pre.scale.setScalar(1.1 + 0.08 * Math.sin(el * 2));
       }
-      behaviors[id] = { enter() { draw(99); }, tick(t, dt) { draw(dt); } };
+      behaviors[id] = { enter() { last = null; draw(0); }, tick(t, dt) { draw(dt); } };
     }
 
     /* ================= DEXA and trabecular density ================= */
