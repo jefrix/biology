@@ -57,22 +57,7 @@
     return {where:'Endocrine signaling',legend:[],...chapter,
       html:bodyView ? ()=>chapter.html()+'<p data-anatomy-status role="status">The schematic appears while the anatomical model loads.</p>'+credits : chapter.html};
   });
-  const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
-  const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';
   const supplementBase='https://cdn.jsdelivr.net/gh/ArianArsenal/anatomy-explorer@8375d6ce7fec36e677c0eda66cae829ba55a4717/public/models/';
-  const files=new Map();
-  let loader;
-  function anatomyFile(url) {
-    loader ||= Promise.all([
-      import(threeAddons+'loaders/GLTFLoader.js'),
-      import(threeAddons+'libs/meshopt_decoder.module.js'),
-    ]).then(([{GLTFLoader},{MeshoptDecoder}])=>new GLTFLoader().setMeshoptDecoder(MeshoptDecoder));
-    if (!files.has(url)) files.set(url,loader.then(instance=>instance.loadAsync(url)).then(file=>{
-      file.scene.updateMatrixWorld(true);
-      return file.scene;
-    }));
-    return files.get(url);
-  }
   const supplementalGlands={
     hypothalamus:/^hypothalamus$/,
     pineal:/^pineal(?: gland| body)?$/,
@@ -183,7 +168,7 @@
           const entry={state:'loading',nodes:[]};
           models.set(anatomy,entry);
           const sex=anatomy==='testes' ? 'male' : 'female';
-          anatomyFile(avatarBase+'anatomy-'+sex+'.glb').then(asset=>{
+          loadAnatomyAvatar(sex).then(asset=>{
             const skin=asset.getObjectByName('skin');
             if (!skin) throw new Error('Skin node unavailable');
             const bounds=new THREE.Box3().setFromObject(skin);

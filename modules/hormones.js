@@ -233,6 +233,8 @@ const CHAPTERS = [
     html: () => `
       <p class="lede">FDG enters cells through glucose transporters. Anything that opens GLUT4 doors in muscle, or makes other tissue hungry, pulls tracer away from what you want to see.</p>
       ${panel('petprep', 'pet')}
+      <p id="petAnatomyStatus" role="status" hidden></p>
+      <details><summary>3D anatomy source</summary><p>Open Anatomy 3D, adapted from BodyParts3D © The Database Center for Life Science, the HuBMAP Human Reference Atlas, and MakeHuman (CC0). This scene uses translucent skin and recolored tissue meshes to illustrate relative FDG activity. <a href="https://github.com/MervinR07/open-anatomy-3d/blob/main/ATTRIBUTION.md">Full attribution</a> · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></p></details>
       <div class="callout"><span class="eyebrow">For patients</span><p>Follow your imaging centre’s instructions. <b>Never change your insulin or diabetes medicine because of this page.</b> Centres use their own current protocols, which may differ from the older guideline summarised here.</p></div>
       <div class="callout"><span class="eyebrow">Newer guidance exists</span><p>The list below comes from EANM <b>version 2.0 (2015)</b>. A <b>version 3.0</b> was published in <b>2025</b> and was not reviewed for this page. A <b>2026 AJR expert panel review</b> notes that guidelines differ on glucose limits, insulin timing and pumps, with limited guidance on SGLT2 inhibitors, GLP-1 and related drugs, and automated insulin delivery. The panel favours facility protocols, <b>keeping insulin pumps in basal mode</b> (version 2.0 had pumps off for at least 4 hours), avoiding correction doses of insulin just before imaging, and fairly permissive glucose limits.</p></div>
       <h3>Adult oncology preparation, EANM 2015</h3>
@@ -535,8 +537,9 @@ CellCity.register('hormones', {
 
     /* ================= PET FIGURE (schematic) ================= */
     const petGroup = new THREE.Group(); scene.add(petGroup);
+    const petSchematic = new THREE.Group(); petGroup.add(petSchematic);
     const bodyMat = fresnelMat(C.membrane, 0.55, 2.2);
-    const part = (geo, pos, rz = 0, scale) => { const o = mesh(geo, bodyMat, petGroup, pos, scale); o.rotation.z = rz; return o; };
+    const part = (geo, pos, rz = 0, scale) => { const o = mesh(geo, bodyMat, petSchematic, pos, scale); o.rotation.z = rz; return o; };
     part(new THREE.SphereGeometry(2.5, 40, 30), [0, 15.4, 0], 0, [1, 1.12, 1]);
     part(new THREE.CapsuleGeometry(1.05, 1.2, 8, 20), [0, 12.4, 0]);
     part(new THREE.CapsuleGeometry(4.1, 7.4, 12, 40), [0, 4.9, 0], 0, [1.08, 1, 0.62]);
@@ -548,8 +551,8 @@ CellCity.register('hormones', {
     function organ(key, spots) {
       hot[key] = spots.map(([x, y, z, sx, sy, sz]) => {
         const mat = new THREE.MeshBasicMaterial({ color: P.hot, transparent: true, opacity: 0.1, depthWrite: false, blending: THREE.AdditiveBlending });
-        const o = mesh(atomGeo, mat, petGroup, [x, y, z], [sx, sy, sz]);
-        const gl = glow(P.hot, Math.max(sx, sy) * 3.4); gl.position.set(x, y, z); petGroup.add(gl);
+        const o = mesh(atomGeo, mat, petSchematic, [x, y, z], [sx, sy, sz]);
+        const gl = glow(P.hot, Math.max(sx, sy) * 3.4); gl.position.set(x, y, z); petSchematic.add(gl);
         return { o, mat, gl };
       });
     }
@@ -570,15 +573,127 @@ CellCity.register('hormones', {
       metformin: { brain: 1, heart: 0.25, liver: 0.35, kidneys: 0.75, bladder: 0.9, bowel: 0.85, muscle: 0.04, bfat: 0, lesion: 0.95 },
     };
     const petNow = Object.assign({}, PET.ready);
+    let anatomyHot, avatarState = 'idle';
+    const petRegions = {
+      brain: ['brain'], heart: ['heart'], liver: ['liver'],
+      kidneys: ['kidney_l','kidney_r'], bladder: ['bladder'],
+      bowel: ['colon','small_intestine'],
+      muscle: ['deltoid_l','deltoid_r','quadriceps_l','quadriceps_r','calf_l','calf_r'],
+    };
+    const petLabels = {brain:'Brain', heart:'Heart', kidneys:'Kidneys', bladder:'Bladder', muscle:'Muscle'};
+    function showPetAvatar(asset) {
+      const skin = asset.getObjectByName('skin');
+      if (!skin) throw new Error('Anatomical skin mesh unavailable');
+      const body = new THREE.Box3().setFromObject(skin);
+      const center = body.getCenter(new V3());
+      const height = body.max.y - body.min.y;
+      if (!(height > 0 && Number.isFinite(height))) throw new Error('Invalid anatomical body bounds');
+      const avatar = new THREE.Group();
+      const unit = 36 / height;
+      avatar.scale.setScalar(unit);
+      avatar.position.copy(center).multiplyScalar(-unit);
+      const shell = new THREE.MeshStandardMaterial({
+        color: C.membrane, transparent: true, opacity: .17, depthWrite: false, side: THREE.DoubleSide,
+      });
+      function copyMeshes(node, material, order) {
+        const copies = new THREE.Group();
+        node.traverse(part => {
+          if (!part.isMesh) return;
+          const copy = mesh(part.geometry, material, copies);
+          copy.applyMatrix4(part.matrixWorld);
+          copy.renderOrder = order;
+        });
+        avatar.add(copies);
+        return copies;
+      }
+      if (!copyMeshes(skin, shell, 1).children.length) throw new Error('Body has no skin geometry');
+      const details = {};
+      function tracerMaterial() {
+        return new THREE.MeshBasicMaterial({color:P.hot, transparent:true, opacity:.1, depthWrite:false, blending:THREE.AdditiveBlending});
+      }
+      function mark(key, position, radius) {
+        const mat = tracerMaterial();
+        const o = mesh(atomGeo, mat, avatar, position.toArray(), radius);
+        o.renderOrder = 2;
+        details[key] ||= [];
+        details[key].push({o,mat});
+      }
+      for (const [key,names] of Object.entries(petRegions)) {
+        const bounds = new THREE.Box3();
+        details[key] = names.flatMap(name => {
+          const node = asset.getObjectByName(name);
+          if (!node) return [];
+          const mat = tracerMaterial();
+          const region = copyMeshes(node,mat,2);
+          bounds.union(new THREE.Box3().setFromObject(node));
+          return [{o:region,mat}];
+        });
+        if (petLabels[key] && !bounds.isEmpty()) {
+          const anchor = bounds.getCenter(new V3());
+          anchor.x = key === 'muscle' ? bounds.min.x - .035 : bounds.max.x + .035;
+          if (key === 'muscle') {
+            const thigh = asset.getObjectByName('quadriceps_r');
+            if (thigh) anchor.y = new THREE.Box3().setFromObject(thigh).getCenter(new V3()).y;
+          }
+          addLabel(petLabels[key], 'hot', avatar, anchor, ['petprep']);
+        }
+      }
+
+      // The lesion and brown-fat activity are illustrative, placed from anatomical landmarks.
+      const lung = asset.getObjectByName('lung_r');
+      if (lung) {
+        const lesion = new THREE.Box3().setFromObject(lung).getCenter(new V3());
+        mark('lesion',lesion,.027);
+        const callout = lesion.clone();
+        callout.x -= .21; callout.y += .045;
+        addLabel('Example lesion','hot',avatar,callout,['petprep']);
+      }
+      for (const side of ['l','r']) {
+        const shoulder = asset.getObjectByName('deltoid_'+side);
+        if (!shoulder) continue;
+        const bounds = new THREE.Box3().setFromObject(shoulder);
+        const depot = bounds.getCenter(new V3());
+        depot.x = depot.x*.55 + center.x*.45;
+        depot.y = bounds.max.y;
+        mark('bfat',depot,.024);
+        depot.x += (center.x-depot.x)*.45;
+        depot.y += .02;
+        mark('bfat',depot,.018);
+      }
+      petGroup.add(avatar);
+      anatomyHot = details;
+      petSchematic.visible = false;
+    }
+    function enterPet() {
+      enter('petprep')();
+      if (avatarState !== 'idle') return;
+      avatarState = 'loading';
+      loadAnatomyAvatar('female').then(showPetAvatar).then(() => {
+        avatarState = 'ready';
+      }).catch(error => {
+        avatarState = 'failed';
+        console.warn('Could not display the PET anatomy model',error);
+      });
+    }
     function petTick(t, dt) {
       Object.keys(hot).forEach(k => {
         petNow[k] += (PET[H.pet][k] - petNow[k]) * Math.min(1, dt * 3);
         const v = petNow[k], pulse = k === 'lesion' ? 1 + Math.sin(t * 4) * 0.08 : 1;
-        hot[k].forEach(h => { h.mat.opacity = 0.04 + v * 0.5; h.gl.material.opacity = v * 0.5 * pulse; h.o.visible = h.gl.visible = v > 0.02; });
+        (anatomyHot ? anatomyHot[k] || [] : hot[k]).forEach(h => {
+          h.mat.opacity = (0.04 + v * 0.5) * pulse;
+          h.o.visible = v > 0.02;
+          if (h.gl) { h.gl.material.opacity = v * 0.5 * pulse; h.gl.visible = h.o.visible; }
+        });
       });
+      const message = $('#petAnatomyStatus');
+      if (message) {
+        message.hidden = avatarState === 'ready';
+        const text = avatarState === 'failed' ? 'The detailed avatar could not load. Showing the schematic.' : 'Loading the detailed avatar…';
+        if (message.textContent !== text) message.textContent = text;
+      }
       petGroup.rotation.y = reduceMotion ? 0 : Math.sin(t * 0.35) * 0.4;
     }
-    [['Brain', [4.6, 16.4, 0]], ['Example lesion', [-7.4, 9.8, 0]], ['Heart', [4.4, 8.2, 0]], ['Kidneys', [5, 2.2, 0]], ['Bladder', [4.6, -3.2, 0]], ['Muscle', [-6.4, -8.4, 0]]].forEach(([t, p]) => addLabel(t, 'hot', petGroup, new V3(...p), ['petprep']));
+    [['Brain', [4.6, 16.4, 0]], ['Example lesion', [-7.4, 9.8, 0]], ['Heart', [4.4, 8.2, 0]], ['Kidneys', [5, 2.2, 0]], ['Bladder', [4.6, -3.2, 0]], ['Muscle', [-6.4, -8.4, 0]]].forEach(([t, p]) => addLabel(t, 'hot', petSchematic, new V3(...p), ['petprep']));
 
     /* ================= camera and behaviours ================= */
     const POSES = {
@@ -624,7 +739,7 @@ CellCity.register('hormones', {
       },
       receptor: { enter: enter('receptor'), tick: recTick },
       balance: { enter: enter('balance'), tick: balTick },
-      petprep: { enter: enter('petprep'), tick: petTick },
+      petprep: { enter: enterPet, tick: petTick },
     };
 
     return {

@@ -391,6 +391,25 @@ function initWorld() {
 
 /* ---------- loading a module the first time it is opened ---------- */
 const loading = {};
+const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
+const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';
+const anatomyFiles=new Map();
+let anatomyLoader;
+function anatomyFile(url) {
+  anatomyLoader ||= Promise.all([
+    import(threeAddons+'loaders/GLTFLoader.js'),
+    import(threeAddons+'libs/meshopt_decoder.module.js'),
+  ]).then(([{GLTFLoader},{MeshoptDecoder}])=>new GLTFLoader().setMeshoptDecoder(MeshoptDecoder));
+  if (!anatomyFiles.has(url)) anatomyFiles.set(url,anatomyLoader.then(instance=>instance.loadAsync(url)).then(file=>{
+    file.scene.updateMatrixWorld(true);
+    return file.scene;
+  }));
+  return anatomyFiles.get(url);
+}
+function loadAnatomyAvatar(sex) {
+  return anatomyFile(avatarBase+'anatomy-'+sex+'.glb');
+}
+
 function loadModule(key) {
   if (!loading[key]) {
     loading[key] = new Promise((resolve, reject) => {
