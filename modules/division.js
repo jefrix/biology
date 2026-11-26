@@ -44,7 +44,7 @@ const D = {
   beam: 'xray', oxygen: 'yes', shots: 0,
   lesion: 'dsb', rphase: 'g1', parpi: 'no', brca: 'ok',
   level: 'low', fp53: 'yes',
-  tissue: 'tumour', total: 60, frac: '2',
+  tissue: 'tumor', total: 60, frac: '2',
   dist: 1,
 };
 const CONTROLS = {
@@ -60,7 +60,7 @@ const CONTROLS = {
   brca: ['BRCA1/2', [['ok', 'Working'], ['lost', 'Lost']]],
   level: ['Damage', [['low', 'Repairable'], ['high', 'Overwhelming']]],
   fp53: ['p53', [['yes', 'Working'], ['no', 'Lost']]],
-  tissue: ['Tissue model', [['tumour', 'Tumour / early (α/β 10)'], ['late', 'Late-responding (α/β 3)']]],
+  tissue: ['Tissue model', [['tumor', 'Tumor / early (α/β 10)'], ['late', 'Late-responding (α/β 3)']]],
   frac: ['Dose per fraction', [['1.8', '1.8 Gy'], ['2', '2 Gy'], ['3', '3 Gy'], ['8', '8 Gy']]],
 };
 const seg = (name) => `<div><div class="eyebrow seg-label">${CONTROLS[name][0]}</div><div class="seg" role="group" aria-label="${CONTROLS[name][0]}">${CONTROLS[name][1].map(([v, t]) =>
@@ -78,7 +78,7 @@ const PHASES = [
   ['Cytokinesis', 'A ring of actin and myosin pinches the cytoplasm, leaving two daughter cells.'],
 ];
 const REPAIRS = {
-  BER: { name: 'Base excision repair', steps: ['An enzyme recognises the damaged base and cuts it out', 'The backbone is opened at the gap', 'A polymerase fills in the correct base, using the other strand', 'A ligase seals the backbone'] },
+  BER: { name: 'Base excision repair', steps: ['An enzyme recognizes the damaged base and cuts it out', 'The backbone is opened at the gap', 'A polymerase fills in the correct base, using the other strand', 'A ligase seals the backbone'] },
   SSBR: { name: 'Single-strand break repair', steps: ['PARP1 finds the break and signals', 'Repair proteins are recruited', 'The ends are tidied and the gap filled, using the other strand', 'A ligase seals the backbone'] },
   NHEJ: { name: 'Non-homologous end joining', steps: ['The Ku protein ring grips both broken ends', 'Kinase and processing enzymes are recruited', 'The ends are trimmed to fit, which can lose a few bases', 'A ligase joins them. Fast, but it can make errors'] },
   HR: { name: 'Homologous recombination', steps: ['The ends are cut back to leave single strands', 'RAD51, helped by BRCA1 and BRCA2, coats them', 'They find the matching sister chromatid', 'It is used as a template, so repair is usually accurate'] },
@@ -87,7 +87,7 @@ const FATES = {
   arrest: ['Pause, repair, resume', 'p53 builds up and switches on p21, which holds back the cyclin–CDK complexes. With the damage repaired, the cell carries on.'],
   apoptosis: ['Apoptosis (or senescence)', 'Heavy damage with working p53 can trigger orderly self-destruction, with caspases and membrane blebbing. Many cell types instead become <b>senescent</b>: alive but permanently out of the cycle.'],
   mutant: ['Divides with damage', 'Without p53 the G1 brake is weak. Errors can be copied into the daughter cells. Accumulated mutations are one road to cancer.'],
-  catastrophe: ['Mitotic catastrophe', 'The cell enters mitosis with broken chromosomes. Fragments mis-segregate and the cell often dies during or after division. This is a major way irradiated tumour cells die.'],
+  catastrophe: ['Mitotic catastrophe', 'The cell enters mitosis with broken chromosomes. Fragments mis-segregate and the cell often dies during or after division. This is a major way irradiated tumor cells die.'],
 };
 const DOSES = [                                       // RadiologyInfo adult effective doses, page last reviewed 15 April 2025
   ['Bone density (DEXA)', 0.001, '3 hours'], ['Dental X-ray', 0.005, '1 day'], ['Chest X-ray', 0.1, '10 days'], ['Screening digital mammogram', 0.28, '34 days'],
@@ -95,7 +95,7 @@ const DOSES = [                                       // RadiologyInfo adult eff
   ['CT abdomen and pelvis', 7.7, '2.6 years'], ['Coronary CT angiography', 8.7, '3 years'], ['CT spine', 8.8, '3 years'],
   ['CT abdomen and pelvis, with and without contrast', 15.4, '5.1 years'], ['PET/CT, whole body', 22.7, '7.6 years'],
 ];
-const TISSUE = { tumour: { a: 0.3, b: 0.03, ab: 10 }, late: { a: 0.15, b: 0.05, ab: 3 } };   // illustrative α and β with the conventional ratios
+const TISSUE = { tumor: { a: 0.3, b: 0.03, ab: 10 }, late: { a: 0.15, b: 0.05, ab: 3 } };   // illustrative α and β with the conventional ratios
 
 function chart() {
   const t = TISSUE[D.tissue], d = +D.frac, W = 360, H = 200, L = 40, R = 8, T = 8, Bm = 30, maxD = 20, decades = 6;
@@ -132,7 +132,7 @@ const READ = {
     const [name, text] = PHASES[D.phase];
     const held = D.attach !== 'ok' && D.phase === 3;
     const why = !held ? '' : D.attach === 'loose' ? '<p><b>Held at the checkpoint.</b> One unattached kinetochore is enough to send a “wait” signal.</p>'
-      : '<p><b>Held at the checkpoint.</b> The drug stops the spindle working normally. Vinca alkaloids block microtubule assembly and taxanes over-stabilise them.</p>';
+      : '<p><b>Held at the checkpoint.</b> The drug stops the spindle working normally. Vinca alkaloids block microtubule assembly and taxanes over-stabilize them.</p>';
     return `<div class="step-top"><span class="step-n">Stage ${D.phase + 1} of 7</span><span class="enzyme">${name}</span></div><p>${text}</p>${why}`;
   },
   damage() {
@@ -196,9 +196,9 @@ const panel = (id, inner) => { current = id; return `<div class="lab">${inner}<d
 const link = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
 const sources = (items, extra = '') => `<p class="credit">Sources: ${items.join(' · ')}. ${extra}</p>`;
 const SRC = {
-  fcb: link('https://open.oregonstate.education/cellbiology', 'Dalton &amp; Young, <i>Fundamentals of Cell Biology</i> (CC BY-NC 4.0), ch. 8, summarised and adapted'),
+  fcb: link('https://open.oregonstate.education/cellbiology', 'Dalton &amp; Young, <i>Fundamentals of Cell Biology</i> (CC BY-NC 4.0), ch. 8, summarized and adapted'),
   repair: link('https://www.nature.com/articles/cr2007111', 'double-strand break repair review'),
-  choice: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC4862604', 'repair pathway choice'),
+  choice: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC4862604/', 'repair pathway choice'),
   parp: link('https://www.jci.org/articles/view/181062', 'PARP inhibitor review'),
   yields: link('https://www.env.go.jp/en/chemi/rhm/basic-info/2018/pdf/basic-1st-03-02-04.pdf', 'Ministry of the Environment, Japan: DNA damage per 1 mGy of X-rays (citing Morgan, NCRP 2008)'),
   acog: link('https://doi.org/10.1097/AOG.0000000000002355', 'ACOG Committee Opinion 723, imaging in pregnancy and lactation (2017), abstract'),
@@ -220,11 +220,11 @@ const CHAPTERS = [
       ${panel('cycle', seg('growth') + seg('dmg') + seg('p53'))}
       <ul class="facts">
         <li><b>Cyclins</b> rise and fall through the cycle. Each pairs with a <b>cyclin-dependent kinase</b> (CDK), and the active pair pushes the cell into the next stage.</li>
-        <li><b>G0</b> is the exit lane. Some cells, such as many stem cells, rest there and return. Mature neurons and muscle fibres generally do not divide again.</li>
+        <li><b>G0</b> is the exit lane. Some cells, such as many stem cells, rest there and return. Mature neurons and muscle fibers generally do not divide again.</li>
         <li><b>p53</b> is mutated in as many as half of all cancers.</li>
         <li>Interphase (G1, S and G2) takes most of the time. Mitosis is brief.</li>
       </ul>
-      ${sources([SRC.fcb], 'Arc lengths are not exact timings. Real checkpoint signalling involves many more proteins.')}`,
+      ${sources([SRC.fcb], 'Arc lengths are not exact timings. Real checkpoint signaling involves many more proteins.')}`,
   },
   {
     id: 'mitosis', short: 'Mitosis', where: 'One cell becoming two',
@@ -243,9 +243,9 @@ const CHAPTERS = [
   {
     id: 'damage', short: 'Damage', where: 'A stretch of DNA · 2 nm wide',
     title: 'How radiation damages DNA',
-    legend: [['strand-a', 'DNA strand'], ['strand-b', 'Partner strand'], ['lesion', 'Damage'], ['radical', 'Water radical (•OH)'], ['atp', 'Ionisation']],
+    legend: [['strand-a', 'DNA strand'], ['strand-b', 'Partner strand'], ['lesion', 'Damage'], ['radical', 'Water radical (•OH)'], ['atp', 'Ionization']],
     html: () => `
-      <p class="lede">Ionising radiation knocks electrons off molecules. It can hit DNA itself (<b>direct action</b>), or ionise the water around it and make reactive radicals that attack DNA (<b>indirect action</b>).</p>
+      <p class="lede">Ionizing radiation knocks electrons off molecules. It can hit DNA itself (<b>direct action</b>), or ionize the water around it and make reactive radicals that attack DNA (<b>indirect action</b>).</p>
       ${panel('damage', seg('beam') + seg('oxygen') + '<button class="btn primary" type="button" data-act="fire">Fire another exposure</button>')}
       <ul class="facts">
         <li>For X-rays, roughly <b>two-thirds</b> of DNA damage is often attributed to indirect action. Estimates differ.</li>
@@ -279,8 +279,8 @@ const CHAPTERS = [
       ${panel('fate', seg('level') + seg('fp53') + '<button class="btn primary" type="button" data-act="replay">Replay</button>')}
       <ul class="facts">
         <li>Radiation “cell death” in radiobiology usually means <b>loss of the ability to keep dividing</b>. A cell can look alive for a while and still count as killed.</li>
-        <li>Many damaged cells die only when they next try to divide. That is one reason some tissues and tumours respond slowly.</li>
-        <li>Different cell types favour different fates. Lymphocytes are unusual in that many die quickly by apoptosis.</li>
+        <li>Many damaged cells die only when they next try to divide. That is one reason some tissues and tumors respond slowly.</li>
+        <li>Different cell types favor different fates. Lymphocytes are unusual in that many die quickly by apoptosis.</li>
       </ul>
       <p class="credit">The choice is drawn as a simple switch. In real cells the outcome is a matter of probability and depends on cell type, dose and many other proteins.</p>`,
   },
@@ -295,17 +295,17 @@ const CHAPTERS = [
       <ul class="facts">
         <li>Splitting the dose spares <b>late-responding tissues</b> (low α/β) more than tissue with a high α/β. Compare the two models at 2 Gy and 8 Gy.</li>
         <li>Check: 30 × 2 Gy gives BED 72 Gy₁₀ for early effects and 100 Gy₃ for late effects.</li>
-        <li>α/β = 10 and 3 are conventions. Some tumours, including many prostate cancers, appear to differ.</li>
+        <li>α/β = 10 and 3 are conventions. Some tumors, including many prostate cancers, appear to differ.</li>
       </ul>
       <h3>The five Rs of radiotherapy</h3>
       <dl class="organ rs">
         <dt>Repair</dt><dd>Normal tissue mends sublethal damage between fractions.</dd>
         <dt>Reassortment</dt><dd>Surviving cells move into more sensitive phases. <b>G2 and M are generally the most sensitive, and late S the most resistant.</b></dd>
-        <dt>Repopulation</dt><dd>Cells keep dividing during a course of treatment, tumour cells included.</dd>
-        <dt>Reoxygenation</dt><dd>Hypoxic tumour areas can regain oxygen, becoming easier to kill.</dd>
+        <dt>Repopulation</dt><dd>Cells keep dividing during a course of treatment, tumor cells included.</dd>
+        <dt>Reoxygenation</dt><dd>Hypoxic tumor areas can regain oxygen, becoming easier to kill.</dd>
         <dt>Radio&shy;sensitivity</dt><dd>Cell types differ in their built-in sensitivity.</dd>
       </dl>
-      <div class="callout"><span class="eyebrow">Bergonié and Tribondeau, 1906</span><p>Their classic rule: cells are generally more radiosensitive when they divide often, have many divisions ahead and are less specialised. Marrow stem cells and gut crypt cells fit it. Lymphocytes are the famous exception: highly sensitive without actively dividing. Treat the rule as a first approximation.</p></div>
+      <div class="callout"><span class="eyebrow">Bergonié and Tribondeau, 1906</span><p>Their classic rule: cells are generally more radiosensitive when they divide often, have many divisions ahead and are less specialized. Marrow stem cells and gut crypt cells fit it. Lymphocytes are the famous exception: highly sensitive without actively dividing. Treat the rule as a first approximation.</p></div>
       ${sources([SRC.btlaw])}
       <p class="credit">A teaching model only. The α and β values are illustrative (0.30 and 0.03; 0.15 and 0.05), so absolute survival and comparisons between the two curves’ heights are not meaningful. The model is less certain at large doses per fraction and ignores overall treatment time. <b>Never use this to plan or change treatment.</b></p>`,
   },
@@ -454,7 +454,7 @@ CellCity.register('division', {
     const chroms = HOME.map((h, i) => {
       const ch = chromosome(mitGroup, P[i === 0 || i === 3 ? 'chrom-a' : 'chrom-b'], 2.5, 0.36);
       ch.home = new V3(...h); ch.spin = rr(-1.2, 1.2);
-      ch.fibres = [0, 1].map(() => mesh(stick, std(P.spindle, { transparent: true, opacity: 0.75 }), mitGroup));
+      ch.fibers = [0, 1].map(() => mesh(stick, std(P.spindle, { transparent: true, opacity: 0.75 }), mitGroup));
       return ch;
     });
     const polar = [-3, 3].map(y => mesh(stick, std(P.spindle, { transparent: true, opacity: 0.3 }), mitGroup));
@@ -487,8 +487,8 @@ CellCity.register('division', {
           sis.rotation.z = ch.spin * (1 - line) + ch.spin * loosen;
           sis.scale.set(1 - diffuse * 0.55 - loosen * 0.35, 1 + diffuse * 0.35 - loosen * 0.25, 1 - diffuse * 0.55 - loosen * 0.35);
           const attached = capture > 0.05 && !loose && D.attach !== 'drug';
-          ch.fibres[k].visible = attached && s < 4.7;
-          if (ch.fibres[k].visible) setStick(ch.fibres[k], poles[k].position, poles[k].position.clone().lerp(sis.position, clamp(capture * 1.4)), 0.07);
+          ch.fibers[k].visible = attached && s < 4.7;
+          if (ch.fibers[k].visible) setStick(ch.fibers[k], poles[k].position, poles[k].position.clone().lerp(sis.position, clamp(capture * 1.4)), 0.07);
         });
       });
       polar.forEach((f, i) => { f.visible = s >= 1 && s < 5.4 && D.attach !== 'drug'; if (f.visible) setStick(f, poles[0].position, poles[1].position, 0.04); f.position.y += (i ? 3 : -3) * 0.9; });
@@ -758,7 +758,7 @@ CellCity.register('division', {
       if (t > dose.next) { dose.next = t + 0.16; const d = RAYS[Math.floor(rnd() * RAYS.length)]; fly(doseGroup, C.atp, 0.22, [SRCPOS.clone(), SRCPOS.clone().add(d.clone().multiplyScalar(27))], 2.4); }
     }
 
-    /* ================= camera and behaviours ================= */
+    /* ================= camera and behaviors ================= */
     const POSES = {
       cycle: { pos: new V3(0, 0, 50), target: new V3(3, 0, 0), group: 'cycle', w: 21 },
       mitosis: { pos: new V3(0, 3, 50), target: new V3(0, -0.5, 0), group: 'mitosis', w: 19 },

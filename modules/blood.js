@@ -8,20 +8,20 @@ const BLOOD = [
     look: 'A biconcave disc with no nucleus. The dimple adds surface area and lets it fold through capillaries narrower than itself.',
     job: 'Carries oxygen on roughly 270 million hemoglobin molecules (references give about 250–300 million), and helps carry CO₂ back to the lungs.',
     life: 'About 120 days. Worn-out cells are eaten by macrophages, mainly in the spleen and liver.',
-    energy: '<b>No mitochondria</b>, so it runs on glycolysis alone and releases lactate. It uses none of the oxygen it delivers. A side branch makes 2,3-BPG, which helps hemoglobin let go of oxygen, at the cost of some ATP. The pentose phosphate pathway makes NADPH to protect against oxidation, which is why G6PD deficiency can cause haemolysis.',
+    energy: '<b>No mitochondria</b>, so it runs on glycolysis alone and releases lactate. It uses none of the oxygen it delivers. A side branch makes 2,3-BPG, which helps hemoglobin let go of oxygen, at the cost of some ATP. The pentose phosphate pathway makes NADPH to protect against oxidation, which is why G6PD deficiency can cause hemolysis.',
     action: 'Oxygen loads (hemoglobin turns bright red), the cell folds to squeeze through a capillary, then unloads and darkens.',
-    rad: 'A <b>Tc-99m tagged red cell scan</b> follows your own labelled cells to find bleeding that comes and goes, as in the gut. On unenhanced CT, the density of blood comes mostly from hemoglobin (flowing blood is about 40 HU), so anaemic blood looks darker. On MRI, the state of hemoglobin helps date a bleed:',
+    rad: 'A <b>Tc-99m tagged red cell scan</b> follows your own labeled cells to find bleeding that comes and goes, as in the gut. On unenhanced CT, the density of blood comes mostly from hemoglobin (flowing blood is about 40 HU), so anemic blood looks darker. On MRI, the state of hemoglobin helps date a bleed:',
     mri: true,
-    refs: [['https://doi.org/10.1007/s00330-020-07497-y', 'blood density on CT and anaemia (Zopfs et al. 2021)'], ['https://faculty.washington.edu/jeff8rob/trauma-radiology-reference-resource/1-cns/mri-appearance-of-intracranial-hemorrhage', 'University of Washington, MRI of intracranial haemorrhage, after Bradley 1993']] },
+    refs: [['https://doi.org/10.1007/s00330-020-07497-y', 'blood density on CT and anemia (Zopfs et al. 2021)'], ['https://faculty.washington.edu/jeff8rob/trauma-radiology-reference-resource/1-cns/mri-appearance-of-intracranial-hemorrhage', 'University of Washington, MRI of intracranial hemorrhage, after Bradley 1993']] },
   { id: 'neut', name: 'Neutrophil', short: 'Neutrophil', tag: 'Granulocyte · first responder', pct: [40, 60], size: 'about 12–15 µm',
     look: 'A nucleus in 2 to 5 lobes joined by fine threads, with fine pale-lilac granules. Young <i>band</i> forms in the blood suggest a “left shift”. Six or more lobes points toward B12 or folate deficiency.',
     job: 'Arrives first at bacterial infection, swallows microbes and kills them with enzymes and reactive oxygen. It can also throw out DNA nets. Dead neutrophils are a major part of pus.',
     life: 'Only hours in the blood, longer once in tissue. Estimates differ between methods.',
     energy: 'Has few mitochondria and leans heavily on <b>glycolysis</b>. For its “respiratory burst”, the enzyme NADPH oxidase turns oxygen into microbe-killing oxidants. When that enzyme fails, the result is chronic granulomatous disease.',
     action: 'Bacteria are engulfed into a phagosome. Granules converge and an oxidative burst destroys them.',
-    rad: 'In <b>labelled white cell scans</b> (In-111 oxine or Tc-99m HMPAO), labelled cells, many of them neutrophils, migrate to infection. They behave differently in the abdomen, where HMPAO activity can appear in normal bowel. Which is preferred depends on the clinical question and image timing. After <b>G-CSF</b>, marrow can light up diffusely on FDG-PET, often with the spleen. Diffuse uptake favours the drug effect and focal uptake raises concern for disease, but the pattern is not definitive.',
-    refs: [['https://doi.org/10.1097/MNM.0b013e32832fa254', 'diffuse splenic FDG uptake (Liu 2009)'], ['https://doi.org/10.3109/00365529409091389', 'labelled white cells in abdominal infection (Lantto 1994)']] },
-  { id: 'lymph', name: 'Lymphocytes', short: 'Lymphocyte', tag: 'Agranulocyte · targeted defence and memory', pct: [20, 40], size: 'about 7–8 µm when small, up to about 15 µm',
+    rad: 'In <b>labeled white cell scans</b> (In-111 oxine or Tc-99m HMPAO), labeled cells, many of them neutrophils, migrate to infection. They behave differently in the abdomen, where HMPAO activity can appear in normal bowel. Which is preferred depends on the clinical question and image timing. After <b>G-CSF</b>, marrow can light up diffusely on FDG-PET, often with the spleen. Diffuse uptake favors the drug effect and focal uptake raises concern for disease, but the pattern is not definitive.',
+    refs: [['https://doi.org/10.1097/MNM.0b013e32832fa254', 'diffuse splenic FDG uptake (Liu 2009)'], ['https://doi.org/10.3109/00365529409091389', 'labeled white cells in abdominal infection (Lantto 1994)']] },
+  { id: 'lymph', name: 'Lymphocytes', short: 'Lymphocyte', tag: 'Agranulocyte · targeted defense and memory', pct: [20, 40], size: 'about 7–8 µm when small, up to about 15 µm',
     look: 'A large, round, dense nucleus with a thin rim of cytoplasm. A resting small lymphocyte is close to a red cell in size. B and T cells cannot be reliably told apart by eye; laboratories use surface markers.',
     job: '', life: 'From weeks to many years. Memory cells are why immunity lasts.',
     energy: 'Resting cells tick over mostly on mitochondrial respiration. On activation, effector cells sharply increase <b>glycolysis even with oxygen available</b>, which supplies ATP and building blocks for rapid division.',
@@ -34,19 +34,19 @@ const BLOOD = [
       { id: 'nk', label: 'NK cell', job: '<b>Natural killer cells</b> belong to the innate system and need no prior exposure. They attack stressed cells, including some that have lost the “self” tag MHC class I. They are often larger, with a few visible granules.', action: 'An NK cell finds a cell missing its MHC class I “self” tag and triggers its death.' },
     ] },
   { id: 'mono', name: 'Monocyte', short: 'Monocyte', tag: 'Agranulocyte · cleanup crew in waiting', pct: [2, 8], size: 'about 12–20 µm, usually the largest in blood',
-    look: 'A kidney or horseshoe-shaped nucleus in plentiful grey-blue cytoplasm, often with small vacuoles.',
+    look: 'A kidney or horseshoe-shaped nucleus in plentiful gray-blue cytoplasm, often with small vacuoles.',
     job: 'Moves into tissue and can become a <b>macrophage</b> or a dendritic-type cell. Macrophages eat microbes and debris, show antigens to T cells and recycle old red cells. Many resident tissue macrophages, such as brain microglia, were seeded before birth.',
     life: 'About 1 to 3 days in blood. Its descendants in tissue can last much longer.',
-    energy: 'Has more mitochondria than a neutrophil and can shift its fuel use. Strongly activated macrophages favour glycolysis, while repair-type states lean more on oxidative metabolism.',
+    energy: 'Has more mitochondria than a neutrophil and can shift its fuel use. Strongly activated macrophages favor glycolysis, while repair-type states lean more on oxidative metabolism.',
     action: 'It stretches around a worn-out red cell, swallows and digests it, and recovers the iron.',
-    rad: 'Activated macrophages are a major reason <b>granulomatous disease</b> such as sarcoidosis or tuberculosis can be intensely FDG-avid. Macrophages also leave haemosiderin around old bleeds, which looks dark on T2* and susceptibility-weighted MRI.' },
+    rad: 'Activated macrophages are a major reason <b>granulomatous disease</b> such as sarcoidosis or tuberculosis can be intensely FDG-avid. Macrophages also leave hemosiderin around old bleeds, which looks dark on T2* and susceptibility-weighted MRI.' },
   { id: 'eos', name: 'Eosinophil', short: 'Eosinophil', tag: 'Granulocyte · parasites and allergy', pct: [1, 4], size: 'about 12–15 µm',
     look: 'Usually a two-lobed nucleus, with large, even orange-red granules that take up the dye eosin.',
     job: 'Releases toxic granule proteins, such as major basic protein, against parasites too large to swallow, especially worms. Also drives tissue damage in asthma and other allergic disease.',
     life: 'Hours in the blood, then days in tissues such as the gut lining.',
     energy: 'Uses glycolysis and has more capacity for mitochondrial respiration than a neutrophil.',
     action: 'Granules are released onto a parasite that is far too big to engulf.',
-    rad: 'In <b>chronic eosinophilic pneumonia</b>, peripheral, upper-lobe-predominant consolidation is classic: the “photographic negative” of pulmonary oedema. Not every patient shows it.',
+    rad: 'In <b>chronic eosinophilic pneumonia</b>, peripheral, upper-lobe-predominant consolidation is classic: the “photographic negative” of pulmonary edema. Not every patient shows it.',
     refs: [['https://doi.org/10.1056/NEJMicm2216444', 'the photographic negative sign, a case report (Ali and Mason 2023)']] },
   { id: 'baso', name: 'Basophil', short: 'Basophil', tag: 'Granulocyte · the alarm', pct: [0.5, 1], size: 'about 10–15 µm',
     look: 'Large, dark blue-purple granules that often hide the two-lobed or irregular nucleus. The rarest white cell.',
@@ -54,23 +54,31 @@ const BLOOD = [
     life: 'Short: roughly hours to a few days.',
     energy: 'Less studied than the others. It relies on glucose, and its energy use changes when activated.',
     action: 'An allergen links two IgE antibodies on the surface, and the cell dumps its granules of histamine.',
-    rad: 'Immediate reactions to <b>contrast agents</b> involve mediator release from mast cells and basophils. Many occur without proven IgE sensitisation, so a reaction can happen on first exposure. Emergency treatment of anaphylaxis centres on adrenaline.',
+    rad: 'Immediate reactions to <b>contrast agents</b> involve mediator release from mast cells and basophils. Many occur without proven IgE sensitization, so a reaction can happen on first exposure. Emergency treatment of anaphylaxis centers on epinephrine.',
     refs: [['https://doi.org/10.1016/j.iac.2026.01.009', 'iodinated contrast and anaphylaxis (Lang et al. 2026)']] },
+  { id: 'plt', name: 'Platelets', short: 'Platelets', tag: 'Thrombocyte · clotting first aid', size: 'about 2–3 µm across, a thin disc about 1 µm thick',
+    look: 'Small, pale purple fragments with no nucleus, often with fine granules in the center. A typical count is about 150,000–450,000 per microliter of blood.',
+    job: 'Platelets are fragments shed into the blood by giant marrow cells called <b>megakaryocytes</b>. At a damaged vessel wall they stick to exposed collagen and von Willebrand factor, change shape, release ADP and thromboxane A₂, and recruit more platelets into a <b>primary plug</b>. Their activated surface then hosts the <b>coagulation cascade</b>, which makes thrombin and a <b>fibrin</b> mesh that locks the plug in place.',
+    life: 'About 7–10 days. About a third of the body’s platelets wait in the spleen at any time, and old ones are cleared mainly by the spleen and liver.',
+    energy: 'Has no nucleus but keeps a few mitochondria, so it uses both glycolysis and oxidative phosphorylation. Activation sharply raises its energy use. Because a platelet cannot make new proteins from genes, <b>aspirin</b> blocks its thromboxane production for the rest of its life.',
+    action: 'Platelets are activated: they flatten, spread and clump together into a plug, as they would at a cut in a vessel wall.',
+    rad: 'A fresh clot is often <b>bright (hyperdense) on unenhanced CT</b> because packed cells and fibrin raise its density, as in the hyperdense artery sign of an acute stroke. On <b>CT angiography</b>, a thrombus shows as a dark filling defect inside the contrast-filled vessel. Before biopsies and other image-guided procedures, teams check the platelet count and any antiplatelet drugs, because bleeding risk depends on both. Thresholds depend on the procedure, so follow local and society guidelines.',
+    refs: [['https://openstax.org/books/anatomy-and-physiology-2e/pages/18-5-hemostasis', 'OpenStax, hemostasis'], ['https://doi.org/10.1016/j.jvir.2019.04.017', 'SIR periprocedural bleeding risk guideline, part II (Patel et al. 2019)']] },
 ];
 const bloodState = { id: null, sub: 'b' };
 let bloodView = null;                              // set by the 3D scene when WebGL is available
 function bloodCardHTML() {
   const c = BLOOD.find(x => x.id === bloodState.id);
-  if (!c) return `<h3 style="--c:var(--fg)">Choose a cell</h3><p>Pick one above or click a label in the 3D view. All cells there are drawn to the same scale, so compare their sizes. Colours approximate a Wright-stained blood smear, brightened for the dark background.</p>`;
+  if (!c) return `<h3 style="--c:var(--fg)">Choose a cell</h3><p>Pick one above or click a label in the 3D view. All cells there are drawn to the same scale, so compare their sizes. Colors approximate a Wright-stained blood smear, brightened for the dark background.</p>`;
   const sub = c.subs && c.subs.find(x => x.id === bloodState.sub);
   const subs = c.subs ? `<div class="sub" role="group" aria-label="Lymphocyte type">${c.subs.map(x => `<button type="button" class="btn${x.id === bloodState.sub ? ' on' : ''}" data-sub="${x.id}">${x.label}</button>`).join('')}</div><p>${sub.job}</p>` : '';
-  const mri = c.mri ? `<div class="table-wrap"><table class="ledger"><thead><tr><th>Stage (approx.)</th><th>Haemoglobin</th><th>T1</th><th>T2</th></tr></thead><tbody>
+  const mri = c.mri ? `<div class="table-wrap"><table class="ledger"><thead><tr><th>Stage (approx.)</th><th>Hemoglobin</th><th>T1</th><th>T2</th></tr></thead><tbody>
       <tr><td>Hyperacute, &lt;1 day</td><td>oxy, in cells</td><td>iso</td><td>bright</td></tr>
       <tr><td>Acute, 1–3 days</td><td>deoxy, in cells</td><td>iso</td><td>dark</td></tr>
       <tr><td>Early subacute, 3–7 d</td><td>met, in cells</td><td>bright</td><td>dark</td></tr>
       <tr><td>Late subacute, 1–4 wk</td><td>met, cells lysed</td><td>bright</td><td>bright</td></tr>
-      <tr><td>Chronic, later</td><td>haemosiderin</td><td>dark</td><td>dark</td></tr>
-    </tbody></table></div><p class="muted">A teaching simplification for brain haemorrhage. Real bleeds mix stages and the timing varies.</p>` : '';
+      <tr><td>Chronic, later</td><td>hemosiderin</td><td>dark</td><td>dark</td></tr>
+    </tbody></table></div><p class="muted">A teaching simplification for brain hemorrhage. Real bleeds mix stages and the timing varies.</p>` : '';
   return `<div><h3 style="--c:var(--${c.id})">${c.name}</h3><div class="eyebrow">${c.tag}</div></div>${subs}
     <dl>
       <dt>Size</dt><dd>${c.size}</dd>
@@ -104,7 +112,7 @@ const CHAPTERS = [
     id: 'blood', short: 'Blood', where: 'A drop of blood · cells to scale',
     title: 'Blood: couriers and defenders',
     legend: [['rbc', 'Red cell'], ['neut', 'Neutrophil'], ['lymph', 'Lymphocyte'], ['mono', 'Monocyte'], ['eos', 'Eosinophil'], ['baso', 'Basophil'], ['plt', 'Platelet'], ['mito', 'Mitochondria']],
-    details: { rbc: () => selectBlood('rbc', true) },
+    details: { rbc: () => selectBlood('rbc', true), plt: () => selectBlood('plt', true) },
     html: () => `
       <p class="lede">Blood is the city’s delivery network and its security force. Red cells haul the oxygen that the electron transport chain consumes. White cells, the leukocytes, are mobile defenders that mostly use the blood to travel.</p>
       <div class="orgs">${BLOOD.map(c => `<button class="org" type="button" data-cell="${c.id}" style="--c:var(--${c.id})"><i></i><span><b>${c.name}</b><small>${c.tag.split(' · ')[1]}</small></span></button>`).join('')}
@@ -118,7 +126,7 @@ const CHAPTERS = [
       </div>
       <ul class="facts">
         <li>Red cells vastly outnumber white cells, by several hundred to one. The 3D line-up is for comparing size and shape, not numbers.</li>
-        <li><b>Platelets</b> are not white cells. They are small fragments shed by marrow megakaryocytes that help blood clot.</li>
+        <li><b>Platelets</b> are not white cells. They are small fragments shed by marrow megakaryocytes that help blood clot. Choose Platelets above for their card.</li>
         <li>All of these arise from blood-forming stem cells, mostly in the marrow. T cells mature in the thymus.</li>
         <li>Mast cells, macrophages and dendritic cells do much of their work in tissue and are not part of the routine differential.</li>
       </ul>
@@ -248,11 +256,13 @@ CellCity.register('blood', {
   }
 
   /* ================= labels and camera ================= */
-  BLOOD.forEach(c => {
+  BLOOD.filter(c => cells[c.id]).forEach(c => {
     const l = addLabel(c.short, c.id, cells[c.id].root, new V3(0, -cells[c.id].r - 1.3, 0), ['blood'], { onClick: () => selectBlood(c.id) });
     l.blood = c.id;
   });
-  addLabel('Platelets', 'plt', platelets, new V3(0, -5, 0), ['blood']);
+  addLabel('Platelets', 'plt', platelets, new V3(0, -5, 0), ['blood'], { onClick: () => selectBlood('plt') }).blood = 'plt';
+  const PLT_HOME = platelets.children.map(m => ({ pos: m.position.clone(), scale: m.scale.clone() }));
+  const PLT_PLUG = [[0.35, -1.15, 0], [1.3, -1.45, 0.2], [-0.6, -1.5, -0.1], [0.4, -2.0, 0.15]].map(q => new V3(...q));
   const POSES = {
     blood: { pos: new V3(0, 0, 60), target: new V3(0, -0.8, 0), group: 'blood', w: 30 },
   };
@@ -314,11 +324,11 @@ CellCity.register('blood', {
         travel(c.root, b, [new V3(8 + i * 2, -9 + i, 6), new V3(3.5 + i, -6.5, 5), inside], 2.6, { delay: i * 0.25, spin: 1.2, keep: true, onDone: o => later(2.2, () => pulse(o, 1.0, 1, 0)) });
       });
       later(3.0, () => {
-        const centre = new V3(0.7, -3.4, 3.2);
-        const bag = new THREE.Group(); bag.position.copy(centre); bag.add(new THREE.Mesh(atomGeo, fresnelMat(new THREE.Color(0xffd6ec), 1.3, 2))); c.root.add(bag);
+        const center = new V3(0.7, -3.4, 3.2);
+        const bag = new THREE.Group(); bag.position.copy(center); bag.add(new THREE.Mesh(atomGeo, fresnelMat(new THREE.Color(0xffd6ec), 1.3, 2))); c.root.add(bag);
         pulse(bag, 0.5, 0.2, 2.4, 2.4);
         say(c.root, 'phagosome', BC.neut, new V3(0.7, -0.6, 5), 1.8, 0.8);
-        for (let i = 0; i < 40; i++) { const from = randDir().multiplyScalar(rr(3, 5.6)); travel(c.root, ball(BC.neut, 0.2, 0.5), [from, centre.clone().add(randDir())], 1.0, { delay: rr(0, 0.8), shrinkEnd: true }); }
+        for (let i = 0; i < 40; i++) { const from = randDir().multiplyScalar(rr(3, 5.6)); travel(c.root, ball(BC.neut, 0.2, 0.5), [from, center.clone().add(randDir())], 1.0, { delay: rr(0, 0.8), shrinkEnd: true }); }
       });
       later(4.3, () => {
         say(c.root, 'oxidative burst', col('atp'), new V3(0.7, -0.6, 5), 2.2);
@@ -407,12 +417,21 @@ CellCity.register('blood', {
       });
       return 8;
     },
+    plt() { pltAnim = now; return 4.2; },
     lymph_t(c) { return ACTIONS.killer(c, 'infected cell', col('lyso')); },
     lymph_nk(c) { return ACTIONS.killer(c, 'no MHC I tag', col('fadh')); },
   };
 
   const blood = { focused: null, next: 0 };
+  let pltAnim = -Infinity;
+  function plateletPose(u) {                       // u: 0 resting discs → 1 spread and clumped
+    platelets.children.forEach((m, i) => {
+      m.position.lerpVectors(PLT_HOME[i].pos, PLT_PLUG[i], u);
+      m.scale.set(PLT_HOME[i].scale.x * (1 + 0.35 * u), PLT_HOME[i].scale.y * (1 + 0.2 * u), PLT_HOME[i].scale.z * (1 - 0.3 * u));
+    });
+  }
   function resetBlood() {
+    pltAnim = -Infinity; plateletPose(0);
     clearAgents();
     Object.values(cells).forEach(c => c.root.children.filter(o => !c.parts.has(o)).forEach(disposeObj));
     Object.values(cells).forEach(c => { c.body.scale.set(1, 1, 1); c.body.position.set(0, 0, 0); c.root.rotation.set(0, 0, 0); });
@@ -423,11 +442,11 @@ CellCity.register('blood', {
     resetBlood();
     blood.focused = id; blood.next = now + 1.4;
     Object.entries(cells).forEach(([k, c]) => { c.root.visible = !id || k === id; });
-    platelets.visible = !id;
+    platelets.visible = !id || id === 'plt';
     labels.forEach(l => { if (l.blood) l.el.classList.toggle('on', l.blood === id); });
     if (!id) { tweenTo(fitPose(POSES.blood), 1.2); return; }
-    const target = BPOS[id].clone();
-    const half = { rbc: 11, neut: 12, lymph: 13, mono: 15, eos: 13.5, baso: 13.5 }[id];
+    const target = id === 'plt' ? platelets.position.clone().add(new V3(0, -1.2, 0)) : BPOS[id].clone();
+    const half = { rbc: 11, neut: 12, lymph: 13, mono: 15, eos: 13.5, baso: 13.5, plt: 10 }[id];
     const dist = half / (Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * Math.min(camera.aspect, 1.15));
     tweenTo({ pos: target.clone().add(new V3(0, 0, dist)), target }, 1.2);
   }
@@ -445,6 +464,7 @@ CellCity.register('blood', {
       const id = blood.focused;
       if (id) {
         if (t > blood.next) { resetBlood(); blood.next = t + ACTIONS[id](cells[id]) + 0.6; }
+        if (id === 'plt') { const u = (t - pltAnim) / 4.2; plateletPose(reduceMotion ? 1 : u < 0.4 ? ease.inOut(u / 0.4) : u < 0.8 ? 1 : Math.max(0, 1 - (u - 0.8) / 0.2)); }
       } else {
         Object.values(cells).forEach((c, i) => { c.root.rotation.y = reduceMotion ? 0 : Math.sin(t * 0.5 + i) * 0.35; });
         platelets.rotation.z = reduceMotion ? 0 : Math.sin(t * 0.4) * 0.12;

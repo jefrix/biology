@@ -1,2 +1,4 @@
 .claude/
 biology/
+*.pdf
+node_modules/

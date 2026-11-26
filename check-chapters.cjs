@@ -64,7 +64,14 @@ async function main() {
     events.change.forEach(fn => fn({target: {id: 'transportSolution'}}));
     assert.match(element('#transportCaption').textContent, expected);
   }
-  console.log(seen.size + ' chapter routes, text-mode navigation, and red-cell exercise passed.');
+  run("go('blood/plt')");
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(context.location.hash, '#blood/plt');
+  assert.match(element('#bloodCard').innerHTML, /megakaryocytes/);
+  run("go('endocrine-targets')");
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(context.location.hash, '#endocrine-receptors', 'old endocrine-targets links redirect');
+  console.log(seen.size + ' chapter routes, text-mode navigation, the red-cell exercise, the platelet card and the merged-module redirect passed.');
 }
 main().catch(err => { console.error(err); process.exitCode = 1; });
 

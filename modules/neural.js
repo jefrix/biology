@@ -123,7 +123,7 @@ const READ = {
   rest() {
     const vm = ghk(N.kOut, N.pNa, 0.45), ek = nernst(N.kOut, IONS.K.in, 1), ena = nernst(IONS.Na.out, IONS.Na.in, 1), ecl = nernst(IONS.Cl.out, IONS.Cl.in, -1);
     const f = (x) => `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(0)} mV`;
-    const note = N.kOut > 5.5 ? '<b>Raising potassium outside depolarises the cell.</b> This is one reason high blood potassium is dangerous for excitable cells, including heart muscle.' : N.pNa > 0.5 ? 'With high sodium permeability, the voltage swings towards the sodium equilibrium. That is the idea behind the action potential.' : 'At rest the membrane favours potassium, so the voltage sits fairly near the potassium equilibrium.';
+    const note = N.kOut > 5.5 ? '<b>Raising potassium outside depolarizes the cell.</b> This is one reason high blood potassium is dangerous for excitable cells, including heart muscle.' : N.pNa > 0.5 ? 'With high sodium permeability, the voltage swings toward the sodium equilibrium. That is the idea behind the action potential.' : 'At rest the membrane favors potassium, so the voltage sits fairly near the potassium equilibrium.';
     return `<div class="tally three"><div style="--c:var(--accent)"><b>${f(vm)}</b><small>membrane (GHK)</small></div><div style="--c:var(--potassium)"><b>${f(ek)}</b><small>E potassium</small></div><div style="--c:var(--sodium)"><b>${f(ena)}</b><small>E sodium</small></div></div><p class="muted">E chloride stays at ${f(ecl)}.</p><p>${note}</p>`;
   },
   spike() {
@@ -151,9 +151,9 @@ const READ = {
   },
   synapse() {
     const s = synapseState(N.sdrug), glu = N.nt === 'glu';
-    const effect = s.response === 'none' ? 'none' : (glu ? 'depolarising (EPSP)' : 'usually hyperpolarising or shunting (IPSP)') + (s.response === 'prolonged' ? ', lasting longer' : '');
+    const effect = s.response === 'none' ? 'none' : (glu ? 'depolarizing (EPSP)' : 'usually hyperpolarizing or shunting (IPSP)') + (s.response === 'prolonged' ? ', lasting longer' : '');
     const text = {
-      none: glu ? 'Glutamate opens <b>AMPA</b> receptors, which pass Na⁺ and K⁺ with a reversal near 0 mV, so the net effect excites. <b>NMDA</b> receptors need glutamate and also enough depolarisation to clear a magnesium block, then let Ca²⁺ in.' : 'GABA opens <b>GABA-A</b> receptors, which are chloride channels. In mature neurons this usually opposes firing.',
+      none: glu ? 'Glutamate opens <b>AMPA</b> receptors, which pass Na⁺ and K⁺ with a reversal near 0 mV, so the net effect excites. <b>NMDA</b> receptors need glutamate and also enough depolarization to clear a magnesium block, then let Ca²⁺ in.' : 'GABA opens <b>GABA-A</b> receptors, which are chloride channels. In mature neurons this usually opposes firing.',
       botox: '<b>Botulinum and tetanus toxins</b> cut SNARE proteins, so vesicles cannot fuse. Botulinum toxin A is also a medicine, for example for some eye-muscle misalignment.',
       cono: '<b>ω-Conotoxin</b>, from a marine snail, blocks the presynaptic calcium channels that release depends on.',
       antagonist: glu ? 'Transmitter is released, but blocked receptors cannot respond.' : 'Transmitter is released, but blocked receptors cannot respond. The plant toxin <b>picrotoxin</b> blocks GABA-A receptors.',
@@ -173,7 +173,7 @@ const READ = {
   brain() {
     return {
       rest: '<p>Glucose crosses the blood–brain barrier through <b>GLUT1</b> and enters neurons mainly through <b>GLUT3</b>. Neither waits for <a href="#receptor">insulin</a> the way GLUT4 does.</p>',
-      active: '<p>Active tissue uses more oxygen, but <b>blood flow rises even more</b>. That leaves less deoxygenated haemoglobin in the area. Deoxyhaemoglobin disturbs the MRI signal, so the signal there goes <b>up</b>: the basis of <b>BOLD</b> functional MRI, an indirect measure of activity.</p>',
+      active: '<p>Active tissue uses more oxygen, but <b>blood flow rises even more</b>. That leaves less deoxygenated hemoglobin in the area. Deoxyhemoglobin disturbs the MRI signal, so the signal there goes <b>up</b>: the basis of <b>BOLD</b> functional MRI, an indirect measure of activity.</p>',
       stroke: '<p>Without blood, ATP runs short and the <a href="#rest">sodium pumps</a> stall. Ions and water shift into cells, which swell. Water movement becomes restricted, so the area is typically <b>bright on diffusion-weighted MRI</b> and <b>dark on the ADC map</b>.</p>',
     }[N.brain];
   },
@@ -205,8 +205,8 @@ const sources = (items, extra = '') => `<p class="credit">Sources: ${items.join(
 const luo = (pages) => `L. Luo, <i>Principles of Neurobiology</i> (Garland Science, 2016), ${pages}`;
 const SRC = {
   eanm: link('https://doi.org/10.1007/s00259-014-2961-x', 'EANM FDG PET/CT guideline (2015)'),
-  energy: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC3389300', 'brain energy review'),
-  anls: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC5792606', 'brain lactate research'),
+  energy: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC3389300/', 'brain energy review'),
+  anls: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC5792606/', 'brain lactate research'),
   adc: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC2772048/', 'ADC time course in stroke'),
   dwi: link('https://radiopaedia.org/articles/diffusion-weighted-mri-in-acute-stroke-2', 'Radiopaedia, DWI in acute stroke'),
   ms: link('https://my.clevelandclinic.org/departments/neurological/depts/multiple-sclerosis/ms-approaches/diagnosing-ms-using-the-2024-mcdonald-criteria', '2024 McDonald criteria overview'),
@@ -214,7 +214,7 @@ const SRC = {
   msrad: link('https://doi.org/10.2214/AJR.25.33997', 'Rai et al. 2026, the 2024 update for radiologists'),
   cdcstroke: link('https://www.cdc.gov/stroke/signs-symptoms/index.html', 'CDC, stroke signs and symptoms'),
   dwineg: link('https://doi.org/10.1212/WNL.0000000000004120', 'Edlow et al. 2017, DWI-negative stroke'),
-  ions: link('https://doi.org/10.1016/j.jstrokecerebrovasdis.2017.09.011', 'Hu and Song 2017, ion balance in ischaemic stroke'),
+  ions: link('https://doi.org/10.1016/j.jstrokecerebrovasdis.2017.09.011', 'Hu and Song 2017, ion balance in ischemic stroke'),
 };
 
 const CHAPTERS = [
@@ -256,13 +256,13 @@ const CHAPTERS = [
       <p class="lede">Push the voltage past a threshold and sodium channels snap open. Moments later they inactivate while potassium channels open. The result is a brief spike. This chapter solves the <b>Hodgkin–Huxley</b> equations live.</p>
       ${panel('spike', slider('amp', 'Pulse strength (0.5 ms)', 0, 60, 1, 'µA/cm²') + seg('drug') + seg('pulse2') + '<button class="btn primary" type="button" data-nact="replay">Replay</button>')}
       <ul class="facts">
-        <li><b>Rising phase:</b> depolarisation opens voltage-gated Na⁺ channels, Na⁺ flows in, and that opens still more.</li>
+        <li><b>Rising phase:</b> depolarization opens voltage-gated Na⁺ channels, Na⁺ flows in, and that opens still more.</li>
         <li><b>Falling phase:</b> Na⁺ channels <b>inactivate</b> and the slower K⁺ channels open.</li>
-        <li>The <b>refractory period</b> helps keep a spike travelling one way down the axon. At first no pulse will work (absolute). For a while after, only a stronger one will (relative).</li>
+        <li>The <b>refractory period</b> helps keep a spike traveling one way down the axon. At first no pulse will work (absolute). For a while after, only a stronger one will (relative).</li>
         <li>In most projection neurons, spikes start at the <b>axon initial segment</b>, where sodium channels are densest. Information is carried by how often and when spikes occur.</li>
-        <li><b>Tetrodotoxin</b>, found in pufferfish, blocks voltage-gated sodium channels. Local anaesthetics also act on sodium channels.</li>
+        <li><b>Tetrodotoxin</b>, found in pufferfish, blocks voltage-gated sodium channels. Local anesthetics also act on sodium channels.</li>
       </ul>
-      ${sources([luo('pp. 51, 53 and 77')], 'The model uses the classic squid axon constants (6.3 °C). It shows the principles; human neurons differ in channel types, temperature and timing. Blockers are modelled simply as reduced conductance.')}`,
+      ${sources([luo('pp. 51, 53 and 77')], 'The model uses the classic squid axon constants (6.3 °C). It shows the principles; human neurons differ in channel types, temperature and timing. Blockers are modeled simply as reduced conductance.')}`,
   },
   {
     id: 'myelin', short: 'Myelin', where: 'Along the axon',
@@ -275,7 +275,7 @@ const CHAPTERS = [
         <li>Myelin raises the membrane’s resistance and lowers its capacitance, so current spreads farther and charges the next patch quickly.</li>
         <li><b>Oligodendrocytes</b> make it in the brain and spinal cord, <b>Schwann cells</b> in peripheral nerves.</li>
       </ul>
-      <div class="callout"><span class="eyebrow">Radiology link: multiple sclerosis</span><p>MS involves inflammatory demyelination in the central nervous system. On MRI, <b>T2/FLAIR-bright</b> lesions in typical places, such as around the ventricles, next to or in the cortex, in the brainstem or cerebellum, and in the spinal cord, help show <b>spread in space</b>. The 2024 McDonald criteria added the optic nerve as a fifth location. <b>Gadolinium enhancement</b> has helped show <b>spread in time</b>. The 2024 revision also recognises another spinal fluid marker (kappa free light chains) that can substitute for it, and adds optional MRI signs: the central vein sign and paramagnetic rim lesions. A bright spot is not specific: it can reflect oedema, inflammation, demyelination, gliosis or axon loss, and has many other causes. Diagnosis needs the full clinical picture.</p></div>
+      <div class="callout"><span class="eyebrow">Radiology link: multiple sclerosis</span><p>MS involves inflammatory demyelination in the central nervous system. On MRI, <b>T2/FLAIR-bright</b> lesions in typical places, such as around the ventricles, next to or in the cortex, in the brainstem or cerebellum, and in the spinal cord, help show <b>spread in space</b>. The 2024 McDonald criteria added the optic nerve as a fifth location. <b>Gadolinium enhancement</b> has helped show <b>spread in time</b>. The 2024 revision also recognizes another spinal fluid marker (kappa free light chains) that can substitute for it, and adds optional MRI signs: the central vein sign and paramagnetic rim lesions. A bright spot is not specific: it can reflect edema, inflammation, demyelination, gliosis or axon loss, and has many other causes. Diagnosis needs the full clinical picture.</p></div>
       ${sources([luo('pp. 53–55'), SRC.ms, SRC.mcd, SRC.msrad], 'Playback speeds are illustrative and the difference is understated.')}`,
   },
   {
@@ -286,7 +286,7 @@ const CHAPTERS = [
       <p class="lede">At most synapses the electrical signal stops and a chemical one takes over. A spike lets calcium into the terminal, vesicles fuse, and transmitter crosses a tiny gap.</p>
       ${panel('synapse', seg('nt') + seg('sdrug') + '<button class="btn primary" type="button" data-nact="replay">Send a spike</button>')}
       <ul class="facts">
-        <li>The order is: spike → depolarised terminal → <b>voltage-gated Ca²⁺ channels</b> open → vesicles fuse → transmitter release.</li>
+        <li>The order is: spike → depolarized terminal → <b>voltage-gated Ca²⁺ channels</b> open → vesicles fuse → transmitter release.</li>
         <li><b>SNARE proteins</b> drive fusion, much as in <a href="#export">insulin release</a>. A calcium sensor called <b>synaptotagmin</b> triggers it.</li>
         <li><b>Ionotropic</b> receptors are channels and act quickly. <b>Metabotropic</b> receptors work through G proteins and act more slowly.</li>
         <li><b>Curare</b> and the snake toxin α-bungarotoxin block the acetylcholine receptor where nerve meets muscle.</li>
@@ -330,12 +330,12 @@ const CHAPTERS = [
       <p class="lede">The brain is about 2% of body weight but uses about 20% of the body’s resting energy. It depends on a steady supply of glucose and oxygen, which is why it features so strongly in imaging.</p>
       ${panel('brain', seg('brain'))}
       <h3>FDG-PET</h3>
-      <p>Because the brain takes up so much glucose, it is normally very bright on <a href="#petprep">FDG-PET</a>. The EANM tumour guideline puts brain uptake at about 7% of the injected activity. Brain PET looks for regions that take up less or more than expected.</p>
+      <p>Because the brain takes up so much glucose, it is normally very bright on <a href="#petprep">FDG-PET</a>. The EANM tumor guideline puts brain uptake at about 7% of the injected activity. Brain PET looks for regions that take up less or more than expected.</p>
       <h3>Stroke on diffusion MRI</h3>
       <ul class="facts">
         <li>Diffusion-weighted imaging is <b>more sensitive early</b> than CT or ordinary T2 MRI. Ordinary sequences may show nothing for the first hours.</li>
-        <li><b>ADC</b> falls early, with the greatest drop reported around days 1–4, then returns through normal (<b>pseudonormalisation</b>) at roughly one to two weeks. Timing varies between patients and studies.</li>
-        <li>A normal DWI does not rule out stroke: some early, small or brainstem and cerebellar strokes are missed. A pooled analysis found about <b>7%</b> of acute ischaemic strokes were DWI-negative, with higher odds in the <b>posterior circulation</b>.</li>
+        <li><b>ADC</b> falls early, with the greatest drop reported around days 1–4, then returns through normal (<b>pseudonormalization</b>) at roughly one to two weeks. Timing varies between patients and studies.</li>
+        <li>A normal DWI does not rule out stroke: some early, small or brainstem and cerebellar strokes are missed. A pooled analysis found about <b>7%</b> of acute ischemic strokes were DWI-negative, with higher odds in the <b>posterior circulation</b>.</li>
         <li>Early CT signs can include darker tissue, loss of the gray–white boundary and effaced sulci.</li>
       </ul>
       <div class="callout"><span class="eyebrow">Emergency</span><p>Remember <b>BE FAST</b>: <b>B</b>alance lost, <b>E</b>yesight trouble, <b>F</b>ace drooping, <b>A</b>rm weakness, <b>S</b>peech difficulty, <b>T</b>ime to call. Sudden numbness or weakness (especially on one side), confusion, or a severe headache with no known cause also count. <b>Call 911 or your local emergency number right away.</b> Do not drive yourself to hospital or have someone else drive you. If symptoms go away, it may have been a mini-stroke (TIA): tell a health care team right away. Treatment depends on time.</p></div>
@@ -694,7 +694,7 @@ CellCity.register('neural', {
       const swell = cut ? 1.34 : 1, s = neuronBody.scale.x + (swell - neuronBody.scale.x) * Math.min(1, dt * 0.8);
       neuronBody.scale.setScalar(s);
       brainMitos.forEach(o => { o.material.emissiveIntensity = cut ? 0.03 : act ? 0.8 + Math.sin(t * 7) * 0.2 : 0.3; });
-      const msg = cut ? 'Ischaemia: cells swell; DWI bright, ADC dark' : act ? 'Active: flow rises more than O₂ use; BOLD signal up' : 'Resting supply';
+      const msg = cut ? 'Ischemia: cells swell; DWI bright, ADC dark' : act ? 'Active: flow rises more than O₂ use; BOLD signal up' : 'Resting supply';
       const span = scanTag.el.querySelector('span'); if (span.textContent !== msg) span.textContent = msg;
       if (!cut) {
         if (due('br-glu', act ? 0.2 : 0.5, t)) { const x = rr(-14, -5); const toN = rnd() < 0.65; fly(gBrain, C.glucose, 0.36, toN ? [[x + 8, 9, 1], [x + 9, 5, 2], [rr(4, 10), -1, 3]] : [[x, 9, 1], [x, 5.6, 1], [-9, -0.6, 2]], 2.4); }
@@ -703,7 +703,7 @@ CellCity.register('neural', {
       } else if (s > 1.12 && due('br-water', 0.16, t)) { const d = randDir(); fly(gBrain, C.pyruvate, 0.24, [new V3(7, -3.4, 0).add(d.clone().multiplyScalar(9)), new V3(7, -3.4, 0).add(d.clone().multiplyScalar(4.4))], 1.4); }
     }
 
-    /* ================= camera and behaviours ================= */
+    /* ================= camera and behaviors ================= */
     const POSES = {
       neurons: { pos: new V3(0, 0, 60), target: new V3(4, 0, 0), group: 'nCells', w: 24 },
       rest: { pos: new V3(0, 0, 56), target: new V3(0, 0, 0), group: 'nRest', w: 21 },

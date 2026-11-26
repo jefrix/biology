@@ -33,6 +33,7 @@ let stageId = null;
 
 /* ---------- module registry ---------- */
 const MANIFEST = [
+  /* Cell mechanisms: what happens inside one cell */
   { key: 'energy', name: 'Energy', c: 'atp', eyebrow: 'From your plate to ATP', title: 'Following one glucose molecule',
     blurb: 'Tour the cell, then follow food through glycolysis, the Krebs cycle with real 3D molecules and carbon tracing, and the electron transport chain.',
     ids: ['cell', 'fuel', 'glycolysis', 'link', 'krebs', 'etc', 'tally'], names: ['Cell city', 'Fuel', 'Glycolysis', 'Link', 'Krebs', 'ETC', 'Ledger'] },
@@ -42,41 +43,41 @@ const MANIFEST = [
   { key: 'cleanup', name: 'Recycling & cleanup', c: 'lyso', eyebrow: 'Recycling and cleanup', title: 'The city’s recycling service',
     blurb: 'See how a cell brings things in, digests them in lysosomes, shreds single proteins, salvages worn-out parts, handles tough fats, and what happens when cleanup fails.',
     ids: ['intake', 'lysosome', 'proteasome', 'autophagy', 'peroxisome', 'storage'], names: ['Intake', 'Lysosome', 'Proteasome', 'Autophagy', 'Peroxisome', 'Breakdowns'] },
-  { key: 'hormones', name: 'Hormones', c: 'insulin', eyebrow: 'Endocrine · insulin and glucose', title: 'How the body shares out its sugar',
-    blurb: 'See how a pancreatic beta cell turns ATP into a signal, how insulin opens the door for glucose, and why both matter before an FDG-PET scan.',
-    ids: ['islet', 'beta', 'receptor', 'balance', 'diabetes', 'petprep'], names: ['Islet', 'Release', 'Response', 'Balance', 'Diabetes', 'PET prep'] },
+  { key: 'transport', name: 'Membranes & transport', c: 'pump', eyebrow: 'Membrane transport', title: 'Across the red blood cell membrane',
+    blurb: 'Watch oxygen, glucose and sodium cross a membrane by three different routes, see water reshape a red blood cell, and follow the sodium–potassium pump through one ATP-driven cycle.',
+    ids: ['permeability', 'osmosis', 'pump'], names: ['Selective passage', 'Red cell osmosis', 'Ion pump'] },
   { key: 'division', name: 'Division & radiation', c: 'sphase', eyebrow: 'Cell division, DNA and radiation', title: 'Copying the city’s archive safely',
     blurb: 'Follow the cell cycle and mitosis, see how radiation damages DNA and how cells repair it, then explore fractionation and dose in radiology.',
     ids: ['cycle', 'mitosis', 'damage', 'repair', 'fate', 'survival', 'dose'], names: ['Cycle', 'Mitosis', 'Damage', 'Repair', 'Fate', 'Survival', 'Dose'] },
+  /* Cells in tissues: specialized cells and the body systems they build */
   { key: 'neural', name: 'Neural cells', c: 'dendrite', eyebrow: 'Neurons and glia', title: 'The city’s communications network',
     blurb: 'Meet neurons and glia, run a live action potential simulation, send signals across a synapse, and see how stroke and MS show up on MRI.',
     ids: ['neurons', 'rest', 'spike', 'myelin', 'synapse', 'integrate', 'axon', 'brain'], names: ['Cells', 'Rest', 'Spike', 'Myelin', 'Synapse', 'Sum', 'Transport', 'Imaging'] },
-  { key: 'transport', name: 'Membranes & transport', c: 'rbc', eyebrow: 'Membrane transport', title: 'Across the red blood cell membrane',
-    blurb: 'Follow oxygen to hemoglobin, watch water reshape a red blood cell, and follow an ion pump through its cycle.',
-    ids: ['permeability', 'osmosis', 'pump'], names: ['Selective passage', 'Red cell osmosis', 'Ion pump'] },
-  { key: 'blood', name: 'Blood', c: 'rbc', eyebrow: 'Blood cells', title: 'Couriers and defenders',
-    blurb: 'A to-scale line-up of the red cell, every kind of white cell and platelets. Watch each one at work, with radiology links.',
-    ids: ['blood'], names: ['Red cell', 'Neutrophil', 'Lymphocytes', 'Monocyte', 'Eosinophil', 'Basophil'] },
-  { key: 'muscle', name: 'Muscle cells', c: 'rbc', eyebrow: 'Muscle cells and fiber types',
+  { key: 'muscle', name: 'Muscle cells', c: 'schwann', eyebrow: 'Muscle cells and fiber types',
     title: 'From nerve signal to force', blurb: 'Watch calcium release and filaments slide, then compare fiber types and muscle tissues.',
     ids: ['muscle-contraction', 'muscle-structure', 'muscle-fibers', 'muscle-tissues'],
     names: ['Signal to force', 'Inside the fiber', 'Fiber types', 'Three muscle tissues'] },
-  { key: 'endocrine', name: 'Endocrine signaling', c: 'insulin', eyebrow: 'Endocrine signaling',
-    title: 'How hormones coordinate cells', blurb: 'Locate the glands, watch pancreatic cells secrete into blood or a duct, and follow hormones to their receptors.',
-    ids: ['endocrine-map', 'endocrine-secretion', 'endocrine-targets', 'endocrine-receptors', 'endocrine-patterns', 'endocrine-feedback'],
-    names: ['Gland map', 'Blood or duct', 'Signals and targets', 'Two receptor routes', 'Hormone patterns', 'Feedback through time'] },
+  { key: 'blood', name: 'Blood', c: 'rbc', eyebrow: 'Blood cells', title: 'Couriers and defenders',
+    blurb: 'A to-scale line-up of the red cell, every kind of white cell and platelets. Watch each one at work, with radiology links.',
+    ids: ['blood'], names: ['Red cell', 'Neutrophil', 'Lymphocytes', 'Monocyte', 'Eosinophil', 'Basophil', 'Platelets'] },
+  { key: 'hormones', name: 'Hormones & endocrine', c: 'insulin', eyebrow: 'Endocrine signaling · insulin and glucose', title: 'How hormones coordinate the body',
+    blurb: 'Map the glands and their receptor routes, follow insulin from the islet and beta cell to muscle, see what goes wrong in diabetes and why it matters before an FDG-PET scan, then trace the feedback loops behind reproductive hormones.',
+    ids: ['endocrine-map', 'endocrine-receptors', 'endocrine-secretion', 'islet', 'beta', 'receptor', 'balance', 'diabetes', 'petprep', 'endocrine-patterns', 'endocrine-feedback'],
+    names: ['Gland map', 'Receptor routes', 'Blood or duct', 'Islet', 'Release', 'Muscle response', 'Balance', 'Diabetes', 'PET prep', 'Hormone patterns', 'Feedback loops'] },
   { key: 'nephron', name: 'Nephron cells', c: 'electron', eyebrow: 'The kidney nephron',
     title: 'Follow fluid through the nephron',
     blurb: 'Watch blood filtration, glucose recovery, the loop of Henle, and hormone control in the collecting duct.',
     ids: ['nephron-overview', 'glomerular-filtration', 'proximal-tubule', 'nephron-loop', 'collecting-duct'],
     names: ['Follow the filtrate', 'Filter blood', 'Reclaim glucose', 'Build a gradient', 'Adjust the final mix'] },
-  { key: 'reproduction', name: 'Reproductive cells', c: 'sphase', eyebrow: 'Reproductive cells and fertilization',
+  { key: 'reproduction', name: 'Reproductive cells', c: 'chrom-a', eyebrow: 'Reproductive cells and fertilization',
     title: 'From gametes to a blastocyst', blurb: 'Compare sperm and oocytes, track chromosomes through meiosis, and see fertilization and early cleavage in 3D.',
     ids: ['gametes', 'human-meiosis', 'fertilization', 'early-cleavage'], names: ['Sperm and oocyte', 'Meiosis', 'Fertilization', 'Early cleavage'] },
 ];
 const registry = {};
 const CellCity = { register(key, def) { registry[key] = def; } };
 const moduleFor = (id) => MANIFEST.find(x => x.ids.includes(id));
+// Old chapter links that moved when modules were merged, so bookmarks still land somewhere sensible.
+const ALIASES = { 'endocrine-targets': 'endocrine-receptors' };
 
 /* ---------- 3D world shared by all modules ---------- */
 const GROUPS = {}, UNITS_PER_NM = {}, FOG = {}, DEPTH = {}, FADE_TEXT = {}, POSES = {}, B = {}, ambients = [];
@@ -474,7 +475,8 @@ function showChapter(i, detail) {
 }
 
 function go(route) {
-  const [id, detail] = route.split('/');
+  let [id, detail] = route.split('/');
+  if (Object.hasOwn(ALIASES, id)) id = ALIASES[id];
   const info = moduleFor(id);
   if (!info) { showHome(); return; }
   const token = ++routeToken;

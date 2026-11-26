@@ -111,7 +111,7 @@ const READ = {
   er() {
     const o = erOutcome(W.variant);
     const text = {
-      normal: 'The signal peptide leads the growing chain into the ER and is then cut off, leaving <b>proinsulin</b>. In the oxidising ER it folds and forms three disulfide bonds. Correctly folded proinsulin can leave.',
+      normal: 'The signal peptide leads the growing chain into the ER and is then cut off, leaving <b>proinsulin</b>. In the oxidizing ER it folds and forms three disulfide bonds. Correctly folded proinsulin can leave.',
       misfold: '<b>A wrong or missing cysteine stops proper folding.</b> Misfolded proinsulin can bond to normal proinsulin and hold it back too. The build-up stresses the ER and can kill beta cells. Some INS mutations cause diabetes this way.',
       nosignal: '<b>A thought experiment:</b> with no signal peptide, the chain has no ticket into the ER. It would stay in the cytosol, unable to follow this route out of the cell.',
     }[W.variant];
@@ -119,8 +119,8 @@ const READ = {
   },
   golgi() {
     const r = sortingRoute(W.cargo);
-    const extra = W.cargo === 'constitutive' ? ' Plasma cells, the antibody factories in <a href="#blood">Blood</a>, secrete this way and are packed with rough ER.' : W.cargo === 'lyso' ? ' Receptors recognise the sugar tag and divert the enzyme.' : ' Human insulin carries no N-linked sugar chains.';
-    return `<ol class="chain">${row('Sorting signal', r.signal, true)}${row('Destination', r.to, true)}</ol><p>All three travel from the cis face towards the trans face, then part ways in the trans-Golgi network.${extra}</p>`;
+    const extra = W.cargo === 'constitutive' ? ' Plasma cells, the antibody factories in <a href="#blood">Blood</a>, secrete this way and are packed with rough ER.' : W.cargo === 'lyso' ? ' Receptors recognize the sugar tag and divert the enzyme.' : ' Human insulin carries no N-linked sugar chains.';
+    return `<ol class="chain">${row('Sorting signal', r.signal, true)}${row('Destination', r.to, true)}</ol><p>All three travel from the cis face toward the trans face, then part ways in the trans-Golgi network.${extra}</p>`;
   },
   granule() {
     return {
@@ -166,15 +166,15 @@ const panel = (id, inner) => { current = id; return `<div class="lab">${inner}<d
 const link = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
 const sources = (items, extra = '') => `<p class="credit">Sources: ${items.join(' · ')}. ${extra}</p>`;
 const SRC = {
-  fcb: link('https://open.oregonstate.education/cellbiology', 'Dalton &amp; Young, <i>Fundamentals of Cell Biology</i> (CC BY-NC 4.0), ch. 3–4, summarised and adapted'),
+  fcb: link('https://open.oregonstate.education/cellbiology', 'Dalton &amp; Young, <i>Fundamentals of Cell Biology</i> (CC BY-NC 4.0), ch. 3–4, summarized and adapted'),
   refseq: link('https://www.ncbi.nlm.nih.gov/nuccore/NM_000207.3', 'NCBI RefSeq NM_000207.3'),
   ensembl: link('https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000254647', 'Ensembl INS gene'),
   uniprot: link('https://www.uniprot.org/uniprotkb/P01308/entry', 'UniProt P01308 (CC BY 4.0)'),
   pdb: link('https://www.rcsb.org/structure/1MSO', 'PDB 1MSO, human insulin at 1.0 Å (CC0)'),
-  entry: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC6463291', 'preproinsulin entry into the ER'),
-  folding: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC4404187', 'proinsulin folding and INS mutations'),
-  process: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC7734662', 'proinsulin processing'),
-  pet: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC5226808', 'amino acid PET tracer uptake'),
+  entry: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC6463291/', 'preproinsulin entry into the ER'),
+  folding: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC4404187/', 'proinsulin folding and INS mutations'),
+  process: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC7734662/', 'proinsulin processing'),
+  pet: link('https://pmc.ncbi.nlm.nih.gov/articles/PMC5226808/', 'amino acid PET tracer uptake'),
 };
 
 const CHAPTERS = [
@@ -189,7 +189,7 @@ const CHAPTERS = [
       ${geneMap()}
       <ul class="facts">
         <li>The stretch shown is <b>1,431 base pairs</b>: three <b>exons</b> (boxes) and two <b>introns</b> (lines).</li>
-        <li>Everything is copied into RNA. The introns are cut out afterwards.</li>
+        <li>Everything is copied into RNA. The introns are cut out afterward.</li>
         <li><b>Transcription</b> uses DNA to make RNA. In RNA, uracil (U) takes the place of thymine (T).</li>
         <li>Controlling sequences nearby, not shown, help decide when and how strongly the gene is read.</li>
       </ul>
@@ -223,7 +223,7 @@ const CHAPTERS = [
         <li>Several ribosomes can read one mRNA at the same time.</li>
         <li>Bacterial ribosomes differ from ours, which is why several antibiotics can target them.</li>
       </ul>
-      <div class="callout"><span class="eyebrow">Radiology link</span><p>Brain tumour PET with amino acid tracers (¹¹C-methionine, ¹⁸F-FET, ¹⁸F-FDOPA) uses building blocks like these. Their uptake in gliomas appears to be driven mainly by <b>L-type amino acid transporters</b>, so a bright signal should not be read simply as protein synthesis. The picture for FET is less settled.</p></div>
+      <div class="callout"><span class="eyebrow">Radiology link</span><p>Brain tumor PET with amino acid tracers (¹¹C-methionine, ¹⁸F-FET, ¹⁸F-FDOPA) uses building blocks like these. Their uptake in gliomas appears to be driven mainly by <b>L-type amino acid transporters</b>, so a bright signal should not be read simply as protein synthesis. The picture for FET is less settled.</p></div>
       ${sources([SRC.refseq, SRC.uniprot, SRC.pet], 'The codons and amino acids are real. The 3D ribosome is schematic and the playback is far slower than life.')}`,
   },
   {
@@ -250,8 +250,8 @@ const CHAPTERS = [
       <p class="lede">Vesicles carry proinsulin from the ER to the <b>Golgi</b>. It enters on the <b>cis</b> face and leaves from the <b>trans</b> face, where cargo is sorted by destination.</p>
       ${panel('golgi', seg('cargo'))}
       <ul class="facts">
-        <li><b>COPII</b> coats vesicles leaving the ER. <b>COPI</b> vesicles carry material backwards, including from the Golgi to the ER.</li>
-        <li>In the favoured <b>cisternal maturation</b> model, each layer moves forward and matures, while resident enzymes are sent back. Some transport by vesicles probably happens too.</li>
+        <li><b>COPII</b> coats vesicles leaving the ER. <b>COPI</b> vesicles carry material backward, including from the Golgi to the ER.</li>
+        <li>In the favored <b>cisternal maturation</b> model, each layer moves forward and matures, while resident enzymes are sent back. Some transport by vesicles probably happens too.</li>
         <li>Many proteins gain or change sugar chains here.</li>
         <li><b>SNARE</b> proteins help each vesicle fuse with the right target.</li>
       </ul>
@@ -546,7 +546,7 @@ CellCity.register('protein', {
     /* ================= 5. GOLGI ================= */
     const gGolgi = new THREE.Group(); scene.add(gGolgi);
     const LAYERS = [-8, -4, 0, 4, 8];
-    LAYERS.forEach((x, i) => {                        // curved, flattened sacs, bulging towards the cis face
+    LAYERS.forEach((x, i) => {                        // curved, flattened sacs, bulging toward the cis face
       const half = 8.6 - Math.abs(i - 2) * 0.7;
       const pts = []; for (let k = 0; k <= 16; k++) { const y = -half + half * k / 8; pts.push(new V3(0, y, 0).setX(0.045 * y * y - 1.2)); }
       const mat = std(P.golgi, { transparent: true, opacity: 0.55, depthWrite: false, emissiveIntensity: 0.2 + i * 0.05 });
@@ -618,10 +618,10 @@ CellCity.register('protein', {
     function structure(parent, chainFilter, scale) {
       const root = new THREE.Group(); parent.add(root);
       const keep = HEXAMER.chains.filter(chainFilter);
-      const centre = new V3(); let n = 0;
-      keep.forEach(c => c.ca.forEach(p => { centre.add(new V3(...p)); n++; }));
-      centre.multiplyScalar(1 / n);
-      const at = (p) => new V3(...p).sub(centre).multiplyScalar(scale);
+      const center = new V3(); let n = 0;
+      keep.forEach(c => c.ca.forEach(p => { center.add(new V3(...p)); n++; }));
+      center.multiplyScalar(1 / n);
+      const at = (p) => new V3(...p).sub(center).multiplyScalar(scale);
       keep.forEach(c => {
         const color = c.type === 'A' ? P.achain : P.bchain;
         const curve = new THREE.CatmullRomCurve3(c.ca.map(at));
@@ -685,7 +685,7 @@ CellCity.register('protein', {
       }
     }
 
-    /* ================= camera and behaviours ================= */
+    /* ================= camera and behaviors ================= */
     const POSES = {
       gene: { pos: new V3(0, 2, 56), target: new V3(0, -2, 0), group: 'pfGene', w: 25 },
       mrna: { pos: new V3(0, 0, 58), target: new V3(1, -2, 0), group: 'pfRna', w: 32 },

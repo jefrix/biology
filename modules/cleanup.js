@@ -67,7 +67,7 @@ const defectButtons = () => `<div class="seg" role="group" aria-label="Inherited
 
 const WAYS = {
   receptor: ['Receptor-mediated endocytosis', 'Receptors catch one kind of cargo and gather in a patch. <b>Clathrin</b> builds a cage that bends the patch into a bud, and <b>dynamin</b> pinches it off. The coat comes off, the vesicle joins an <b>endosome</b>, and there the mildly acidic fluid parts LDL from its receptor.'],
-  phago: ['Phagocytosis: cell eating', 'The cell wraps its membrane around something large, such as a bacterium, using its actin skeleton. A lysosome then fuses with the new compartment and delivers digestive enzymes. In our bodies this is mainly the work of specialised cells such as <a href="#blood">macrophages and neutrophils</a>.'],
+  phago: ['Phagocytosis: cell eating', 'The cell wraps its membrane around something large, such as a bacterium, using its actin skeleton. A lysosome then fuses with the new compartment and delivers digestive enzymes. In our bodies this is mainly the work of specialized cells such as <a href="#blood">macrophages and neutrophils</a>.'],
   pino: ['Pinocytosis: cell drinking', 'Small vesicles take in sips of the surrounding fluid and whatever is dissolved in it. It happens all the time and is not very selective. It also takes membrane back in, which balances what <a href="#export">exocytosis</a> adds.'],
 };
 
@@ -78,7 +78,7 @@ const READ = {
     const r = ldlUptake(C_.receptors);
     return `<ol class="chain">${row('LDL taken in by this route', r.taken ? 'yes' : 'no', r.taken)}${row('LDL level outside the cell', r.outside, !r.taken)}</ol><p>${r.taken
       ? text + ' The receptor goes back to the surface to be used again, while LDL moves on to a lysosome that frees its cholesterol.'
-      : 'With no working receptors, LDL is not captured and stays in the blood. Faults in the LDL receptor gene are the most common cause of <b>familial hypercholesterolaemia</b>, which raises the risk of early heart disease.'}</p>`;
+      : 'With no working receptors, LDL is not captured and stays in the blood. Faults in the LDL receptor gene are the most common cause of <b>familial hypercholesterolemia</b>, which raises the risk of early heart disease.'}</p>`;
   },
   lysosome() {
     const ph = lysoPH(C_.pump === 'on');
@@ -94,7 +94,7 @@ const READ = {
     return `<ol class="chain">${row('1 · Tagged with a ubiquitin chain', C_.tag === 'chain' ? 'yes' : 'no', C_.tag === 'chain')}${row('2 · Unfolded and fed in, using ATP', f === 'degraded' ? 'yes' : 'no', f === 'degraded')}${row('3 · Cut into short peptides', f === 'degraded' ? 'yes' : 'no', f === 'degraded')}</ol><p>${f === 'stays'
       ? 'In this scene the untagged protein drifts past. The tag is the main way a protein is picked out for the proteasome.'
       : f === 'piles' ? '<b>Blocked.</b> Tagged proteins arrive but cannot be destroyed, so they pile up. Drugs that block the proteasome are used against some cancers.'
-        : 'The cap recognises the chain, takes the ubiquitin off to be reused, unfolds the protein and threads it into the central chamber. Other enzymes in the cytosol then trim nearly all the short pieces to single amino acids.'}</p>`;
+        : 'The cap recognizes the chain, takes the ubiquitin off to be reused, unfolds the protein and threads it into the central chamber. Other enzymes in the cytosol then trim nearly all the short pieces to single amino acids.'}</p>`;
   },
   autophagy() {
     const lvl = autophagyLevel(C_.food), r = mitoRoute(C_.mito, C_.pink);
@@ -110,7 +110,7 @@ const READ = {
     const p = peroxide(C_.catalase);
     return `<ol class="chain">${row('Very long fatty acid shortened', 'yes', true)}${row('H₂O₂ made as a by-product', 'yes', true)}${row('H₂O₂ cleared by catalase', p === 'cleared' ? 'yes' : 'no', p === 'cleared')}</ol><p>${p === 'cleared'
       ? 'Peroxisomes trim very long fatty acids. Mitochondria handle most of the shorter ones. The first trimming step makes hydrogen peroxide, and <b>catalase</b> next door turns it into water and oxygen.'
-      : 'In this scene catalase is missing, so hydrogen peroxide lingers. Real cells have other enzymes that can also remove peroxide, so this shows one part of the defence only.'}</p><div class="eq wrapeq">2 H₂O₂ → 2 H₂O + O₂</div>`;
+      : 'In this scene catalase is missing, so hydrogen peroxide lingers. Real cells have other enzymes that can also remove peroxide, so this shows one part of the defense only.'}</p><div class="eq wrapeq">2 H₂O₂ → 2 H₂O + O₂</div>`;
   },
   storage() {
     const d = DEFECTS[C_.defect];
@@ -137,9 +137,9 @@ const panel = (id, inner) => { current = id; return `<div class="lab">${inner}<d
 const link = (href, text) => `<a href="${href}" target="_blank" rel="noopener">${text}</a>`;
 const sources = (items, extra = '') => `<p class="credit">Sources: ${items.join(' · ')}. ${extra}</p>`;
 const SRC = {
-  fcb: link('https://open.oregonstate.education/cellbiology', 'Dalton &amp; Young, <i>Fundamentals of Cell Biology</i> (CC BY-NC 4.0), ch. 4, summarised and adapted'),
+  fcb: link('https://open.oregonstate.education/cellbiology', 'Dalton &amp; Young, <i>Fundamentals of Cell Biology</i> (CC BY-NC 4.0), ch. 4, summarized and adapted'),
   bol: 'Bolsover et al., <i>Cell Biology</i> (2004)',
-  fh: link('https://medlineplus.gov/genetics/condition/familial-hypercholesterolemia/', 'MedlinePlus, familial hypercholesterolaemia'),
+  fh: link('https://medlineplus.gov/genetics/condition/familial-hypercholesterolemia/', 'MedlinePlus, familial hypercholesterolemia'),
   prot: link('https://doi.org/10.1016/j.cell.2017.04.023', 'Collins and Goldberg 2017, the 26S proteasome'),
   auto: link('https://doi.org/10.1038/s41580-018-0003-4', 'Dikic and Elazar 2018, mammalian autophagy (abstract)'),
   ulk: link('https://doi.org/10.1038/ncb2152', 'Kim et al. 2011, AMPK, mTOR and ULK1 (abstract)'),
@@ -166,7 +166,7 @@ const CHAPTERS = [
   },
   {
     id: 'lysosome', short: 'Lysosome', where: 'Inside a lysosome',
-    title: 'The recycling centre',
+    title: 'The recycling center',
     legend: [['lyso', 'Lysosome membrane'], ['proton', 'H⁺'], ['golgi', 'Digestive enzyme'], ['fat', 'Large molecule'], ['glucose', 'Small pieces']],
     html: () => `
       <p class="lede">A lysosome is a bag of acid and digestive enzymes. It takes apart proteins, fats, sugars and nucleic acids, then hands the building blocks back to the cell.</p>
@@ -219,7 +219,7 @@ const CHAPTERS = [
       <ul class="facts">
         <li>They shorten <b>very long fatty acids</b>, working in partnership with <a href="#krebs">mitochondria</a> and other organelles.</li>
         <li>They also help process some branched fatty acids and steps in making bile acids.</li>
-        <li>Unlike lysosomes, they do not receive their enzymes from the Golgi. Their proteins are made on free ribosomes and imported afterwards.</li>
+        <li>Unlike lysosomes, they do not receive their enzymes from the Golgi. Their proteins are made on free ribosomes and imported afterward.</li>
       </ul>
       ${sources([SRC.bol, SRC.perox, SRC.vlcfa], 'Only two jobs are drawn. The molecules are not to scale.')}`,
   },
@@ -342,21 +342,21 @@ CellCity.register('cleanup', {
       const travelV = span(u, 6.4, 8.6), release = span(u, 8.6, 9.8), recycle = span(u, 9.4, 11.6), onward = span(u, 9.8, 12.2);
       const budding = ok && free < 0.02;
       membrane(pitPath(budding ? 4.9 * dip : 0, pinch));
-      const centre = new V3(0, MY - 2.4, 0).lerp(new V3(0, -2.2, 0), free).lerp(new V3(-6.3, -5.4, 0), travelV);
-      vesicle.visible = ok && free > 0.02 && u < 9.4; vesicle.position.copy(centre); vesicle.scale.setScalar(mix(1, 0.55, travelV));
+      const center = new V3(0, MY - 2.4, 0).lerp(new V3(0, -2.2, 0), free).lerp(new V3(-6.3, -5.4, 0), travelV);
+      vesicle.visible = ok && free > 0.02 && u < 9.4; vesicle.position.copy(center); vesicle.scale.setScalar(mix(1, 0.55, travelV));
       const coatOn = ok ? span(u, 2.4, 3.8) * (1 - span(u, 6.3, 7.4)) : 0;
       coat.forEach((c, i) => {
         const d = coatDirs[i];
         c.visible = coatOn > 0.03 && (d.y < 0.55 || free > 0.02);
         if (free < 0.02) c.position.set(d.x * 3.7, MY - (4.9 * dip + 0.35) * Math.max(0, -d.y * 0.75 + 0.3), d.z * 2.1);
-        else c.position.copy(centre).addScaledVector(d, mix(2.85, 4.6, 1 - coatOn));
+        else c.position.copy(center).addScaledVector(d, mix(2.85, 4.6, 1 - coatOn));
         c.scale.setScalar(0.26 * Math.max(0.01, coatOn));
       });
       dyn.visible = ok && u > 4.5 && u < 6.1; dyn.position.set(0, MY - 0.6, 0); dyn.scale.setScalar(mix(1.9, 0.5, pinch));
       recs.forEach((r, i) => {
         const x = r.x0;
         const inPit = new V3(x * 0.95, MY - 4.9 * dip * Math.pow(Math.max(0, Math.cos(x / 3.4 * Math.PI / 2)), 0.6), 0);
-        const inVes = centre.clone().add(new V3(x * 0.55, -1.3, 0));
+        const inVes = center.clone().add(new V3(x * 0.55, -1.3, 0));
         const back = new V3(x * 1.6 + 6, MY, 0);
         const p = free < 0.02 ? inPit : inVes;
         if (recycle > 0) p.lerp(back, recycle).y += Math.sin(recycle * Math.PI) * 2.2;
@@ -370,7 +370,7 @@ CellCity.register('cleanup', {
         if (release > 0) {
           const inEndo = new V3(-7.5 + (i - 1.5) * 0.8, -5.4 + (i % 2) * 0.9, 0);
           const inLyso = new V3(8 + (i - 1.5) * 0.9, -6.4 + (i % 2) * 0.8, 0);
-          p = centre.clone().add(new V3(l.x0 * 0.5, 0.2, 0)).lerp(inEndo, release);
+          p = center.clone().add(new V3(l.x0 * 0.5, 0.2, 0)).lerp(inEndo, release);
           if (onward > 0) { p.lerp(inLyso, onward); p.y -= Math.sin(onward * Math.PI) * 2; }
         }
         l.o.position.copy(p); l.o.scale.setScalar(mix(1, 0.2, span(u, 12.2, 13.4)));
@@ -401,14 +401,14 @@ CellCity.register('cleanup', {
     function drawPino(u) {
       const dip = span(u, 1, 3.6), pinch = span(u, 3.6, 4.8), free = span(u, 4.8, 5.4), go = span(u, 5.4, 8.6);
       membrane(pitPath(free < 0.02 ? 3.6 * dip : 0, pinch));
-      const centre = new V3(0, MY - 2, 0).lerp(new V3(0, -1.6, 0), free).lerp(new V3(-6.5, -5.4, 0), go);
-      vesicle.visible = free > 0.02 && u < 9.6; vesicle.position.copy(centre); vesicle.scale.setScalar(0.7);
+      const center = new V3(0, MY - 2, 0).lerp(new V3(0, -1.6, 0), free).lerp(new V3(-6.5, -5.4, 0), go);
+      vesicle.visible = free > 0.02 && u < 9.6; vesicle.position.copy(center); vesicle.scale.setScalar(0.7);
       sips.forEach((s, i) => {
         const home = sipHome[i].clone().add(new V3(0, MY, 0));
         if (i % 2) { s.position.copy(home).add(new V3(Math.sin(u + i) * 1.4, 1.2, 0)); return; }
         const inPit = new V3(sipHome[i].x * 0.5, MY - 3.6 * dip * 0.55 + sipHome[i].z * 0.5, sipHome[i].z * 0.6);
         const p = home.lerp(inPit, dip);
-        if (free > 0.02) p.copy(centre).add(new V3(sipHome[i].x * 0.4, (sipHome[i].y - 2.6) * 0.4, sipHome[i].z * 0.6));
+        if (free > 0.02) p.copy(center).add(new V3(sipHome[i].x * 0.4, (sipHome[i].y - 2.6) * 0.4, sipHome[i].z * 0.6));
         s.position.copy(p);
       });
     }
@@ -513,11 +513,11 @@ CellCity.register('cleanup', {
     function prTick(t) {
       const u = loopTime(t, 14), fate = proteinFate(C_.tag, C_.blocker === 'yes');
       const arrive = span(u, 0.4, 3.4), unfold = fate === 'degraded' ? span(u, 4, 6) : 0, feed = fate === 'degraded' ? clamp((u - 5.6) / 5.4) : 0;
-      let centre = new V3(-8, 10.5, 0).lerp(new V3(0, 8.9, 0), arrive);
-      if (fate === 'stays') centre = new V3(mix(-13, 13, clamp(u / 13)), 9.4 + Math.sin(u) * 0.5, 2);
+      let center = new V3(-8, 10.5, 0).lerp(new V3(0, 8.9, 0), arrive);
+      if (fate === 'stays') center = new V3(mix(-13, 13, clamp(u / 13)), 9.4 + Math.sin(u) * 0.5, 2);
       const head = mix(7.4, -7.4 - LEN * 0.42, feed);
       strand.forEach((s, i) => {
-        const folded = centre.clone().add(foldPos[i]);
+        const folded = center.clone().add(foldPos[i]);
         const line = new V3(Math.sin(i * 1.3) * 0.18, head + i * 0.42, Math.cos(i * 1.3) * 0.18);
         s.position.copy(folded).lerp(line, unfold);
         s.visible = !(unfold > 0.95 && s.position.y < 1.2);                  // gone once it reaches the cutting chamber
@@ -525,7 +525,7 @@ CellCity.register('cleanup', {
       const off = fate === 'degraded' ? span(u, 4.4, 6.4) : 0;
       ubs.forEach((b, i) => {
         b.visible = C_.tag === 'chain';
-        const on = centre.clone().add(new V3(1.7 + i * 0.75, 0.6 + i * 0.62, 0));
+        const on = center.clone().add(new V3(1.7 + i * 0.75, 0.6 + i * 0.62, 0));
         b.position.copy(on).lerp(new V3(10 + i * 1.2, 7 - i * 1.5, 1), off);
       });
       pile.forEach((p, i) => {
@@ -536,7 +536,7 @@ CellCity.register('cleanup', {
       bar.visible = C_.blocker === 'yes';
       caps.forEach((c, i) => { c.rotation.y = fate === 'degraded' && !reduceMotion && u > 4 && u < 11 ? (i ? -1 : 1) * u * 1.2 : 0; });
       if (fate === 'degraded') {
-        cue(u, 3.5, 'dock', () => say(prGroup, 'tag recognised', P.atp, new V3(-7.4, 7.4, 3), 2));
+        cue(u, 3.5, 'dock', () => say(prGroup, 'tag recognized', P.atp, new V3(-7.4, 7.4, 3), 2));
         cue(u, 5.2, 'ub', () => say(prGroup, 'ubiquitin reused', P.atp, new V3(10, 10, 3), 2.4));
         cue(u, 6.4, 'atp', () => say(prGroup, 'ATP spent unfolding', P.atp, new V3(-8, 4.6, 3), 2.6));
         cue(u, 7, 'out', () => {
@@ -718,7 +718,7 @@ CellCity.register('cleanup', {
       stGroup.rotation.y = reduceMotion ? 0 : Math.sin(t * 0.25) * 0.3;
     }
 
-    /* ================= labels, camera, behaviours ================= */
+    /* ================= labels, camera, behaviors ================= */
     // labels whose subject is currently absent are marked data-off and hidden by the stylesheet
     const POSES = {
       intake: { pos: new V3(0, 1, 40), target: new V3(0, 0.5, 0), group: 'intake', w: 15 },

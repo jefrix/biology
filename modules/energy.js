@@ -4,14 +4,14 @@
 
 const ORGANELLES = [
   { id: 'nucleus', name: 'Nucleus', role: 'Head office & archive', c: 'nucleus',
-    text: 'Holds the blueprints: about 2 metres of DNA folded into a sphere roughly 6 µm across. Orders go out as messenger RNA through thousands of nuclear pores.' },
+    text: 'Holds the blueprints: about 2 meters of DNA folded into a sphere roughly 6 µm across. Orders go out as messenger RNA through thousands of nuclear pores.' },
   { id: 'er', name: 'Rough ER', role: 'Production line', c: 'membrane',
     text: 'A maze of membrane sheets studded with ribosomes. Proteins meant for export or for membranes are built and folded here.' },
   { id: 'golgi', name: 'Golgi apparatus', role: 'Shipping & packaging', c: 'golgi',
     text: 'A stack of flattened sacs that trims, tags and sorts proteins, then buds them off in vesicles addressed to their destination.' },
   { id: 'mito', name: 'Mitochondria', role: 'Power plants', c: 'mito',
     text: 'Where the Krebs cycle and the electron transport chain run. A liver cell has around a thousand or more; heart muscle is packed with them.' },
-  { id: 'lyso', name: 'Lysosomes', role: 'Recycling centre', c: 'lyso',
+  { id: 'lyso', name: 'Lysosomes', role: 'Recycling center', c: 'lyso',
     text: 'Acidic sacs (pH about 4.5 to 5) full of digestive enzymes that break down worn-out parts and anything the cell swallows.' },
   { id: 'ribo', name: 'Ribosomes', role: 'Assembly benches', c: 'co2',
     text: 'Molecular machines that read mRNA and link amino acids into proteins. Free ribosomes make proteins such as the enzymes of glycolysis in the cytosol. ER-bound ribosomes make proteins such as glucose transporters destined for the plasma membrane.' },
@@ -152,7 +152,7 @@ const CHAPTERS = [
       <div class="callout">
         <span class="eyebrow">Radiology link · FDG-PET</span>
         <p><b>¹⁸F-FDG</b> is glucose with one oxygen swapped for radioactive fluorine. It enters through the same GLUT gates and hexokinase phosphorylates it, but FDG-6-phosphate cannot continue down glycolysis, so it stays trapped in the cell.</p>
-        <p>A PET scan maps that trapped tracer. Tissues burning lots of glucose light up: brain, heart, active muscle and many tumours, which lean heavily on glycolysis (the Warburg effect). Watch for the orange molecule in the 3D view.</p>
+        <p>A PET scan maps that trapped tracer. Tissues burning lots of glucose light up: brain, heart, active muscle and many tumors, which lean heavily on glycolysis (the Warburg effect). Watch for the orange molecule in the 3D view.</p>
       </div>
       <details>
         <summary>All ten steps</summary>
@@ -189,7 +189,7 @@ const CHAPTERS = [
     title: 'The Krebs cycle',
     legend: [['tag-m', 'Traced C (was CH₃)'], ['tag-k', 'Traced C (was C=O)'], ['carbon', 'Other carbon'], ['oxygen', 'Oxygen'], ['nadh', 'NADH'], ['fadh', 'FADH₂'], ['atp', 'GTP'], ['co2', 'CO₂']],
     html: () => `
-      <p class="lede">Each turn takes in a 2-carbon acetyl group, releases two carbons as CO₂ and loads the electrons onto carrier molecules. The molecule in the middle is the current intermediate in 3D. Follow the two coloured carbons from your first acetyl group.</p>
+      <p class="lede">Each turn takes in a 2-carbon acetyl group, releases two carbons as CO₂ and loads the electrons onto carrier molecules. The molecule in the middle is the current intermediate in 3D. Follow the two colored carbons from your first acetyl group.</p>
       <div class="krebs">
         <div class="step-card" id="kCard"></div>
         <div class="ctl">
@@ -221,7 +221,7 @@ const CHAPTERS = [
       <p class="credit">3D shapes are computed conformers from <a href="https://pubchem.ncbi.nlm.nih.gov/" target="_blank" rel="noopener">PubChem</a> (CIDs 970, 31348, 5459771, 164533, 160419, 5460307, 5459792), shown enlarged, with hydrogens hidden and acids as their ions. PubChem had no 3D record for succinyl-CoA, so it is a schematic adapted from succinate with coenzyme A abbreviated. A conformer is one possible shape; in water these molecules flex.</p>`,
   },
   {
-    id: 'etc', short: 'ETC', where: 'Inner mitochondrial membrane · nanometre scale',
+    id: 'etc', short: 'ETC', where: 'Inner mitochondrial membrane · nanometer scale',
     title: 'The electron transport chain',
     legend: [['electron', 'Electrons (2e⁻)'], ['proton', 'H⁺ protons'], ['atp', 'ATP'], ['fadh', 'Ubiquinone (Q)'], ['mito', 'Cytochrome c']],
     html: () => `
@@ -229,7 +229,7 @@ const CHAPTERS = [
       <ul class="facts">
         <li>${m('NADH', 'nadh')} feeds Complex I and ${m('FADH₂', 'fadh')} feeds Complex II. Ubiquinone (Q) ferries electrons to Complex III, and cytochrome c carries them to Complex IV.</li>
         <li>Complex IV hands the electrons to <b>oxygen</b>, which picks up protons and becomes water. This is why you breathe. Cyanide and carbon monoxide block Complex IV.</li>
-        <li>Complexes I, III and IV use the energy to pump ${m('H⁺', 'proton')} into the intermembrane space: about 10 protons per NADH. That builds a charge of roughly 150 to 180 mV across a membrane only a few nanometres thick.</li>
+        <li>Complexes I, III and IV use the energy to pump ${m('H⁺', 'proton')} into the intermembrane space: about 10 protons per NADH. That builds a charge of roughly 150 to 180 mV across a membrane only a few nanometers thick.</li>
         <li>Protons flow back through <b>ATP synthase</b>, a true rotary motor. The flow spins its rotor, and each full turn makes 3 ${m('ATP', 'atp')}.</li>
         <li>Roughly 2.5 ATP per NADH and 1.5 per FADH₂. Brown fat lets protons leak back through UCP1 instead, releasing the energy as heat.</li>
       </ul>`,
@@ -848,7 +848,7 @@ CellCity.register('energy', {
 
   // Krebs cycle
   const K = { step: 0, turn: 1, start: 0, hold: 2.4, move: 1.8, playing: true, emitted: false, arrived: false, trace: makeTrace(Math.random) };
-  // what is on the ring now: the substrate before the reaction, the product afterwards
+  // what is on the ring now: the substrate before the reaction, the product afterward
   function kShown() {
     const t = K.trace(K.turn);
     if (!K.emitted) return { node: K.step, labs: t.nodes[K.step] };
