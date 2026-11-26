@@ -30,6 +30,24 @@ const run = source => vm.runInContext(source, context);
 async function main() {
   run(read('shared/core.js'));
   assert.equal(run('G3'), null);
+  // The home screen is a microscope bench: 11 glass slides in two trays, with Energy loaded on the stage.
+  const keys = Array.from(run('MANIFEST'), x => x.key);
+  const trays = element('#slideTrays').innerHTML;
+  assert.deepEqual(Array.from(trays.matchAll(/data-key="([^"]+)"/g), x => x[1]), keys, 'one slide per module, in curriculum order');
+  assert.match(trays, /Cell mechanisms[\s\S]*data-key="division"[\s\S]*Cells in tissues[\s\S]*data-key="neural"/);
+  assert.equal(element('#scopeTitle').textContent, 'Energy');
+  assert.equal(element('#scopeOpen').href, '#cell');
+  for (const x of run('MANIFEST')) {
+    run('selectSlide(' + JSON.stringify(x.key) + ')');
+    assert.equal(element('#scopeTitle').textContent, x.name);
+    assert.equal(element('#scopeOpen').href, '#' + x.ids[0]);
+    assert.match(element('#stageSlot').innerHTML, new RegExp('>' + x.name + '<'));
+    const links = Array.from(element('#scopeChapters').innerHTML.matchAll(/href="#([^"]+)"/g), m => m[1]);
+    assert.equal(links.length, x.names.length, x.key + ' has a chapter pill per chapter');
+    links.forEach(route => assert.equal(run('moduleFor(' + JSON.stringify(route.split('/')[0]) + ')').key, x.key, route + ' opens ' + x.key));
+  }
+  run("selectSlide('blood')");
+  assert.match(element('#scopeChapters').innerHTML, /#blood\/rbc[\s\S]*#blood\/plt/);
   const seen = new Set();
   for (const { key, ids } of run('MANIFEST')) {
     run('go(' + JSON.stringify(ids[0]) + ')');
@@ -71,7 +89,10 @@ async function main() {
   run("go('endocrine-targets')");
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(context.location.hash, '#endocrine-receptors', 'old endocrine-targets links redirect');
-  console.log(seen.size + ' chapter routes, text-mode navigation, the red-cell exercise, the platelet card and the merged-module redirect passed.');
+  run('goHome()');
+  assert.equal(context.location.hash, '#home');
+  assert.equal(element('#scopeTitle').textContent, 'Hormones & endocrine', 'returning home puts the last module back on the stage');
+  console.log(seen.size + ' chapter routes, text-mode navigation, the red-cell exercise, the platelet card, the merged-module redirect and the microscope bench passed.');
 }
 main().catch(err => { console.error(err); process.exitCode = 1; });
 

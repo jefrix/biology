@@ -440,8 +440,11 @@ let chapters = [], moduleKey = null, chapterIndex = -1, routeToken = 0;
 function showHome() {
   routeToken++;
   if (G3) G3.rest();
+  // Coming back from a lesson puts that module's slide back on the stage; a first visit loads Energy.
+  const back = moduleKey || benchKey || MANIFEST[0].key;
   moduleKey = null; chapterIndex = -1;
   $('#home').hidden = false;
+  selectSlide(back, back !== benchKey);
   $('.app').inert = true;
   document.title = 'Cellular Biology';
 }
@@ -503,12 +506,149 @@ function go(route) {
 }
 function goHome() { setHash('home'); showHome(); }
 
+/* ---------- microscope bench: glass slide trays and the stage ---------- */
+// Specimen motifs drawn on a 100×100 grid: .f is a stained fill, .d a solid dot, everything else a stroke.
+const MOTIFS = {
+  energy: '<ellipse class="f" cx="50" cy="50" rx="40" ry="21"/><ellipse cx="50" cy="50" rx="33" ry="14"/><path d="M20 50c3-10 6-10 7 0s5 10 7 0 5-10 7 0 5 10 7 0 5-10 7 0 5 10 7 0 5-10 7 0 4 10 6 0"/><circle class="d" cx="30" cy="40" r="1.8"/><circle class="d" cx="66" cy="60" r="1.8"/><circle class="d" cx="74" cy="42" r="1.4"/>',
+  protein: '<ellipse class="f" cx="22" cy="64" rx="13" ry="9"/><ellipse class="f" cx="22" cy="54" rx="9" ry="6"/><path d="M34 58c6-22 12 22 18 0s12 22 18 0 10 18 16-2"/><circle class="d" cx="86" cy="56" r="3"/><circle class="d" cx="78" cy="48" r="2.4"/><circle class="d" cx="70" cy="46" r="2"/><path d="M60 28c8-6 16-6 24 2"/><circle class="d" cx="60" cy="28" r="2"/>',
+  cleanup: '<circle class="f" cx="46" cy="54" r="25"/><circle class="d" cx="38" cy="46" r="3"/><circle class="d" cx="52" cy="62" r="2.4"/><circle class="d" cx="56" cy="44" r="2"/><circle class="d" cx="40" cy="64" r="1.8"/><circle class="f" cx="82" cy="26" r="8"/><circle class="f" cx="18" cy="22" r="6"/><path d="M75 31l-7 6M23 27l5 6"/>',
+  transport: '<path d="M6 36h36M58 36h36M6 64h36M58 64h36"/><path class="f" d="M43 30h14v40H43z"/><path d="M50 12v76M44 80l6 8 6-8"/><g class="dots"><circle class="d" cx="10" cy="40" r="2"/><circle class="d" cx="20" cy="40" r="2"/><circle class="d" cx="30" cy="40" r="2"/><circle class="d" cx="70" cy="40" r="2"/><circle class="d" cx="80" cy="40" r="2"/><circle class="d" cx="90" cy="40" r="2"/><circle class="d" cx="10" cy="60" r="2"/><circle class="d" cx="20" cy="60" r="2"/><circle class="d" cx="30" cy="60" r="2"/><circle class="d" cx="70" cy="60" r="2"/><circle class="d" cx="80" cy="60" r="2"/><circle class="d" cx="90" cy="60" r="2"/></g>',
+  division: '<ellipse class="f" cx="50" cy="50" rx="42" ry="27"/><path d="M12 50l24-14M12 50l24 0M12 50l24 14M88 50L64 36M88 50H64M88 50L64 64" opacity=".55"/><path class="thick" d="M34 32l4 6-4 6M34 46l4 6-4 6M38 60l-4 6M66 32l-4 6 4 6M66 46l-4 6 4 6M62 60l4 6"/><circle class="d" cx="12" cy="50" r="2.6"/><circle class="d" cx="88" cy="50" r="2.6"/>',
+  neural: '<circle class="f" cx="34" cy="50" r="11"/><circle class="d" cx="34" cy="50" r="4"/><path d="M26 42L12 28M18 34l-8 2M28 60L14 76M20 68l-10-2M32 39L28 18M30 28l-8-6M42 42l6-16"/><path d="M45 52c10 0 14 2 46 4"/><rect class="f" x="52" y="49" width="10" height="7" rx="3.5"/><rect class="f" x="66" y="50" width="10" height="7" rx="3.5"/><rect class="f" x="80" y="51" width="8" height="7" rx="3.5"/>',
+  muscle: '<rect class="f" x="8" y="26" width="84" height="48" rx="10"/><path d="M14 26v48M50 26v48M86 26v48" class="thick"/><path d="M20 36h12M20 46h12M20 56h12M20 66h12M68 36h12M68 46h12M68 56h12M68 66h12" opacity=".6"/><path d="M28 41h16M28 51h16M28 61h16M56 41h16M56 51h16M56 61h16" class="thick"/>',
+  blood: '<circle class="f" cx="30" cy="34" r="15"/><circle cx="30" cy="34" r="6" opacity=".5"/><circle class="f" cx="66" cy="28" r="14"/><circle cx="66" cy="28" r="5.5" opacity=".5"/><circle class="f" cx="68" cy="70" r="15"/><circle cx="68" cy="70" r="6" opacity=".5"/><circle cx="28" cy="72" r="13" opacity=".8"/><path class="thick" d="M21 72c2-6 7-6 8 0s6 6 7 0" /><circle class="d" cx="48" cy="52" r="2"/><circle class="d" cx="86" cy="48" r="1.6"/><circle class="d" cx="50" cy="86" r="1.6"/>',
+  hormones: '<circle class="f" cx="50" cy="50" r="38" opacity=".7"/><circle cx="38" cy="38" r="8"/><circle cx="56" cy="34" r="8"/><circle cx="66" cy="50" r="8"/><circle cx="56" cy="66" r="8"/><circle cx="38" cy="64" r="8"/><circle cx="30" cy="50" r="7"/><circle cx="48" cy="50" r="7"/><circle class="d" cx="38" cy="38" r="2"/><circle class="d" cx="56" cy="34" r="2"/><circle class="d" cx="66" cy="50" r="2"/><circle class="d" cx="48" cy="50" r="2"/><circle class="d" cx="56" cy="66" r="2"/>',
+  nephron: '<path d="M44 16a26 26 0 1 0 6 51"/><circle class="f" cx="38" cy="38" r="9"/><circle class="f" cx="30" cy="48" r="8"/><circle class="f" cx="44" cy="50" r="9"/><circle class="f" cx="36" cy="58" r="7"/><path d="M50 67c14 0 10-14 22-14s8 18 16 18M88 71v18M80 89V74"/><path d="M18 30l-8-10M24 22L16 10" opacity=".6"/>',
+  reproduction: '<circle cx="44" cy="56" r="32" stroke-dasharray="3 3"/><circle class="f" cx="44" cy="56" r="26"/><circle class="d" cx="38" cy="50" r="5"/><ellipse class="f" cx="83" cy="18" rx="6" ry="4.4" transform="rotate(35 83 18)"/><path d="M78 14c-4-4-4 4-8 0s-4 4-8 0"/>',
+};
+const SLIDE_PREP = {
+  energy: 'Mitochondrial fluorescence', protein: 'Anti-insulin immunostain', cleanup: 'Lysosome fluorescence',
+  transport: 'Membrane dye', division: 'DNA stain, anaphase', neural: 'Golgi silver stain', muscle: 'Striated muscle, H&E',
+  blood: 'Wright–Giemsa smear', hormones: 'Islet immunostain', nephron: 'PAS, kidney cortex', reproduction: 'Phase contrast',
+};
+// Blood is one chapter with a card per cell; the cards that have their own routes get deep links.
+const SLIDE_LINKS = { blood: { 'Red cell': 'blood/rbc', Platelets: 'blood/plt' } };
+const TRAYS = [
+  { id: 'mechanisms', name: 'Cell mechanisms', tag: 'CM', note: 'What happens inside one cell', from: 0, to: 5 },
+  { id: 'tissues', name: 'Cells in tissues', tag: 'CT', note: 'Specialized cells and the systems they build', from: 5, to: MANIFEST.length },
+];
+const OBJECTIVES = { 4: 0.66, 10: 1, 40: 1.85 };
+let benchKey = null;
+
+const trayOf = (i) => TRAYS.find(t => i >= t.from && i < t.to);
+const slideNo = (i) => { const t = trayOf(i); return t.tag + '-' + String(i - t.from + 1).padStart(2, '0'); };
+const slideCount = (x) => (x.ids.length > 1 ? x.ids.length + ' ch' : x.names.length + ' cells');
+const motif = (key, cls) => `<svg class="motif ${cls}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">${MOTIFS[key] || ''}</svg>`;
+const setAttr = (el, name, value) => { if (el && el.setAttribute) el.setAttribute(name, value); };
+
+function slideMarkup(x, i, onStage) {
+  const inner = `<span class="slide-label"><span class="slide-no">${slideNo(i)}</span><span class="slide-name">${x.name}</span><span class="slide-ch">${slideCount(x)}</span></span>
+      <span class="slide-glass"><span class="coverslip">${motif(x.key, 'mini')}</span></span>`;
+  if (onStage) return `<div class="slide on-stage" style="--c:var(--${x.c})">${inner}</div>`;
+  return `<button type="button" class="slide" data-key="${x.key}" style="--c:var(--${x.c})" aria-pressed="false" title="${x.title}">${inner}</button>`;
+}
+
+// The eyepiece field: deterministic debris so each slide looks like its own preparation, plus the specimen.
+function fieldMarkup(x, i) {
+  const r = mulberry32(9001 + i * 131);
+  let debris = '';
+  for (let k = 0; k < 26; k++) {
+    const a = r() * Math.PI * 2, d = Math.sqrt(r()) * 92;
+    debris += `<circle cx="${(100 + Math.cos(a) * d).toFixed(1)}" cy="${(100 + Math.sin(a) * d).toFixed(1)}" r="${(0.6 + r() * 2.2).toFixed(1)}" opacity="${(0.15 + r() * 0.35).toFixed(2)}"/>`;
+  }
+  return `<svg class="field-svg" viewBox="0 0 200 200" aria-hidden="true" focusable="false"><g class="debris">${debris}</g>
+    <g class="motif field-motif" transform="translate(30 30) scale(1.4)">${MOTIFS[x.key] || ''}</g></svg>`;
+}
+
+function renderBench() {
+  $('#slideTrays').innerHTML = TRAYS.map(t => `
+    <section class="tray" aria-labelledby="tray-${t.id}">
+      <header class="tray-head"><h2 id="tray-${t.id}">${t.name}</h2><span>${t.note} · ${t.to - t.from} slides</span></header>
+      <div class="tray-rack" role="group" aria-label="${t.name} slides">
+        ${MANIFEST.slice(t.from, t.to).map((x, k) => slideMarkup(x, t.from + k, false)).join('')}${'<span class="slot-empty" aria-hidden="true"></span>'.repeat(Math.max(0, 6 - (t.to - t.from)))}
+      </div>
+    </section>`).join('');
+}
+
+function selectSlide(key, animate = true) {
+  const x = MANIFEST.find(m => m.key === key) || MANIFEST[0];
+  const i = MANIFEST.indexOf(x), tray = trayOf(i);
+  benchKey = x.key;
+  $('#bench').style.setProperty('--c', `var(--${x.c})`);
+  $('#scopeSpecimen').innerHTML = fieldMarkup(x, i);
+  setAttr($('#scopeView'), 'aria-label', `${x.name} specimen under the microscope: ${SLIDE_PREP[x.key]}`);
+  $('#stageSlot').innerHTML = slideMarkup(x, i, true);
+  $('#scopeEyebrow').textContent = `Slide ${slideNo(i)} on the stage · ${x.eyebrow}`;
+  $('#scopeTitle').textContent = x.name;
+  $('#scopeSub').textContent = x.title;
+  $('#scopeBlurb').textContent = x.blurb;
+  $('#scopeCount').textContent = x.ids.length > 1 ? String(x.ids.length) : `1 · ${x.names.length} cells`;
+  $('#scopeStain').textContent = SLIDE_PREP[x.key];
+  $('#scopeTray').textContent = tray.name;
+  const links = SLIDE_LINKS[x.key] || {};
+  $('#scopeChapters').innerHTML = x.names.map((n, k) => {
+    const route = x.ids.length > 1 ? x.ids[k] : (links[n] || x.ids[0]);
+    return `<li><a href="#${route}"><span>${String(k + 1).padStart(2, '0')}</span>${n}</a></li>`;
+  }).join('');
+  $('#scopeOpen').href = '#' + x.ids[0];
+  document.querySelectorAll('.slide[data-key]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.key === x.key)));
+  if (animate && !reduceMotion) {
+    ['#stageSlot', '#scopeView'].forEach(s => { const el = $(s); el.classList.toggle('loading', false); void el.offsetWidth; el.classList.toggle('loading', true); });
+  }
+}
+
+function launchSlide(key) {
+  const x = MANIFEST.find(m => m.key === key);
+  if (x) location.hash = x.ids[0];
+}
+
+function setObjective(mag) {
+  if (!OBJECTIVES[mag]) return;
+  $('#scope').style.setProperty('--zoom', OBJECTIVES[mag]);
+  $('#scopeMag').textContent = `${mag}× objective · ${mag * 10}× total`;
+  document.querySelectorAll('.obj').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mag === String(mag))));
+}
+
+function initBench() {
+  renderBench();
+  const trays = $('#slideTrays');
+  trays.addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('.slide[data-key]');
+    if (!b) return;
+    // Enter or Space on the slide that is already loaded opens it; a mouse click only loads it.
+    if (e.detail === 0 && b.dataset.key === benchKey) { launchSlide(benchKey); return; }
+    selectSlide(b.dataset.key);
+    // A slide picked from further down the page: bring the stage back into view to watch it load.
+    const bench = $('#bench');
+    if (e.detail > 0 && bench.getBoundingClientRect().top < -40) bench.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+  });
+  trays.addEventListener('dblclick', (e) => {
+    const b = e.target.closest && e.target.closest('.slide[data-key]');
+    if (b) launchSlide(b.dataset.key);
+  });
+  trays.addEventListener('keydown', (e) => {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    const all = Array.from(document.querySelectorAll('.slide[data-key]'));
+    const at = all.indexOf(document.activeElement);
+    if (at < 0) return;
+    let to = null;
+    if (step) to = (at + step + all.length) % all.length;
+    if (e.key === 'Home') to = 0;
+    if (e.key === 'End') to = all.length - 1;
+    if (to === null) return;
+    e.preventDefault();
+    all[to].focus();
+    selectSlide(all[to].dataset.key);
+  });
+  $('#scope').addEventListener('click', (e) => {
+    const b = e.target.closest && e.target.closest('.obj');
+    if (b) setObjective(+b.dataset.mag);
+  });
+  setObjective(10);
+}
+
 function startCellCity() {
-  $('#moduleCards').innerHTML = MANIFEST.map(x => `
-    <a class="module" href="#${x.ids[0]}" style="--c:var(--${x.c})">
-      <span class="eyebrow">${x.name}</span><h2>${x.title}</h2><p>${x.blurb}</p>
-      <ol>${x.names.map(n => `<li>${n}</li>`).join('')}</ol>
-    </a>`).join('');
+  initBench();
   $('#rail').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showChapter(+b.dataset.i); });
   $('#prevBtn').addEventListener('click', () => (chapterIndex > 0 ? showChapter(chapterIndex - 1) : goHome()));
   $('#nextBtn').addEventListener('click', () => (chapterIndex < chapters.length - 1 ? showChapter(chapterIndex + 1) : goHome()));

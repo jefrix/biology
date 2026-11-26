@@ -5,10 +5,12 @@
 <title>Cellular Biology</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="An interactive 3D atlas of human cell biology with radiology links: energy from food to ATP, protein production from gene to secretion, recycling and cleanup, membrane transport, cell division and radiation, neural and muscle cells, blood cells and platelets, hormones and endocrine signaling from insulin to reproductive feedback, the kidney nephron, and reproductive cells.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2214%22 fill=%22%23060a11%22 stroke=%22%234fd6e8%22 stroke-width=%223%22/%3E%3Cellipse cx=%2216%22 cy=%2216%22 rx=%228%22 ry=%225%22 fill=%22none%22 stroke=%22%23ffd75e%22 stroke-width=%222%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="shared/core.css">
+<link rel="stylesheet" href="shared/microscope.css">
 
 <div class="app">
   <section class="stage" id="stage" aria-label="3D view of the cell">
@@ -45,12 +47,55 @@
 
 <div class="home" id="home" hidden>
   <div class="home-inner">
-    <header class="brand">
-      <span class="eyebrow">A 3D cell biology explainer</span>
+    <header class="brand home-brand">
+      <span class="eyebrow">A 3D cell biology explainer · virtual microscope bench</span>
       <div class="brand-row"><h1>Cellular <em>Biology</em></h1><span class="maker">jef<span class="rix">rix</span> <span class="soft">software</span></span></div>
+      <p class="lede">Every cell runs like a small industrial city. Pick a glass slide from the trays, load it onto the microscope stage and inspect the specimen: start inside one cell with energy, proteins, recycling, transport and division, then see cells at work in tissues, from nerve, muscle and blood to hormones, the kidney nephron and reproduction.</p>
     </header>
-    <p class="lede">Every cell runs like a small industrial city. Start inside one cell to see how it makes energy, builds and ships a protein, recycles its waste, moves molecules across its membrane, and divides while protecting its DNA. Then meet cells at work in tissues: nerve and muscle cells, the couriers and defenders in your blood, the hormones that coordinate fuel and reproduction, the kidney cells that filter blood, and the reproductive cells that start a new life.</p>
-    <nav class="modules" id="moduleCards" aria-label="Modules"></nav>
+
+    <section class="bench" id="bench" aria-label="Virtual microscope">
+      <div class="scope" id="scope">
+        <div class="scope-head">
+          <span class="eyebrow">Eyepiece</span>
+          <span class="scope-mag" id="scopeMag" aria-live="polite">10× objective · 100× total</span>
+        </div>
+        <div class="eyepiece">
+          <div class="ocular" id="scopeView" role="img" aria-label="Energy specimen under the microscope">
+            <div class="field"><div class="specimen" id="scopeSpecimen"></div></div>
+            <svg class="reticle" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="99" /><path d="M100 18v28M100 154v28M18 100h28M154 100h28" /><path class="ticks" d="M60 100v4M70 100v3M80 100v4M90 100v3M110 100v3M120 100v4M130 100v3M140 100v4" /></svg>
+            <div class="vignette" aria-hidden="true"></div>
+          </div>
+        </div>
+        <div class="turret" role="group" aria-label="Objective lens">
+          <span class="turret-label">Objective</span>
+          <button type="button" class="obj" data-mag="4" aria-pressed="false">4×</button>
+          <button type="button" class="obj" data-mag="10" aria-pressed="true">10×</button>
+          <button type="button" class="obj" data-mag="40" aria-pressed="false">40×</button>
+        </div>
+        <div class="stage-plate" aria-hidden="true">
+          <span class="clip left"></span><span class="clip right"></span>
+          <span class="condenser"></span>
+          <div class="stage-slot" id="stageSlot"></div>
+        </div>
+      </div>
+
+      <div class="scope-readout" id="scopeReadout" aria-live="polite">
+        <span class="eyebrow scope-readout-eyebrow" id="scopeEyebrow">Slide on the stage</span>
+        <h2 id="scopeTitle">Energy</h2>
+        <p class="readout-sub" id="scopeSub"></p>
+        <p class="readout-blurb" id="scopeBlurb"></p>
+        <dl class="readout-meta">
+          <div><dt>Chapters</dt><dd id="scopeCount">7</dd></div>
+          <div><dt>Prep</dt><dd id="scopeStain">Mitochondrial fluorescence</dd></div>
+          <div><dt>Tray</dt><dd id="scopeTray">Cell mechanisms</dd></div>
+        </dl>
+        <nav class="readout-chapters" aria-label="Chapters on this slide"><ol id="scopeChapters"></ol></nav>
+        <a class="btn primary inspect" id="scopeOpen" href="#cell">Inspect specimen <span aria-hidden="true">→</span></a>
+        <p class="readout-hint">Click a slide to load it. Double-click a slide, or press Enter on the loaded slide, to open it under the microscope.</p>
+      </div>
+    </section>
+
+    <div class="trays" id="slideTrays"></div>
     <p class="note">For learning, not diagnosis. The 3D scenes are simplified, and each module notes its sources and limits.</p>
   </div>
 </div>
