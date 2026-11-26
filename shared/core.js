@@ -57,6 +57,22 @@ const MANIFEST = [
   { key: 'blood', name: 'Blood', c: 'rbc', eyebrow: 'Blood cells', title: 'Couriers and defenders',
     blurb: 'A to-scale line-up of the red cell, every kind of white cell and platelets. Watch each one at work, with radiology links.',
     ids: ['blood'], names: ['Red cell', 'Neutrophil', 'Lymphocytes', 'Monocyte', 'Eosinophil', 'Basophil'] },
+  { key: 'muscle', name: 'Muscle cells', c: 'rbc', eyebrow: 'Muscle cells and fiber types',
+    title: 'From nerve signal to force', blurb: 'Watch calcium release and filaments slide, then compare fiber types and muscle tissues.',
+    ids: ['muscle-contraction', 'muscle-structure', 'muscle-fibers', 'muscle-tissues'],
+    names: ['Signal to force', 'Inside the fiber', 'Fiber types', 'Three muscle tissues'] },
+  { key: 'endocrine', name: 'Endocrine signaling', c: 'insulin', eyebrow: 'Endocrine signaling',
+    title: 'How hormones coordinate cells', blurb: 'Locate the glands, watch pancreatic cells secrete into blood or a duct, and follow hormones to their receptors.',
+    ids: ['endocrine-map', 'endocrine-secretion', 'endocrine-targets', 'endocrine-receptors', 'endocrine-patterns', 'endocrine-feedback'],
+    names: ['Gland map', 'Blood or duct', 'Signals and targets', 'Two receptor routes', 'Hormone patterns', 'Feedback through time'] },
+  { key: 'nephron', name: 'Nephron cells', c: 'electron', eyebrow: 'The kidney nephron',
+    title: 'Follow fluid through the nephron',
+    blurb: 'Watch blood filtration, glucose recovery, the loop of Henle, and hormone control in the collecting duct.',
+    ids: ['nephron-overview', 'glomerular-filtration', 'proximal-tubule', 'nephron-loop', 'collecting-duct'],
+    names: ['Follow the filtrate', 'Filter blood', 'Reclaim glucose', 'Build a gradient', 'Adjust the final mix'] },
+  { key: 'reproduction', name: 'Reproductive cells', c: 'sphase', eyebrow: 'Reproductive cells and fertilization',
+    title: 'From gametes to the first division', blurb: 'Compare sperm and oocytes, track chromosomes through meiosis, and follow fertilization.',
+    ids: ['gametes', 'human-meiosis', 'fertilization'], names: ['Sperm and oocyte', 'Meiosis', 'Fertilization'] },
 ];
 const registry = {};
 const CellCity = { register(key, def) { registry[key] = def; } };
@@ -419,6 +435,7 @@ function showChapter(i, detail) {
   if (!moduleKey || i < 0 || i >= chapters.length) return;
   chapterIndex = i;
   const ch = chapters[i], info = MANIFEST.find(x => x.key === moduleKey);
+  $('.app').classList.toggle('panel-only', Boolean(ch.panelOnly));
   const rail = $('#rail');
   rail.hidden = chapters.length < 2;
   rail.innerHTML = chapters.map((c, k) => `<button type="button" data-i="${k}" class="${k === i ? 'on' : k < i ? 'done' : ''}" aria-label="Chapter ${k + 1}: ${c.short}" title="${c.short}">${k + 1}</button>`).join('');

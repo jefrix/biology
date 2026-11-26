@@ -30,6 +30,10 @@
   --mono: #9fd6c2;
   --plt: #d9b3ff;
   --insulin: #ffcf3f;
+  --endocrine-insulin: #55ddca;
+  --endocrine-glucagon: #f4bd65;
+  --endocrine-delta: #b199ef;
+  --endocrine-pp: #75b9f3;
   --glucagon: #ff7aa2;
   --potassium: #b18cff;
   --calcium: #b6f36a;
@@ -105,18 +109,18 @@ body { height: 100%; background: var(--bg); color: var(--fg); font-family: var(-
 .labels { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 .lbl {
   position: absolute; left: 0; top: 0; white-space: nowrap;
-  font: 500 11px/1 var(--f-mono); letter-spacing: .02em; color: var(--fg);
+  font: 500 13px/1.15 var(--f-mono); letter-spacing: .02em; color: var(--fg);
   background: rgba(8, 13, 21, .78); border: 1px solid var(--line);
   padding: 5px 8px 5px 7px; border-radius: 999px;
   display: flex; align-items: center; gap: 6px;
   transition: border-color .2s, background .2s, opacity .2s;
 }
 .lbl i { width: 7px; height: 7px; border-radius: 50%; background: var(--c, var(--accent)); box-shadow: 0 0 8px var(--c, var(--accent)); flex: none; }
-.lbl.click { pointer-events: auto; cursor: pointer; font: 500 11px/1 var(--f-mono); color: var(--fg); }
+.lbl.click { pointer-events: auto; cursor: pointer; }
 .lbl.click:hover, .lbl.on { border-color: var(--c, var(--accent)); background: rgba(14, 22, 34, .92); }
 .lbl.dim { opacity: .45; }
 .lbl[data-off="1"] { display: none; }
-.lbl small { color: var(--muted); font-size: 10px; }
+.lbl small { color: var(--muted); font-size: .9em; }
 
 .hud { position: absolute; display: flex; gap: 8px; align-items: center; pointer-events: none; }
 .hud > * { pointer-events: auto; }
@@ -128,7 +132,7 @@ body { height: 100%; background: var(--bg); color: var(--fg); font-family: var(-
 }
 .ghost-btn:hover { border-color: var(--muted); }
 .hud-bottom { bottom: 14px; left: max(14px, env(safe-area-inset-left, 0px)); flex-direction: column; align-items: flex-start; gap: 10px; }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; max-width: min(560px, calc(100% - 20px)); background: rgba(8,13,21,.66); border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; font: 400 11px/1.2 var(--f-mono); color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 12px; max-width: min(560px, calc(100% - 20px)); background: rgba(8,13,21,.66); border: 1px solid var(--line); border-radius: 8px; padding: 8px 11px; font: 400 12px/1.2 var(--f-mono); color: var(--muted); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend span i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 7px var(--c); }
 .scale { font: 500 11px/1 var(--f-mono); color: var(--fg); display: flex; flex-direction: column; gap: 5px; }
@@ -305,7 +309,7 @@ table.ledger { border-collapse: collapse; width: 100%; font-size: 13px; font-var
   h2 { font-size: 22px; }
   .hint { display: none; }
   .legend { display: none; }
-  .lbl { font-size: 10px; padding: 4px 7px 4px 6px; }
+  .lbl { font-size: 11px; padding: 4px 7px 4px 6px; }
 }
 @media (max-width: 420px) {
   .orgs { grid-template-columns: 1fr; }
@@ -412,3 +416,33 @@ table.ledger { border-collapse: collapse; width: 100%; font-size: 13px; font-var
 .prediction legend { font-weight: 600; }
 .prediction label { display: block; padding: .3rem 0; cursor: pointer; }
 .prediction a { color: var(--accent); }
+
+.app.panel-only { display: block; }
+.app.panel-only .stage { display: none; }
+.app.panel-only .panel { height: 100%; border-left: 0; }
+.app.panel-only .panel-inner { max-width: 55rem; margin-inline: auto; }
+.lesson-control { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; }
+.lesson-control select { font: inherit; background: var(--bg); color: var(--fg); padding: .4rem; border: 1px solid var(--line); border-radius: .3rem; }
+.lesson-phase { border-left: .2rem solid var(--electron); padding-left: .75rem; }
+.lesson-sequence { padding-left: 1.35rem; }
+.lesson-sequence li + li { margin-top: .7rem; }
+.lesson-flow { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.lesson-flow span { padding: .5rem .65rem; border: 1px solid var(--line); border-radius: .45rem; }
+.lesson-flow span + span::before { content: "→ "; color: var(--accent); }
+.lesson-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }
+.lesson-pair section { padding: .85rem; border: 1px solid var(--line); border-radius: .5rem; }
+.lesson-pair h3 { margin-top: 0; }
+.lesson-pair dt { font-weight: 600; }
+.lesson-pair dd { margin: 0 0 .55rem; }
+.chapter details { padding: .55rem .7rem; border-bottom: 1px solid var(--line); }
+.chapter details summary { cursor: pointer; font-weight: 600; }
+.sperm-model, .oocyte-model { position: relative; margin: .65rem 0 1rem; }
+.sperm-model { width: 7rem; height: 2.15rem; }
+.sperm-model i { display: block; width: 1.5rem; height: 1rem; background: #89b8ed; border-radius: 75% 50% 50% 75%; }
+.sperm-model i::after { content: ""; position: absolute; left: 1.2rem; width: 5.4rem; height: .85rem; border-bottom: .14rem solid #89b8ed; border-radius: 0 0 70% 25%; }
+.oocyte-model { width: 4.2rem; aspect-ratio: 1; border: .24rem solid #df9e93; border-radius: 50%; background: radial-gradient(circle at 36% 37%, #f5b69f, #973954); }
+.chromosomes { display: flex; gap: .45rem; margin: .4rem 0; }
+.chromosomes span { border: 1px solid var(--line); border-radius: 45%; }
+.chromosomes i { display: inline-block; font: bold 1.5rem monospace; min-width: 1.75rem; text-align: center; color: #fd9baf; }
+.chromosomes > i:nth-child(even), .chromosomes:not(.sister-products) span:nth-child(even) i,
+.sister-products span:nth-child(n+3) i { color: #89c5ff; }
