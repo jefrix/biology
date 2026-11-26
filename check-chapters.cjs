@@ -59,6 +59,11 @@ async function main() {
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(context.location.hash, '#blood/rbc');
   assert.match(element('#bloodCard').innerHTML, /No mitochondria/);
+  for (const [value, expected] of Object.entries({balanced: /equal average/, dilute: /swells/, concentrated: /shrinks/})) {
+    element('#transportSolution').value = value;
+    events.change.forEach(fn => fn({target: {id: 'transportSolution'}}));
+    assert.match(element('#transportCaption').textContent, expected);
+  }
   console.log(seen.size + ' chapter routes, text-mode navigation, and red-cell exercise passed.');
 }
 main().catch(err => { console.error(err); process.exitCode = 1; });

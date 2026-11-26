@@ -259,7 +259,7 @@ const CHAPTERS = [
         <label><input type="radio" name="rbc-atp" value="krebs"> Krebs cycle</label>
         <label><input type="radio" name="rbc-atp" value="etc"> Oxidative phosphorylation</label>
         <p id="rbcFeedback" role="status"></p>
-        <a href="#blood/rbc">Explore the red blood cell</a>
+        <a href="#blood/rbc">Explore the red blood cell and its hemoglobin</a> or <a href="#osmosis">watch water cross the membrane</a>
       </fieldset>
       <ul class="facts">
         <li>The figure is about 30 when NADH from glycolysis enters the mitochondrion by the glycerol-phosphate shuttle, which hands its electrons to FAD instead.</li>

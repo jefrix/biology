@@ -1,6 +1,6 @@
 # Cellular Biology
 
-An interactive atlas of human cell biology with seven modules. Open a module from the home screen, use Previous and Next to follow its chapters, or share the chapter URL. The ATP ledger includes a prediction exercise linked to the red-cell lesson.
+An interactive atlas of human cell biology with eight modules. Open a module from the home screen, use Previous and Next to follow its chapters, or share the chapter URL. The ATP ledger includes a prediction exercise linked to the red-cell lesson.
 
 ## Run locally
 

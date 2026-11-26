@@ -51,6 +51,9 @@ const MANIFEST = [
   { key: 'neural', name: 'Neural cells', c: 'dendrite', eyebrow: 'Neurons and glia', title: 'The city’s communications network',
     blurb: 'Meet neurons and glia, run a live action potential simulation, send signals across a synapse, and see how stroke and MS show up on MRI.',
     ids: ['neurons', 'rest', 'spike', 'myelin', 'synapse', 'integrate', 'axon', 'brain'], names: ['Cells', 'Rest', 'Spike', 'Myelin', 'Synapse', 'Sum', 'Transport', 'Imaging'] },
+  { key: 'transport', name: 'Membranes & transport', c: 'rbc', eyebrow: 'Membrane transport', title: 'Across the red blood cell membrane',
+    blurb: 'Follow oxygen to hemoglobin, watch water reshape a red blood cell, and follow an ion pump through its cycle.',
+    ids: ['permeability', 'osmosis', 'pump'], names: ['Selective passage', 'Red cell osmosis', 'Ion pump'] },
   { key: 'blood', name: 'Blood', c: 'rbc', eyebrow: 'Blood cells', title: 'Couriers and defenders',
     blurb: 'A to-scale line-up of the red cell, every kind of white cell and platelets. Watch each one at work, with radiology links.',
     ids: ['blood'], names: ['Red cell', 'Neutrophil', 'Lymphocytes', 'Monocyte', 'Eosinophil', 'Basophil'] },
@@ -381,7 +384,7 @@ function loadModule(key) {
       el.onerror = () => { el.remove(); reject(new Error('could not load ' + key)); };
       document.head.appendChild(el);
     }).then((def) => {
-      if (G3) {
+      if (G3 && def.build) {
         const built = def.build(G3);
         Object.assign(GROUPS, built.groups); Object.assign(UNITS_PER_NM, built.unitsPerNm); Object.assign(FOG, built.fog);
         Object.assign(DEPTH, built.depth); Object.assign(FADE_TEXT, built.fadeText || {});
@@ -430,7 +433,7 @@ function showChapter(i, detail) {
   setHash(openDetail ? ch.id + '/' + detail : ch.id);
   document.title = `${ch.short} · Cellular Biology`;
   $('#panel').scrollTop = 0;
-  if (G3) G3.enterStage(ch.id);
+  if (G3 && !ch.panelOnly) G3.enterStage(ch.id);
   if (openDetail) openDetail();
 }
 
