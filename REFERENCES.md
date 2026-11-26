@@ -1,10 +1,6 @@
 # Reference textbooks (kept outside git)
 
-The full-text textbook PDFs used while researching this atlas are **not** stored in this repository. They are copyrighted (or, for Dalton & Young, licensed CC BY-NC 4.0 as a separate work), and at 11–45 MB each they would also bloat the git history. They live on the author's machine here:
-
-```
-C:\Users\jefri\OneDrive\Documents\Biology-References\
-```
+The full-text textbook PDFs used while researching this atlas are **not** stored in this repository. They are copyrighted (or, for Dalton & Young, licensed CC BY-NC 4.0 as a separate work), and at 11–45 MB each they would also bloat the git history. They live in a private folder on the author's machine, outside this repository.
 
 | File | Book | Used for |
 |---|---|---|
@@ -17,4 +13,3 @@ C:\Users\jefri\OneDrive\Documents\Biology-References\
 - Do not copy these PDFs back into the repository, including the ignored `biology/` folder. `.gitignore` excludes `*.pdf` as a safety net.
 - Cite the published book (or its open online edition) in a module's sources line when a chapter relies on it. Never link to a local file path from the site.
 - Only the CC BY-NC 4.0 Dalton & Young text may be adapted, and only with attribution and for noncommercial use (see `LICENSE`).
-- If the Documents folder moves, update the path above.

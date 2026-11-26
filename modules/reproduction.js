@@ -27,7 +27,7 @@
       ['Early blastocyst','A fluid-filled cavity opens. The outer trophoblast and the inner cell mass become distinct.'],
     ],
   };
-  const source = (url,text) => `<p><a href="${url}">${text}</a></p>`;
+  const source = (...pairs) => { const list = []; for (let i = 0; i < pairs.length; i += 2) list.push(`<a href="${pairs[i]}" target="_blank" rel="noopener">${pairs[i + 1]}</a>`); return `<p class="credit">Sources: ${list.join(' · ')}. The 3D scenes are schematic and not to scale.</p>`; };
   function sequence(id) {
     const stages=examples[id];
     return `<fieldset id="reproControls" hidden><div class="lesson-control">
@@ -56,8 +56,7 @@
       html:()=>`<p class="lede">Watch one cell divide into progressively smaller daughter cells within the same outer coat. Rotate the model to see cells behind the front row.</p>${sequence('early-cleavage')}
       <p>The scene illustrates stage order and cell arrangement. Human cleavage can be asynchronous, and the morula and blastocyst models use representative cell counts.</p>
       <p><a href="#stem-potency">The inner cell mass and pluripotent stem cells</a></p>
-      ${source('https://openstax.org/books/anatomy-and-physiology-2e/pages/28-2-embryonic-development','OpenStax · Embryonic development')}
-      ${source('https://embryology.med.unsw.edu.au/embryology/index.php/Carnegie_stage_2','UNSW Embryology · Human cleavage images')}`},
+      ${source('https://openstax.org/books/anatomy-and-physiology-2e/pages/28-2-embryonic-development','OpenStax · Embryonic development','https://embryology.med.unsw.edu.au/embryology/index.php/Carnegie_stage_2','UNSW Embryology · Human cleavage images')}`},
   ].map(chapter=>({where:'Human reproductive cells',...chapter}));
 
   function build({scene,addLabel}) {

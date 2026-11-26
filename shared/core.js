@@ -521,7 +521,7 @@ function initWorld() {
 
 /* ---------- loading a module the first time it is opened ---------- */
 // Bump with the ?v= in index.html on each deploy so GitHub Pages visitors never mix cached and new files.
-const ASSET_VERSION = 6;
+const ASSET_VERSION = 7;
 const loading = {};
 const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
 const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';
@@ -622,6 +622,8 @@ function go(route) {
     $('#rail').inert = true;
     $('#prevBtn').disabled = $('#nextBtn').disabled = true;
     $('#chapter').innerHTML = '<p class="muted">Loading…</p>';
+    document.title = `${info.name} · Cellular Biology`;
+    if (G3) { $('#fadeTxt').textContent = `Loading ${info.name}`; $('#fade').classList.add('on'); }   // cleared when the first chapter opens
   }
   loadModule(info.key).then((def) => {
     if (token !== routeToken) return;
@@ -632,7 +634,7 @@ function go(route) {
     showChapter(i >= 0 ? i : 0, detail);
   }).catch((err) => {
     console.error(err);
-    if (token === routeToken) $('#chapter').innerHTML = '<p>This module could not be loaded. Check your connection, then reload the page.</p>';
+    if (token === routeToken) { $('#chapter').innerHTML = '<p>This module could not be loaded. Check your connection, then reload the page.</p>'; $('#fadeTxt').textContent = 'Could not load'; }
   });
 }
 function goHome() { setHash('home'); showHome(); }

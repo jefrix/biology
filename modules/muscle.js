@@ -6,7 +6,7 @@
     ['Filaments slide','Myosin heads repeatedly pull and release actin using ATP. The Z-discs move closer together while actin and myosin keep their lengths.'],
     ['Muscle relaxes','ATP-powered pumps return calcium to storage. Tropomyosin covers the binding sites again, and the schematic returns to resting length.'],
   ];
-  const source = '<p><a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-3-muscle-fiber-contraction-and-relaxation">Source: OpenStax, Muscle Fiber Contraction and Relaxation</a></p>';
+  const source = '<p class="credit">Sources: <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-3-muscle-fiber-contraction-and-relaxation" target="_blank" rel="noopener">OpenStax, Muscle Fiber Contraction and Relaxation</a>.</p>';
   const sequence = stages.map(([title,detail]) => '<li><strong>'+title+'</strong><br>'+detail+'</li>').join('');
   const fibers = [
     ['Type I','Slow','High','Sustained low-force work'],
@@ -46,7 +46,7 @@
       html:()=>`<p class="lede">Compare the speed and persistence of three human skeletal fiber types. The animated traces show qualitative tendencies under repeated stimulation.</p>
         <div class="table-wrap"><table class="ledger"><thead><tr><th>Fiber</th><th>Speed</th><th>Fatigue resistance</th><th>Example role</th></tr></thead><tbody>${fibers.map(row=>'<tr>'+row.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')}</tbody></table></div>
         <ul class="facts"><li>Type I fibers generally have more mitochondria and support steady efforts such as climbing stairs at a comfortable pace.</li><li>Type IIa fibers combine rapid force with more fatigue resistance than Type IIx.</li><li>Type IIx fibers contract rapidly and fatigue sooner during repeated effort. A sprint also uses Type I and IIa fibers.</li></ul>
-        <p>The nervous system generally recruits smaller motor units first and adds larger ones as force demand rises. The traces are illustrative, with no measured force or time scale.</p><p><a href="https://www.ncbi.nlm.nih.gov/books/NBK482280/">Source: Exercise Physiology, NCBI Bookshelf</a></p>`},
+        <p>The nervous system generally recruits smaller motor units first and adds larger ones as force demand rises. The traces are illustrative, with no measured force or time scale.</p><p class="credit">Sources: <a href="https://www.ncbi.nlm.nih.gov/books/NBK482280/" target="_blank" rel="noopener">Exercise Physiology, NCBI Bookshelf</a>.</p>`},
     {id:'muscle-tissues', short:'Three muscle tissues', where:'Skeletal, cardiac and smooth', title:'Three ways muscle cells generate motion',
       legend:[['axonc','Muscle cells'],['neut','Striations (sarcomere bands)'],['baso','Nuclei']],
       html:()=>`<p class="lede">All three use actin and myosin. Compare the striations, nucleus placement, and cell shape. The three rows use different magnifications.</p>
@@ -56,7 +56,7 @@
           <tr><td>Cardiac</td><td>Yes</td><td>Usually one or two, central</td><td>Involuntary, set by pacemaker cells</td></tr>
           <tr><td>Smooth</td><td>No</td><td>One, central</td><td>Involuntary, through nerves, hormones and stretch</td></tr></tbody></table></div>
         <p><a href="#rest">Explore electrical gradients</a> · <a href="#muscle-contraction">Back to signal to force</a> · <a href="#pacemaker">How the heart sets its own rhythm</a></p>
-        <p class="credit">Sources: <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-1-overview-of-muscle-tissues">OpenStax, Overview of Muscle Tissues</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-7-cardiac-muscle-tissue">Cardiac Muscle Tissue</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-8-smooth-muscle">Smooth Muscle</a>. The three rows use different magnifications and are not to scale with each other. Cell shapes, nucleus counts and band spacing are schematic.</p>`},
+        <p class="credit">Sources: <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-1-overview-of-muscle-tissues" target="_blank" rel="noopener">OpenStax, Overview of Muscle Tissues</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-7-cardiac-muscle-tissue" target="_blank" rel="noopener">Cardiac Muscle Tissue</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/10-8-smooth-muscle" target="_blank" rel="noopener">Smooth Muscle</a>. The three rows use different magnifications and are not to scale with each other. Cell shapes, nucleus counts and band spacing are schematic.</p>`},
     {id:'pacemaker', short:'Pacemaker & ECG', where:'The heart’s conduction system', title:'The SA node pacemaker and the ECG',
       legend:[['sa','Electrical activation'],['rbc','Atria and ventricles'],['electron','ECG and gap junctions']],
       html:()=>`<p class="lede">Cardiac muscle contracts without any nerve telling each beat to start. Specialized pacemaker cells fire on their own, and a conduction system spreads each impulse in a fixed order that an ECG records from the skin.</p>
