@@ -31,16 +31,16 @@ async function main() {
   run(read('shared/core.js'));
   assert.equal(run('G3'), null);
   assert.match(read('index.html'), new RegExp('shared/core\\.js\\?v=' + run('ASSET_VERSION') + '"'), 'index.html cache-busts core.js with ASSET_VERSION');
-  // The home screen is a microscope bench: 22 glass slides, 10 in Cell mechanisms and 12 in Cells in tissues, with Energy loaded on the stage.
+  // The home screen is a microscope bench: 23 glass slides, 11 in Cell mechanisms and 12 in Cells in tissues, with Energy loaded on the stage.
   const keys = Array.from(run('MANIFEST'), x => x.key);
   const trays = element('#slideTrays').innerHTML;
-  assert.equal(keys.length, 22, '22 modules');
+  assert.equal(keys.length, 23, '23 modules');
   assert.deepEqual(Array.from(trays.matchAll(/data-key="([^"]+)"/g), x => x[1]), keys, 'one slide per module, in curriculum order');
-  assert.match(trays, /Cell mechanisms[\s\S]*data-key="division"[\s\S]*data-key="cytoskeleton"[\s\S]*data-key="mitochondria"[\s\S]*Cells in tissues[\s\S]*data-key="neural"/);
+  assert.match(trays, /Cell mechanisms[\s\S]*data-key="division"[\s\S]*data-key="cytoskeleton"[\s\S]*data-key="mitochondria"[\s\S]*data-key="stem"[\s\S]*Cells in tissues[\s\S]*data-key="neural"/);
   const [mech, tissue] = trays.split('<section').slice(1);
-  assert.equal((mech.match(/data-key=/g) || []).length, 10, 'Cell mechanisms tray holds 10 slides');
+  assert.equal((mech.match(/data-key=/g) || []).length, 11, 'Cell mechanisms tray holds 11 slides');
   assert.equal((tissue.match(/data-key=/g) || []).length, 12, 'Cells in tissues tray holds 12 slides');
-  assert.equal((mech.match(/slot-empty/g) || []).length, 2, 'the 10-slide mechanisms tray pads its second row of 6 with two empty slots');
+  assert.equal((mech.match(/slot-empty/g) || []).length, 1, 'the 11-slide mechanisms tray pads its second row of 6 with one empty slot');
   assert(!/slot-empty/.test(tissue), 'the 12-slide tissue tray fills two rows exactly');
   assert.match(trays, /CM-06<\/span><span class="slide-name">Cyto(&shy;)?skeleton</, 'Cytoskeleton is slide CM-06');
   assert.equal(run('SLIDE_PREP.cytoskeleton'), 'Phalloidin + anti-tubulin');
@@ -49,7 +49,7 @@ async function main() {
   NEW_SLIDES.forEach(([key, label], i) => {
     const no = 'CT-' + String(7 + i).padStart(2, '0');
     assert.match(trays, new RegExp('data-key="' + key + '"[^>]*>\\s*<span class="slide-label"><span class="slide-no">' + no + '</span><span class="slide-name">' + label + '<'), key + ' is slide ' + no);
-    assert.equal(keys[16 + i], key, key + ' sits at position ' + (17 + i));
+    assert.equal(keys[17 + i], key, key + ' sits at position ' + (18 + i));
     assert(run('SLIDE_PREP[' + JSON.stringify(key) + ']'), key + ' has a prep label');
     assert(run('MOTIFS[' + JSON.stringify(key) + ']').length > 100, key + ' has a specimen motif');
   });
@@ -63,6 +63,13 @@ async function main() {
     assert(run('MOTIFS[' + JSON.stringify(key) + ']').length > 100, key + ' has a specimen motif');
     assert.equal(run('MANIFEST')[6 + i].ids.length, 3, key + ' has three chapters');
   });
+  // Stem cells close the mechanisms tray as CM-11, with its own prep label, motif and three chapters.
+  assert.match(trays, /data-key="stem"[^>]*>\s*<span class="slide-label"><span class="slide-no">CM-11<\/span><span class="slide-name">Stem cells</, 'Stem cells is slide CM-11');
+  assert.equal(keys[10], 'stem', 'stem sits at position 11');
+  assert.equal(run('SLIDE_PREP.stem'), 'Oct4 + lineage immunostain');
+  assert(run('MOTIFS.stem').length > 100, 'stem has a specimen motif');
+  assert.deepEqual(Array.from(run('MANIFEST')[10].ids), ['stem-potency', 'stem-fate', 'stem-niches'], 'stem has its three chapters');
+  assert.equal(keys[11], 'neural', 'Cells in tissues starts at position 12');
   const tokens = read('shared/core.css');
   const cards = Array.from(run('MANIFEST'), x => x.c);
   assert.equal(new Set(cards).size, cards.length, 'every slide has its own color token');
@@ -86,11 +93,11 @@ async function main() {
   // Cross-links that the new chapters promise, checked against the rendered chapter HTML below.
   const CROSS = {
     plt: ['clotting'], clotting: ['blood/plt'], 'cyto-motors': ['axon', 'muscle-contraction'], 'cyto-crawl': ['blood/neut', 'cell'], 'cyto-filaments': ['cell', 'mitosis'],
-    chromatin: ['gene'], cotransport: ['proximal-tubule', 'pump', 'tally'], channels: ['permeability'],
+    chromatin: ['gene', 'stem-fate'], cotransport: ['proximal-tubule', 'pump', 'tally'], channels: ['permeability'],
     apoptosis: ['fate', 'survival'], fate: ['apoptosis'], warburg: ['petprep', 'cycle', 'branches', 'cancer-pet'], glycolysis: ['warburg'], pump: ['cotransport'],
     'liver-glycogen': ['glycolysis', 'balance', 'gut-portal', 'blood/rbc'], 'urea-cycle': ['nephron-overview', 'krebs', 'fuel'], 'liver-cyp': ['petprep', 'cancer-pet', 'gut-portal', 'er'],
-    'bone-remodel': ['blood/mono', 'lysosome', 'bone-dexa'], 'bone-dexa': ['bone-remodel', 'bone-lesions'], 'bone-lesions': ['cancer-spread', 'cancer-pet', 'bone-remodel'],
-    'cancer-spread': ['cyto-crawl', 'bone-lesions', 'cancer-pet'], 'cancer-pet': ['warburg', 'apoptosis', 'petprep', 'liver-cyp', 'glycolysis'],
+    'bone-remodel': ['blood/mono', 'lysosome', 'bone-dexa', 'stem-niches'], 'bone-dexa': ['bone-remodel', 'bone-lesions'], 'bone-lesions': ['cancer-spread', 'cancer-pet', 'bone-remodel'],
+    'cancer-spread': ['cyto-crawl', 'bone-lesions', 'cancer-pet'], 'cancer-pet': ['warburg', 'apoptosis', 'petprep', 'liver-cyp', 'glycolysis', 'stem-niches'],
     'immune-mhc': ['proteasome', 'er', 'lysosome', 'blood/lymph'], 'immune-complement': ['cyto-crawl', 'cancer-pet', 'blood/rbc'], 'immune-effector': ['blood/lymph', 'cyto-crawl', 'apoptosis'],
     'bbb-transport': ['channels', 'bbb-mri'], 'bbb-mri': ['brain', 'cancer-spread', 'bbb-unit'],
     'gut-sglt1': ['cotransport', 'pump', 'fuel', 'proximal-tubule', 'epithelia'], 'gut-portal': ['liver-glycogen', 'liver-cyp'],
@@ -100,9 +107,12 @@ async function main() {
     'mito-dynamics': ['etc', 'cyto-motors'], 'mito-ros': ['etc', 'branches'], 'mito-mitophagy': ['autophagy', 'apoptosis'],
     intake: ['lipid-ldl'], autophagy: ['mito-mitophagy'], etc: ['mito-ros'], 'muscle-contraction': ['sig-calcium'], synapse: ['sig-gpcr', 'junc-gap'],
     'cyto-filaments': ['junc-anchor'], 'gut-fat': ['er', 'golgi', 'gut-portal', 'lipid-ldl'], 'endocrine-map': ['lipid-steroid'], 'endocrine-receptors': ['sig-gpcr', 'sig-mapk'],
-    'cancer-genes': ['cycle', 'apoptosis', 'damage', 'fate', 'sig-mapk'], 'proximal-tubule': ['junc-tight'],
+    'cancer-genes': ['cycle', 'apoptosis', 'damage', 'fate', 'sig-mapk', 'stem-niches'], 'proximal-tubule': ['junc-tight'],
     'bbb-unit': ['neurons', 'epithelia', 'junc-tight'], epithelia: ['proximal-tubule', 'collecting-duct', 'endocrine-receptors', 'junc-tight'], branches: ['krebs', 'blood/rbc', 'mito-ros'],
     pacemaker: ['muscle-tissues', 'rest', 'spike', 'junc-gap'], 'muscle-tissues': ['pacemaker'], petprep: ['cancer-pet', 'liver-cyp'],
+    'stem-potency': ['early-cleavage', 'mitosis', 'gut-sglt1', 'stem-fate'], 'stem-fate': ['chromatin', 'sig-mapk', 'muscle-structure', 'neurons', 'blood', 'stem-niches'],
+    'stem-niches': ['blood', 'clotting', 'bone-remodel', 'cancer-pet', 'petprep', 'stem-fate'],
+    'early-cleavage': ['stem-potency'], blood: ['stem-niches'], clotting: ['blood/plt', 'stem-niches'],
   };
   const allIds = new Set(run('MANIFEST').flatMap(x => x.ids));
   const seen = new Set();
@@ -224,6 +234,18 @@ async function main() {
     ['mito-mitophagy', 'mito-pink', 'damaged', 'mitoPinkCaption', /Parkin coats/, 'healthy'],
     ['mito-mitophagy', 'mito-pink', 'pd', 'mitoPinkCaption', /Parkinson/, 'healthy'],
     ['pacemaker', 'heart-rate', 'slow', 'pacemakerCaption', /50 beats per minute/, 'normal'],
+    ['stem-potency', 'stem-potency', 'asym', 'stemPotencyCaption', /transit-amplifying progenitor/, 'ladder'],
+    ['stem-potency', 'stem-potency', 'sym', 'stemPotencyCaption', /both stay stem cells/, 'ladder'],
+    ['stem-potency', 'stem-potency', 'crypt', 'stemPotencyCaption', /Paneth cells/, 'ladder'],
+    ['stem-potency', 'stem-potency', 'ladder', 'stemPotencyCaption', /totipotent/, 'ladder'],
+    ['stem-fate', 'stem-fate', 'muscle', 'stemFateCaption', /MyoD/, 'pluri'],
+    ['stem-fate', 'stem-fate', 'neuron', 'stemFateCaption', /ASCL1/, 'pluri'],
+    ['stem-fate', 'stem-fate', 'blood', 'stemFateCaption', /GATA1 wins over PU\.1/, 'pluri'],
+    ['stem-fate', 'stem-fate', 'pluri', 'stemFateCaption', /bivalent/, 'pluri'],
+    ['stem-niches', 'stem-niche', 'tree', 'stemNicheCaption', /common myeloid/, 'niche'],
+    ['stem-niches', 'stem-niche', 'ipsc', 'stemNicheCaption', /Oct4, Sox2, Klf4 and c-Myc/, 'niche'],
+    ['stem-niches', 'stem-niche', 'pet', 'stemNicheCaption', /G-CSF/, 'niche'],
+    ['stem-niches', 'stem-niche', 'niche', 'stemNicheCaption', /CXCL12/, 'niche'],
   ];
   for (const [route, key, value, cap, expected, back] of SWITCHES) {
     run('go(' + JSON.stringify(route) + ')'); await new Promise(resolve => setImmediate(resolve));
@@ -238,7 +260,7 @@ async function main() {
   run('goHome()');
   assert.equal(context.location.hash, '#home');
   assert.equal(element('#scopeTitle').textContent, 'Hormones & endocrine', 'returning home puts the last module back on the stage');
-  console.log(seen.size + ' chapter routes in ' + run('MANIFEST').length + ' modules, text-mode navigation, cross-links, US spelling, lesson controls, the red-cell exercise, blood card deep links, the merged-module redirect, ' + SWITCHES.length + ' lesson switches and the 22-slide microscope bench (10 Cell mechanisms + 12 Cells in tissues) passed.');
+  console.log(seen.size + ' chapter routes in ' + run('MANIFEST').length + ' modules, text-mode navigation, cross-links, US spelling, lesson controls, the red-cell exercise, blood card deep links, the merged-module redirect, ' + SWITCHES.length + ' lesson switches and the 23-slide microscope bench (11 Cell mechanisms + 12 Cells in tissues) passed.');
 }
 main().catch(err => { console.error(err); process.exitCode = 1; });
 

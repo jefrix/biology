@@ -56,7 +56,7 @@ const CHAPTERS = [
         <li><b>RB</b> holds the transcription factor E2F until cyclin D–CDK4/6 phosphorylates it. CDK4/6 inhibitors used in breast cancer restore this brake.</li>
         <li>No single mutation is enough. Most cancers accumulate several driver mutations over years, which is why risk climbs with age and with exposures such as smoking or <a href="#damage">radiation damage</a>.</li>
       </ul>
-      <p><a href="#cancer-spread">How a tumor spreads</a> · <a href="#fate">What a normal cell does with damage</a> · <a href="#sig-mapk">The RAS–MAPK relay step by step</a></p>
+      <p><a href="#cancer-spread">How a tumor spreads</a> · <a href="#fate">What a normal cell does with damage</a> · <a href="#sig-mapk">The RAS–MAPK relay step by step</a> · <a href="#stem-niches">Why the reprogramming factor c-Myc carries cancer risk</a></p>
       ${sources([SRC.osCancer, SRC.osControl, SRC.hanahan2011], 'The cycle is drawn as a ring with two gates and a handful of cells. Real checkpoint control involves many more proteins, and the spindle checkpoint inside M is not drawn. Speeds and division counts are illustrative.')}`,
   },
   {
@@ -90,7 +90,7 @@ const CHAPTERS = [
         <li>A <b>necrotic core</b> is cold because dead cells do not take up glucose. A rim of uptake around a cold center is a common pattern in large tumors. Cells dying by <a href="#apoptosis">apoptosis</a> after treatment also lose uptake, one reason PET can show response before a tumor shrinks.</li>
         <li>FDG is not cancer-specific: infection, inflammation, healing and brown fat take it up. Some cancers, such as many prostate cancers and some low-grade or mucinous tumors, take up little.</li>
       </ul>
-      <div class="callout"><span class="eyebrow">Radiology link</span><p>Good images need patient preparation: fasting and controlled blood glucose, because insulin drives FDG into muscle and fat. See <a href="#petprep">PET preparation</a>. In lymphoma, response is graded against the liver with the Deauville scale, covered in <a href="#liver-cyp">the hepatocyte module</a>.</p></div>
+      <div class="callout"><span class="eyebrow">Radiology link</span><p>Good images need patient preparation: fasting and controlled blood glucose, because insulin drives FDG into muscle and fat. See <a href="#petprep">PET preparation</a>. In lymphoma, response is graded against the liver with the Deauville scale, covered in <a href="#liver-cyp">the hepatocyte module</a>. Diffuse, even marrow uptake after G-CSF or chemotherapy is usually stimulated marrow, not spread: see <a href="#stem-niches">marrow niches</a>.</p></div>
       ${sources([SRC.boellaard, SRC.hanahan2011], 'The tumor is drawn as a sphere of cells with a tidy necrotic center, and uptake is shown as color and glow, not measured counts. The PET and CT views are schematic illustrations, not patient images. For learning, not diagnosis.')}`,
   },
 ];

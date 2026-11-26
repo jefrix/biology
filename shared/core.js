@@ -64,6 +64,9 @@ const MANIFEST = [
   { key: 'mitochondria', name: 'Mitochondrial dynamics', slideName: 'Mito&shy;chondria', c: 'mitodyn', eyebrow: 'Mitochondrial dynamics and quality control', title: 'A power network that splits, merges and cleans itself',
     blurb: 'Watch DRP1 rings pinch mitochondria apart and mitofusins and OPA1 join them back into a network, follow electrons that leak into superoxide and the antioxidant relay that defuses it, then see PINK1 and Parkin tag a failing mitochondrion for removal.',
     ids: ['mito-dynamics', 'mito-ros', 'mito-mitophagy'], names: ['Fission & fusion', 'ROS & antioxidants', 'PINK1/Parkin mitophagy'] },
+  { key: 'stem', name: 'Stem cells', c: 'stem', eyebrow: 'Stem cells and differentiation', title: 'How one cell becomes many kinds',
+    blurb: 'Climb down the potency ladder from the zygote to adult stem cells and watch a niche keep one daughter while the other leaves to differentiate, see how signals and master transcription factors open one fate while Polycomb locks the rest away, then follow marrow stem cells into every blood lineage, push a skin cell back to pluripotency with the Yamanaka factors and read stimulated marrow on MRI and FDG-PET.',
+    ids: ['stem-potency', 'stem-fate', 'stem-niches'], names: ['Potency & asymmetric division', 'One genome, many cells', 'Marrow, blood & iPSCs'] },
   /* Cells in tissues: specialized cells and the body systems they build */
   { key: 'neural', name: 'Neural cells', c: 'dendrite', eyebrow: 'Neurons and glia', title: 'The city’s communications network',
     blurb: 'Meet neurons and glia, run a live action potential simulation, send signals across a synapse, and see how stroke and MS show up on MRI.',
@@ -518,7 +521,7 @@ function initWorld() {
 
 /* ---------- loading a module the first time it is opened ---------- */
 // Bump with the ?v= in index.html on each deploy so GitHub Pages visitors never mix cached and new files.
-const ASSET_VERSION = 5;
+const ASSET_VERSION = 6;
 const loading = {};
 const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
 const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';
@@ -658,19 +661,20 @@ const MOTIFS = {
   junctions: '<rect class="f" x="6" y="8" width="39" height="84" rx="7" opacity=".55"/><rect class="f" x="55" y="8" width="39" height="84" rx="7" opacity=".55"/><path class="thick" d="M43 16h14M43 21h14M43 26h14"/><path d="M43 40h14M43 44h14M43 48h14"/><rect class="d" x="40" y="58" width="4" height="10" rx="1"/><rect class="d" x="56" y="58" width="4" height="10" rx="1"/><path d="M40 63c-10-4-18 2-26-6M60 63c10-4 18 2 26-6M40 61c-8 8-16 6-24 14M60 61c8 8 16 6 24 14" opacity=".7"/><circle cx="50" cy="80" r="3"/><circle cx="50" cy="87" r="3"/>',
   lipids: '<circle class="f" cx="50" cy="50" r="42" opacity=".45"/><circle cx="50" cy="50" r="34"/><path class="f" d="M18 62a34 34 0 0 0 64 0c-6-12-18-18-32-18s-26 6-32 18z"/><path class="thick" d="M20 58c8-10 20-14 30-14s22 4 30 14"/><circle class="d" cx="38" cy="64" r="3.4"/><circle class="d" cx="50" cy="70" r="4"/><circle class="d" cx="62" cy="64" r="3"/><circle class="d" cx="44" cy="76" r="2"/><circle class="d" cx="58" cy="77" r="2.2"/><circle cx="50" cy="30" r="6" opacity=".7"/>',
   mitochondria: '<path class="thick" d="M8 34c10-8 20 2 30-2s14-14 24-10 10 16 18 18 10 0 12 0"/><path class="thick" d="M14 70c8-6 18 4 28 0s12-12 22-8"/><path class="thick" d="M72 66c4-2 10-4 18 2"/><path d="M38 32c2 10 4 18 2 28M62 24c-2 12 0 26 2 38" opacity=".6"/><path d="M18 32l2 4M28 31l1 4M48 24l2 4M58 21l1 4M74 38l2 3M24 68l1 4M34 70l1 4M50 64l2 4" opacity=".7"/><ellipse class="d" cx="66" cy="65" rx="2" ry="5"/><circle class="d" cx="30" cy="32" r="1.6"/><circle class="d" cx="56" cy="22" r="1.6"/><circle class="d" cx="40" cy="70" r="1.6"/>',
+  stem: '<circle class="f" cx="24" cy="50" r="15"/><circle class="d" cx="24" cy="50" r="5.5"/><path d="M39 44L56 26M40 50h18M39 56l17 18" opacity=".7"/><circle class="f" cx="68" cy="20" r="7"/><circle class="d" cx="68" cy="20" r="2.6"/><path d="M74 15l10-7M75 21l12 2M68 13V3M63 25l-7 6M74 26l14 8"/><circle class="f" cx="74" cy="50" r="9"/><circle cx="74" cy="50" r="3.6" opacity=".6"/><rect class="f" x="60" y="72" width="34" height="14" rx="7"/><path class="thick" d="M66 72v14M72 72v14M78 72v14M84 72v14M90 73v12"/>',
   enterocyte: '<path class="f" d="M10 92V40c0-18 20-18 20 0v52M38 92V28c0-18 22-18 22 0v64M68 92V44c0-18 22-18 22 0v48" opacity=".55"/><path d="M10 40c0-18 20-18 20 0M38 28c0-18 22-18 22 0M68 44c0-18 22-18 22 0" class="thick"/><path d="M20 30v62M49 18v74M79 34v58" opacity=".5"/><circle class="d" cx="15" cy="60" r="2"/><circle class="d" cx="25" cy="70" r="2"/><circle class="d" cx="44" cy="52" r="2"/><circle class="d" cx="54" cy="64" r="2"/><circle class="d" cx="74" cy="66" r="2"/><circle class="d" cx="84" cy="76" r="2"/>',
 };
 const SLIDE_PREP = {
   energy: 'Mitochondrial fluorescence', protein: 'Anti-insulin immunostain', cleanup: 'Lysosome fluorescence',
   transport: 'Membrane dye', division: 'DNA stain, anaphase', cytoskeleton: 'Phalloidin + anti-tubulin',
-  signaling: 'FRET cAMP biosensor', junctions: 'ZO-1 + E-cadherin immunostain', lipids: 'Oil Red O, arterial plaque', mitochondria: 'MitoTracker live imaging', neural: 'Golgi silver stain', muscle: 'Striated muscle, H&E',
+  signaling: 'FRET cAMP biosensor', junctions: 'ZO-1 + E-cadherin immunostain', lipids: 'Oil Red O, arterial plaque', mitochondria: 'MitoTracker live imaging', stem: 'Oct4 + lineage immunostain', neural: 'Golgi silver stain', muscle: 'Striated muscle, H&E',
   blood: 'Wright–Giemsa smear', hormones: 'Islet immunostain', nephron: 'PAS, kidney cortex', reproduction: 'Phase contrast',
   hepatocyte: 'PAS, liver lobule', bone: 'Ground bone, osteon', cancer: 'Ki-67 immunostain, carcinoma', immune: 'CD4/CD8 immunofluorescence',
   bbb: 'GFAP + claudin-5 immunostain', enterocyte: 'PAS, jejunal villi',
 };
 const TRAYS = [
-  { id: 'mechanisms', name: 'Cell mechanisms', tag: 'CM', note: 'What happens inside one cell', from: 0, to: 10 },
-  { id: 'tissues', name: 'Cells in tissues', tag: 'CT', note: 'Specialized cells and the systems they build', from: 10, to: MANIFEST.length },
+  { id: 'mechanisms', name: 'Cell mechanisms', tag: 'CM', note: 'What happens inside one cell', from: 0, to: 11 },
+  { id: 'tissues', name: 'Cells in tissues', tag: 'CT', note: 'Specialized cells and the systems they build', from: 11, to: MANIFEST.length },
 ];
 const OBJECTIVES = { 4: 0.66, 10: 1, 40: 1.85 };
 let benchKey = null;

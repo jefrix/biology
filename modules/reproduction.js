@@ -55,6 +55,7 @@
       legend:[['rbc','Blastomeres'],['atp','Zona pellucida'],['electron','Blastocyst cavity']],
       html:()=>`<p class="lede">Watch one cell divide into progressively smaller daughter cells within the same outer coat. Rotate the model to see cells behind the front row.</p>${sequence('early-cleavage')}
       <p>The scene illustrates stage order and cell arrangement. Human cleavage can be asynchronous, and the morula and blastocyst models use representative cell counts.</p>
+      <p><a href="#stem-potency">The inner cell mass and pluripotent stem cells</a></p>
       ${source('https://openstax.org/books/anatomy-and-physiology-2e/pages/28-2-embryonic-development','OpenStax · Embryonic development')}
       ${source('https://embryology.med.unsw.edu.au/embryology/index.php/Carnegie_stage_2','UNSW Embryology · Human cleavage images')}`},
   ].map(chapter=>({where:'Human reproductive cells',...chapter}));

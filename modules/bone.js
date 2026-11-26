@@ -55,7 +55,7 @@ const CHAPTERS = [
         <li>Osteocytes make up over 90% of bone cells and connect through tiny channels called canaliculi. Loading lowers their output of sclerostin, which otherwise brakes osteoblasts.</li>
         <li>At one site, resorption takes a few weeks and refilling takes a few months.</li>
       </ul>
-      <p><a href="#bone-dexa">See what lost bone looks like on DEXA</a> · <a href="#bone-lesions">When tumors hijack this balance</a></p>
+      <p><a href="#bone-dexa">See what lost bone looks like on DEXA</a> · <a href="#bone-lesions">When tumors hijack this balance</a> · <a href="#stem-niches">The marrow niche inside bone</a></p>
       ${sources([SRC.osStructure, SRC.osFormation, SRC.boyle, SRC.teitelbaum, SRC.bonewald], 'The cells are drawn side by side on one surface to show the sequence. In life they work in a basic multicellular unit, osteoclasts leading and osteoblasts following, with many more osteocytes in the bone beneath. Not to scale.')}`,
   },
   {

@@ -159,6 +159,14 @@
   --mfn: #6ee7a0;
   --ros: #ffe45e;
   --ubiq: #ff79c6;
+  /* stem cells and differentiation, added with the 23-slide bench */
+  --stem: #5cf2ff;
+  --niche: #b48cff;
+  --progenitor: #a8e86a;
+  --diff: #ffb26b;
+  --cue: #fff07a;
+  --oct4: #ff6fb5;
+  --fibro: #d9b38c;
 
   --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;

@@ -206,7 +206,7 @@ const CHAPTERS = [
         <li><b>Promoter and enhancers.</b> A short region upstream of the gene holds binding sites for transcription factors. In beta cells, <b>PDX1</b>, <b>MAFA</b> and <b>NEUROD1</b> bind their sites there. Together with coactivators and Mediator, they recruit <b>RNA polymerase II</b> to the start site.</li>
         <li>High glucose increases this binding and insulin gene transcription. Long-term exposure to high glucose and fatty acids can lower MAFA and PDX1 activity, one way beta cells fail in type 2 diabetes.</li>
       </ul>
-      <p><a href="#gene">Next: read the INS gene</a> · <a href="#islet">Meet the beta cell in its islet</a></p>
+      <p><a href="#gene">Next: read the INS gene</a> · <a href="#islet">Meet the beta cell in its islet</a> · <a href="#stem-fate">How master factors and Polycomb lock in a cell’s fate</a></p>
       ${sources([SRC.osEpi, SRC.fcb, SRC.luger, SRC.kuroda, SRC.andrali], 'The scene is schematic: real chromatin folds in three dimensions, the compact state is not a regular fiber, and the INS control region spans a few hundred base pairs with many more factors. 1 scene unit ≈ 2 nm for the nucleosomes; linker and promoter lengths are compressed.')}`;
     },
   },

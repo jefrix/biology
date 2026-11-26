@@ -148,7 +148,7 @@ const CHAPTERS = [
       <ul class="facts">
         <li>Red cells vastly outnumber white cells, by several hundred to one. The 3D line-up is for comparing size and shape, not numbers.</li>
         <li><b>Platelets</b> are not white cells. They are small fragments shed by marrow megakaryocytes that help blood clot. Choose Platelets above for their card, or <a href="#clotting">watch a clot form</a>.</li>
-        <li>All of these arise from blood-forming stem cells, mostly in the marrow. T cells mature in the thymus.</li>
+        <li>All of these arise from <a href="#stem-niches">blood-forming stem cells</a>, mostly in the marrow. T cells mature in the thymus.</li>
         <li>Mast cells, macrophages and dendritic cells do much of their work in tissue and are not part of the routine differential.</li>
       </ul>
       <p class="credit">The 3D cells are schematic: granule numbers are reduced and actions are sped up. The red cell outline follows the Evans–Fung biconcave profile. Sizes and lifespans are approximate and vary between references. For learning, not diagnosis.</p>`,
@@ -177,7 +177,7 @@ const CHAPTERS = [
         <li>Drugs act at each stage: aspirin and P2Y12 blockers on platelet activation, heparin through antithrombin, and warfarin or direct oral anticoagulants on clotting factors.</li>
       </ul>
       <div class="callout"><span class="eyebrow">Radiology link</span><p><b>Bleeding:</b> non-contrast CT is the first test for suspected intracranial hemorrhage, because clotted blood is denser than brain and looks bright. On CT angiography, contrast leaking into a hematoma (for example the “spot sign” in brain hemorrhage) suggests ongoing bleeding.<br><b>Clots that block vessels:</b> a fresh thrombus can look bright on non-contrast CT, as in the hyperdense artery sign of stroke. With contrast it appears as a dark filling defect, as in pulmonary embolism on CT pulmonary angiography. Deep vein thrombosis in the legs is usually diagnosed with compression ultrasound: the clotted vein will not squash flat.</p></div>
-      <p><a href="#blood/plt">Back to the platelet card</a> · <a href="#blood">The full blood line-up</a> · <a href="#cyto-crawl">How white cells leave vessels</a></p>
+      <p><a href="#blood/plt">Back to the platelet card</a> · <a href="#blood">The full blood line-up</a> · <a href="#cyto-crawl">How white cells leave vessels</a> · <a href="#stem-niches">Megakaryocytes in the marrow niche</a></p>
       <p class="credit">Sources: <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/18-2-production-of-the-formed-elements" target="_blank" rel="noopener">OpenStax Anatomy &amp; Physiology 2e, 18.2 Production of the formed elements</a> · <a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/18-5-hemostasis" target="_blank" rel="noopener">OpenStax, 18.5 Hemostasis</a> · <a href="https://doi.org/10.1038/nature21706" target="_blank" rel="noopener">Lefrançais et al., the lung as a site of platelet biogenesis (Nature, 2017)</a>. The scene is not to scale and compresses minutes into seconds. Real plugs hold many more platelets, the cascade has many more factors than shown, and imaging appearances vary with timing, hematocrit and technique. For learning, not diagnosis.</p>`,
   },
 ];
