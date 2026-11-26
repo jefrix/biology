@@ -71,8 +71,8 @@ const MANIFEST = [
     ids: ['nephron-overview', 'glomerular-filtration', 'proximal-tubule', 'nephron-loop', 'collecting-duct'],
     names: ['Follow the filtrate', 'Filter blood', 'Reclaim glucose', 'Build a gradient', 'Adjust the final mix'] },
   { key: 'reproduction', name: 'Reproductive cells', c: 'sphase', eyebrow: 'Reproductive cells and fertilization',
-    title: 'From gametes to the first division', blurb: 'Compare sperm and oocytes, track chromosomes through meiosis, and follow fertilization.',
-    ids: ['gametes', 'human-meiosis', 'fertilization'], names: ['Sperm and oocyte', 'Meiosis', 'Fertilization'] },
+    title: 'From gametes to a blastocyst', blurb: 'Compare sperm and oocytes, track chromosomes through meiosis, and see fertilization and early cleavage in 3D.',
+    ids: ['gametes', 'human-meiosis', 'fertilization', 'early-cleavage'], names: ['Sperm and oocyte', 'Meiosis', 'Fertilization', 'Early cleavage'] },
 ];
 const registry = {};
 const CellCity = { register(key, def) { registry[key] = def; } };
