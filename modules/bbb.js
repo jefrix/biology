@@ -45,7 +45,7 @@ const CHAPTERS = [
         <li>Tight junctions are like the seals in a <a href="#epithelia">polarized epithelium</a>, but even tighter. Their electrical resistance is far higher than in leaky epithelia.</li>
         <li>A few small regions lack the barrier on purpose, the circumventricular organs, so the brain can sample blood, for example the area postrema, which triggers vomiting in response to toxins.</li>
       </ul>
-      <p><a href="#neurons">Meet astrocytes and other glia</a> · <a href="#bbb-transport">What gets through</a></p>
+      <p><a href="#neurons">Meet astrocytes and other glia</a> · <a href="#bbb-transport">What gets through</a> · <a href="#junc-tight">How tight junctions seal</a></p>
       ${sources([SRC.abbott, SRC.daneman, SRC.osCns], 'The capillary is drawn far wider relative to its cells than in life, where a red cell barely squeezes through. Endfeet are shown as separate patches; in the brain they tile almost the whole surface.')}`,
   },
   {

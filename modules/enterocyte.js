@@ -71,7 +71,7 @@ const CHAPTERS = [
         <li>In abetalipoproteinemia, MTP is missing, so chylomicrons cannot form. Fat stays trapped in enterocytes, and fat-soluble vitamins A, D, E and K are poorly absorbed.</li>
         <li>Lymph full of chylomicrons looks milky and is called chyle. A torn thoracic duct can leak it into the chest (chylothorax).</li>
       </ul>
-      <p><a href="#er">The ER</a> and <a href="#golgi">Golgi</a> in the protein factory · <a href="#gut-portal">Where everything else goes</a></p>
+      <p><a href="#er">The ER</a> and <a href="#golgi">Golgi</a> in the protein factory · <a href="#gut-portal">Where everything else goes</a> · <a href="#lipid-ldl">How the liver takes up cholesterol</a></p>
       ${sources([SRC.iqbal, SRC.hussain, SRC.osAbsorb], 'The ER and Golgi are drawn as simple shapes, and one chylomicron at a time stands for the many each cell releases. Chylomicrons are roughly 75 to 1200 nm across, much smaller than shown relative to the cell.')}`,
   },
   {

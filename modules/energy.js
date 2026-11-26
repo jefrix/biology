@@ -261,7 +261,8 @@ const CHAPTERS = [
         <li>Complexes I, III and IV use the energy to pump ${m('H⁺', 'proton')} into the intermembrane space: about 10 protons per NADH. That builds a charge of roughly 150 to 180 mV across a membrane only a few nanometers thick.</li>
         <li>Protons flow back through <b>ATP synthase</b>, a true rotary motor. The flow spins its rotor, and each full turn makes 3 ${m('ATP', 'atp')}.</li>
         <li>Roughly 2.5 ATP per NADH and 1.5 per FADH₂. Brown fat lets protons leak back through UCP1 instead, releasing the energy as heat.</li>
-      </ul>`,
+      </ul>
+      <p><a href="#mito-ros">When electrons leak: reactive oxygen species</a> · <a href="#mito-dynamics">The mitochondrial network</a></p>`,
   },
   {
     id: 'tally', short: 'Ledger', where: 'The whole cell, again',
@@ -321,7 +322,7 @@ const CHAPTERS = [
         <li>NADPH powers building (fatty acids, cholesterol, nucleotides) and keeps <b>glutathione</b> in its reduced form, which neutralizes hydrogen peroxide. The non-oxidative branch reshuffles sugars, either to supply ribose-5-phosphate for nucleotides or to return carbon to glycolysis.</li>
         <li>Red blood cells have no mitochondria, so this pathway is their only source of NADPH. In <b>G6PD deficiency</b>, the most common human enzyme deficiency, oxidant stress from certain drugs, fava beans or infection can damage hemoglobin and burst red cells (hemolysis).</li>
       </ul>
-      <p><a href="#krebs">Back to the Krebs cycle</a> · <a href="#blood/rbc">The red blood cell</a> · <a href="#muscle-contraction">Calcium in muscle contraction</a></p>
+      <p><a href="#krebs">Back to the Krebs cycle</a> · <a href="#blood/rbc">The red blood cell</a> · <a href="#muscle-contraction">Calcium in muscle contraction</a> · <a href="#mito-ros">NADPH against reactive oxygen species</a></p>
       ${energySources([EN_SRC.reg, EN_SRC.denton, EN_SRC.connect, EN_SRC.g6pd], 'The map is a diagram, not to scale, and shows only the steps discussed. Real control also involves hormone signaling, enzyme amounts and the supply of substrates.')}`,
   },
   {

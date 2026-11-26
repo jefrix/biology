@@ -52,6 +52,18 @@ const MANIFEST = [
   { key: 'cytoskeleton', name: 'Cytoskeleton', slideName: 'Cyto&shy;skeleton', c: 'cyto', eyebrow: 'Cytoskeleton and cell motility', title: 'The city’s roads, rails and engines',
     blurb: 'Build actin filaments, microtubules and intermediate filaments, watch kinesin, dynein and myosin walk on ATP, then follow a white blood cell as it rolls, crawls and squeezes out of a vessel.',
     ids: ['cyto-filaments', 'cyto-motors', 'cyto-crawl'], names: ['Filaments', 'Motor proteins', 'Crawling cells'] },
+  { key: 'signaling', name: 'Signal transduction', slideName: 'Signal trans&shy;duction', c: 'signal', eyebrow: 'Signal transduction', title: 'How a message outside becomes action inside',
+    blurb: 'Switch a G protein between stimulating and inhibiting to watch cAMP and PKA rise or fall, fire an RTK into the RAS–RAF–MEK–ERK relay and lock RAS on as cancers do, then split PIP₂ into IP₃ and DAG to release calcium puffs and waves that SERCA pumps clear.',
+    ids: ['sig-gpcr', 'sig-mapk', 'sig-calcium'], names: ['GPCR & cAMP', 'RTK & MAPK', 'Calcium & IP₃'] },
+  { key: 'junctions', name: 'Cell junctions', c: 'junction', eyebrow: 'Cell junctions and epithelia', title: 'How cells seal, grip and talk to their neighbors',
+    blurb: 'Seal an epithelium with claudin strands that act as both gate and fence, pull on adherens belts and desmosome spot welds until shear or pemphigus antibodies tear cells apart, then open and close the connexin gap junctions that let the heart beat as one.',
+    ids: ['junc-tight', 'junc-anchor', 'junc-gap'], names: ['Tight junctions', 'Adherens & desmosomes', 'Gap junctions'] },
+  { key: 'lipids', name: 'Lipid & cholesterol', slideName: 'Lipid & choles&shy;terol', c: 'lipid', eyebrow: 'Lipid and cholesterol trafficking', title: 'Where cholesterol goes, and when it builds up',
+    blurb: 'Follow LDL into a cell through its receptor and see how statins and PCSK9 inhibitors pull more of it from the blood, grow an arterial plaque from oxidized LDL and foam cells to a calcified or rupture-prone lesion on CT, then turn cholesterol into pregnenolone and the steroid hormones.',
+    ids: ['lipid-ldl', 'lipid-plaque', 'lipid-steroid'], names: ['LDL uptake & statins', 'Atherosclerosis', 'Steroid precursors'] },
+  { key: 'mitochondria', name: 'Mitochondrial dynamics', slideName: 'Mito&shy;chondria', c: 'mitodyn', eyebrow: 'Mitochondrial dynamics and quality control', title: 'A power network that splits, merges and cleans itself',
+    blurb: 'Watch DRP1 rings pinch mitochondria apart and mitofusins and OPA1 join them back into a network, follow electrons that leak into superoxide and the antioxidant relay that defuses it, then see PINK1 and Parkin tag a failing mitochondrion for removal.',
+    ids: ['mito-dynamics', 'mito-ros', 'mito-mitophagy'], names: ['Fission & fusion', 'ROS & antioxidants', 'PINK1/Parkin mitophagy'] },
   /* Cells in tissues: specialized cells and the body systems they build */
   { key: 'neural', name: 'Neural cells', c: 'dendrite', eyebrow: 'Neurons and glia', title: 'The city’s communications network',
     blurb: 'Meet neurons and glia, run a live action potential simulation, send signals across a synapse, and see how stroke and MS show up on MRI.',
@@ -102,7 +114,7 @@ const moduleFor = (id) => MANIFEST.find(x => x.ids.includes(id));
 // Old chapter links that moved when modules were merged, so bookmarks still land somewhere sensible.
 const ALIASES = { 'endocrine-targets': 'endocrine-receptors' };
 
-/* ---------- a small 3D toolkit shared by the tissue modules ----------
+/* ---------- a small 3D toolkit shared by the newer modules ----------
    const k = sceneKit(g) gives materials, primitives, labeled stages and looping particle streams;
    a module's build() fills k.out and returns it. Only called when WebGL is available. */
 function sceneKit(g) {
@@ -506,7 +518,7 @@ function initWorld() {
 
 /* ---------- loading a module the first time it is opened ---------- */
 // Bump with the ?v= in index.html on each deploy so GitHub Pages visitors never mix cached and new files.
-const ASSET_VERSION = 4;
+const ASSET_VERSION = 5;
 const loading = {};
 const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
 const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';
@@ -642,18 +654,23 @@ const MOTIFS = {
   cancer: '<path class="f" d="M22 30c10-14 30-12 40-6 14 2 24 14 22 28 4 14-8 30-24 30-12 6-30 2-36-10-10-8-12-30-2-42z" opacity=".6"/><circle class="d" cx="34" cy="38" r="5"/><circle class="d" cx="56" cy="34" r="6"/><circle class="d" cx="70" cy="52" r="5"/><circle class="d" cx="48" cy="56" r="6.5"/><circle class="d" cx="32" cy="64" r="4.5"/><circle class="d" cx="60" cy="72" r="5"/><path class="thick" d="M84 14c-8 6-10 14-14 22M70 36c-4 2-8 2-10 6" opacity=".8"/><path d="M12 88l10-10M88 86l-8-8"/>',
   immune: '<circle class="f" cx="34" cy="50" r="15"/><path d="M34 35L28 12M30 36L14 24M21 44L4 42M22 60L8 74M32 65l-4 22M44 63l10 20M47 40l8-20"/><circle class="d" cx="34" cy="50" r="5"/><circle class="f" cx="72" cy="50" r="13"/><circle class="d" cx="72" cy="50" r="7"/><path class="thick" d="M48 46h11M48 54h11"/><circle class="d" cx="53" cy="50" r="1.6"/>',
   bbb: '<circle class="f" cx="50" cy="50" r="36" opacity=".55"/><circle cx="50" cy="50" r="28"/><circle cx="50" cy="50" r="18"/><path class="thick" d="M50 22v8M50 70v8M22 50h6M72 50h6"/><ellipse class="d" cx="45" cy="47" rx="6" ry="4"/><path d="M14 22c8 4 12 10 14 14M86 24c-6 4-10 8-12 12M14 80c8-4 12-8 14-12M86 78c-6-4-10-8-12-12" opacity=".7"/><circle class="d" cx="12" cy="20" r="3"/><circle class="d" cx="88" cy="22" r="3"/><circle class="d" cx="12" cy="82" r="3"/><circle class="d" cx="88" cy="80" r="3"/>',
+  signaling: '<path class="f" d="M4 26h92v12H4z" opacity=".5"/><path class="thick" d="M33 20v24M39 20v24M45 20v24M51 20v24M57 20v24M63 20v24M69 20v24"/><circle class="d" cx="51" cy="12" r="5"/><circle class="f" cx="42" cy="54" r="6"/><circle class="f" cx="57" cy="53" r="4.5"/><path d="M48 60L30 74M50 61l-4 18M52 61l14 14M54 60l24 6" opacity=".7"/><circle class="d" cx="28" cy="76" r="2.4"/><circle class="d" cx="45" cy="82" r="2.4"/><circle class="d" cx="67" cy="77" r="2.4"/><circle class="d" cx="80" cy="66" r="2.4"/><circle class="d" cx="18" cy="88" r="1.6"/><circle class="d" cx="36" cy="92" r="1.6"/><circle class="d" cx="58" cy="92" r="1.6"/><circle class="d" cx="78" cy="88" r="1.6"/><circle class="d" cx="90" cy="78" r="1.6"/>',
+  junctions: '<rect class="f" x="6" y="8" width="39" height="84" rx="7" opacity=".55"/><rect class="f" x="55" y="8" width="39" height="84" rx="7" opacity=".55"/><path class="thick" d="M43 16h14M43 21h14M43 26h14"/><path d="M43 40h14M43 44h14M43 48h14"/><rect class="d" x="40" y="58" width="4" height="10" rx="1"/><rect class="d" x="56" y="58" width="4" height="10" rx="1"/><path d="M40 63c-10-4-18 2-26-6M60 63c10-4 18 2 26-6M40 61c-8 8-16 6-24 14M60 61c8 8 16 6 24 14" opacity=".7"/><circle cx="50" cy="80" r="3"/><circle cx="50" cy="87" r="3"/>',
+  lipids: '<circle class="f" cx="50" cy="50" r="42" opacity=".45"/><circle cx="50" cy="50" r="34"/><path class="f" d="M18 62a34 34 0 0 0 64 0c-6-12-18-18-32-18s-26 6-32 18z"/><path class="thick" d="M20 58c8-10 20-14 30-14s22 4 30 14"/><circle class="d" cx="38" cy="64" r="3.4"/><circle class="d" cx="50" cy="70" r="4"/><circle class="d" cx="62" cy="64" r="3"/><circle class="d" cx="44" cy="76" r="2"/><circle class="d" cx="58" cy="77" r="2.2"/><circle cx="50" cy="30" r="6" opacity=".7"/>',
+  mitochondria: '<path class="thick" d="M8 34c10-8 20 2 30-2s14-14 24-10 10 16 18 18 10 0 12 0"/><path class="thick" d="M14 70c8-6 18 4 28 0s12-12 22-8"/><path class="thick" d="M72 66c4-2 10-4 18 2"/><path d="M38 32c2 10 4 18 2 28M62 24c-2 12 0 26 2 38" opacity=".6"/><path d="M18 32l2 4M28 31l1 4M48 24l2 4M58 21l1 4M74 38l2 3M24 68l1 4M34 70l1 4M50 64l2 4" opacity=".7"/><ellipse class="d" cx="66" cy="65" rx="2" ry="5"/><circle class="d" cx="30" cy="32" r="1.6"/><circle class="d" cx="56" cy="22" r="1.6"/><circle class="d" cx="40" cy="70" r="1.6"/>',
   enterocyte: '<path class="f" d="M10 92V40c0-18 20-18 20 0v52M38 92V28c0-18 22-18 22 0v64M68 92V44c0-18 22-18 22 0v48" opacity=".55"/><path d="M10 40c0-18 20-18 20 0M38 28c0-18 22-18 22 0M68 44c0-18 22-18 22 0" class="thick"/><path d="M20 30v62M49 18v74M79 34v58" opacity=".5"/><circle class="d" cx="15" cy="60" r="2"/><circle class="d" cx="25" cy="70" r="2"/><circle class="d" cx="44" cy="52" r="2"/><circle class="d" cx="54" cy="64" r="2"/><circle class="d" cx="74" cy="66" r="2"/><circle class="d" cx="84" cy="76" r="2"/>',
 };
 const SLIDE_PREP = {
   energy: 'Mitochondrial fluorescence', protein: 'Anti-insulin immunostain', cleanup: 'Lysosome fluorescence',
-  transport: 'Membrane dye', division: 'DNA stain, anaphase', cytoskeleton: 'Phalloidin + anti-tubulin', neural: 'Golgi silver stain', muscle: 'Striated muscle, H&E',
+  transport: 'Membrane dye', division: 'DNA stain, anaphase', cytoskeleton: 'Phalloidin + anti-tubulin',
+  signaling: 'FRET cAMP biosensor', junctions: 'ZO-1 + E-cadherin immunostain', lipids: 'Oil Red O, arterial plaque', mitochondria: 'MitoTracker live imaging', neural: 'Golgi silver stain', muscle: 'Striated muscle, H&E',
   blood: 'Wright–Giemsa smear', hormones: 'Islet immunostain', nephron: 'PAS, kidney cortex', reproduction: 'Phase contrast',
   hepatocyte: 'PAS, liver lobule', bone: 'Ground bone, osteon', cancer: 'Ki-67 immunostain, carcinoma', immune: 'CD4/CD8 immunofluorescence',
   bbb: 'GFAP + claudin-5 immunostain', enterocyte: 'PAS, jejunal villi',
 };
 const TRAYS = [
-  { id: 'mechanisms', name: 'Cell mechanisms', tag: 'CM', note: 'What happens inside one cell', from: 0, to: 6 },
-  { id: 'tissues', name: 'Cells in tissues', tag: 'CT', note: 'Specialized cells and the systems they build', from: 6, to: MANIFEST.length },
+  { id: 'mechanisms', name: 'Cell mechanisms', tag: 'CM', note: 'What happens inside one cell', from: 0, to: 10 },
+  { id: 'tissues', name: 'Cells in tissues', tag: 'CT', note: 'Specialized cells and the systems they build', from: 10, to: MANIFEST.length },
 ];
 const OBJECTIVES = { 4: 0.66, 10: 1, 40: 1.85 };
 let benchKey = null;
@@ -691,7 +708,7 @@ function renderBench() {
     <section class="tray" aria-labelledby="tray-${t.id}">
       <header class="tray-head"><h2 id="tray-${t.id}">${t.name}</h2><span>${t.note} · ${t.to - t.from} slides</span></header>
       <div class="tray-rack" role="group" aria-label="${t.name} slides">
-        ${MANIFEST.slice(t.from, t.to).map((x, k) => slideMarkup(x, t.from + k, false)).join('')}${'<span class="slot-empty" aria-hidden="true"></span>'.repeat(Math.max(0, 6 - (t.to - t.from)))}
+        ${MANIFEST.slice(t.from, t.to).map((x, k) => slideMarkup(x, t.from + k, false)).join('')}${'<span class="slot-empty" aria-hidden="true"></span>'.repeat((6 - (t.to - t.from) % 6) % 6)}
       </div>
     </section>`).join('');
 }

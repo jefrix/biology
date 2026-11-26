@@ -31,16 +31,17 @@ async function main() {
   run(read('shared/core.js'));
   assert.equal(run('G3'), null);
   assert.match(read('index.html'), new RegExp('shared/core\\.js\\?v=' + run('ASSET_VERSION') + '"'), 'index.html cache-busts core.js with ASSET_VERSION');
-  // The home screen is a microscope bench: 18 glass slides, 6 in Cell mechanisms and 12 in Cells in tissues, with Energy loaded on the stage.
+  // The home screen is a microscope bench: 22 glass slides, 10 in Cell mechanisms and 12 in Cells in tissues, with Energy loaded on the stage.
   const keys = Array.from(run('MANIFEST'), x => x.key);
   const trays = element('#slideTrays').innerHTML;
-  assert.equal(keys.length, 18, '18 modules');
+  assert.equal(keys.length, 22, '22 modules');
   assert.deepEqual(Array.from(trays.matchAll(/data-key="([^"]+)"/g), x => x[1]), keys, 'one slide per module, in curriculum order');
-  assert.match(trays, /Cell mechanisms[\s\S]*data-key="division"[\s\S]*data-key="cytoskeleton"[\s\S]*Cells in tissues[\s\S]*data-key="neural"/);
+  assert.match(trays, /Cell mechanisms[\s\S]*data-key="division"[\s\S]*data-key="cytoskeleton"[\s\S]*data-key="mitochondria"[\s\S]*Cells in tissues[\s\S]*data-key="neural"/);
   const [mech, tissue] = trays.split('<section').slice(1);
-  assert.equal((mech.match(/data-key=/g) || []).length, 6, 'Cell mechanisms tray holds 6 slides');
+  assert.equal((mech.match(/data-key=/g) || []).length, 10, 'Cell mechanisms tray holds 10 slides');
   assert.equal((tissue.match(/data-key=/g) || []).length, 12, 'Cells in tissues tray holds 12 slides');
-  assert(!/slot-empty/.test(trays), 'no empty slots once both trays are full');
+  assert.equal((mech.match(/slot-empty/g) || []).length, 2, 'the 10-slide mechanisms tray pads its second row of 6 with two empty slots');
+  assert(!/slot-empty/.test(tissue), 'the 12-slide tissue tray fills two rows exactly');
   assert.match(trays, /CM-06<\/span><span class="slide-name">Cyto(&shy;)?skeleton</, 'Cytoskeleton is slide CM-06');
   assert.equal(run('SLIDE_PREP.cytoskeleton'), 'Phalloidin + anti-tubulin');
   // The six tissue slides added after reproduction, in order, each with a prep label and a specimen motif.
@@ -48,9 +49,19 @@ async function main() {
   NEW_SLIDES.forEach(([key, label], i) => {
     const no = 'CT-' + String(7 + i).padStart(2, '0');
     assert.match(trays, new RegExp('data-key="' + key + '"[^>]*>\\s*<span class="slide-label"><span class="slide-no">' + no + '</span><span class="slide-name">' + label + '<'), key + ' is slide ' + no);
-    assert.equal(keys[12 + i], key, key + ' sits at position ' + (13 + i));
+    assert.equal(keys[16 + i], key, key + ' sits at position ' + (17 + i));
     assert(run('SLIDE_PREP[' + JSON.stringify(key) + ']'), key + ' has a prep label');
     assert(run('MOTIFS[' + JSON.stringify(key) + ']').length > 100, key + ' has a specimen motif');
+  });
+  // The four cross-cutting mechanism slides follow the cytoskeleton as CM-07 to CM-10.
+  const MECH_SLIDES = [['signaling', 'Signal trans(&shy;)?duction', 'FRET cAMP biosensor'], ['junctions', 'Cell junctions', 'ZO-1 + E-cadherin immunostain'], ['lipids', 'Lipid &(amp;)? choles(&shy;)?terol', 'Oil Red O, arterial plaque'], ['mitochondria', 'Mito(&shy;)?chondria', 'MitoTracker live imaging']];
+  MECH_SLIDES.forEach(([key, label, prep], i) => {
+    const no = 'CM-' + String(7 + i).padStart(2, '0');
+    assert.match(trays, new RegExp('data-key="' + key + '"[^>]*>\\s*<span class="slide-label"><span class="slide-no">' + no + '</span><span class="slide-name">' + label + '<'), key + ' is slide ' + no);
+    assert.equal(keys[6 + i], key, key + ' sits at position ' + (7 + i));
+    assert.equal(run('SLIDE_PREP[' + JSON.stringify(key) + ']'), prep, key + ' has its prep label');
+    assert(run('MOTIFS[' + JSON.stringify(key) + ']').length > 100, key + ' has a specimen motif');
+    assert.equal(run('MANIFEST')[6 + i].ids.length, 3, key + ' has three chapters');
   });
   const tokens = read('shared/core.css');
   const cards = Array.from(run('MANIFEST'), x => x.c);
@@ -75,15 +86,23 @@ async function main() {
   // Cross-links that the new chapters promise, checked against the rendered chapter HTML below.
   const CROSS = {
     plt: ['clotting'], clotting: ['blood/plt'], 'cyto-motors': ['axon', 'muscle-contraction'], 'cyto-crawl': ['blood/neut', 'cell'], 'cyto-filaments': ['cell', 'mitosis'],
-    chromatin: ['gene'], cotransport: ['proximal-tubule', 'pump', 'tally'], epithelia: ['proximal-tubule', 'collecting-duct', 'endocrine-receptors'], channels: ['permeability'],
-    apoptosis: ['fate', 'survival'], fate: ['apoptosis'], branches: ['krebs', 'blood/rbc'], warburg: ['petprep', 'cycle', 'branches', 'cancer-pet'], glycolysis: ['warburg'], pump: ['cotransport'],
+    chromatin: ['gene'], cotransport: ['proximal-tubule', 'pump', 'tally'], channels: ['permeability'],
+    apoptosis: ['fate', 'survival'], fate: ['apoptosis'], warburg: ['petprep', 'cycle', 'branches', 'cancer-pet'], glycolysis: ['warburg'], pump: ['cotransport'],
     'liver-glycogen': ['glycolysis', 'balance', 'gut-portal', 'blood/rbc'], 'urea-cycle': ['nephron-overview', 'krebs', 'fuel'], 'liver-cyp': ['petprep', 'cancer-pet', 'gut-portal', 'er'],
     'bone-remodel': ['blood/mono', 'lysosome', 'bone-dexa'], 'bone-dexa': ['bone-remodel', 'bone-lesions'], 'bone-lesions': ['cancer-spread', 'cancer-pet', 'bone-remodel'],
-    'cancer-genes': ['cycle', 'apoptosis', 'damage', 'fate'], 'cancer-spread': ['cyto-crawl', 'bone-lesions', 'cancer-pet'], 'cancer-pet': ['warburg', 'apoptosis', 'petprep', 'liver-cyp', 'glycolysis'],
+    'cancer-spread': ['cyto-crawl', 'bone-lesions', 'cancer-pet'], 'cancer-pet': ['warburg', 'apoptosis', 'petprep', 'liver-cyp', 'glycolysis'],
     'immune-mhc': ['proteasome', 'er', 'lysosome', 'blood/lymph'], 'immune-complement': ['cyto-crawl', 'cancer-pet', 'blood/rbc'], 'immune-effector': ['blood/lymph', 'cyto-crawl', 'apoptosis'],
-    'bbb-unit': ['neurons', 'epithelia'], 'bbb-transport': ['channels', 'bbb-mri'], 'bbb-mri': ['brain', 'cancer-spread', 'bbb-unit'],
-    'gut-sglt1': ['cotransport', 'pump', 'fuel', 'proximal-tubule', 'epithelia'], 'gut-fat': ['er', 'golgi', 'gut-portal'], 'gut-portal': ['liver-glycogen', 'liver-cyp'],
-    pacemaker: ['muscle-tissues', 'rest', 'spike'], 'muscle-tissues': ['pacemaker'], petprep: ['cancer-pet', 'liver-cyp'],
+    'bbb-transport': ['channels', 'bbb-mri'], 'bbb-mri': ['brain', 'cancer-spread', 'bbb-unit'],
+    'gut-sglt1': ['cotransport', 'pump', 'fuel', 'proximal-tubule', 'epithelia'], 'gut-portal': ['liver-glycogen', 'liver-cyp'],
+    'sig-gpcr': ['endocrine-receptors', 'synapse'], 'sig-mapk': ['cancer-genes', 'endocrine-receptors', 'receptor'], 'sig-calcium': ['muscle-contraction', 'synapse'],
+    'junc-tight': ['epithelia', 'bbb-unit', 'proximal-tubule'], 'junc-anchor': ['cyto-filaments', 'gut-sglt1'], 'junc-gap': ['pacemaker', 'muscle-tissues'],
+    'lipid-ldl': ['intake', 'gut-fat'], 'lipid-plaque': ['immune-complement', 'clotting', 'blood/mono'], 'lipid-steroid': ['endocrine-map', 'endocrine-feedback', 'liver-cyp'],
+    'mito-dynamics': ['etc', 'cyto-motors'], 'mito-ros': ['etc', 'branches'], 'mito-mitophagy': ['autophagy', 'apoptosis'],
+    intake: ['lipid-ldl'], autophagy: ['mito-mitophagy'], etc: ['mito-ros'], 'muscle-contraction': ['sig-calcium'], synapse: ['sig-gpcr', 'junc-gap'],
+    'cyto-filaments': ['junc-anchor'], 'gut-fat': ['er', 'golgi', 'gut-portal', 'lipid-ldl'], 'endocrine-map': ['lipid-steroid'], 'endocrine-receptors': ['sig-gpcr', 'sig-mapk'],
+    'cancer-genes': ['cycle', 'apoptosis', 'damage', 'fate', 'sig-mapk'], 'proximal-tubule': ['junc-tight'],
+    'bbb-unit': ['neurons', 'epithelia', 'junc-tight'], epithelia: ['proximal-tubule', 'collecting-duct', 'endocrine-receptors', 'junc-tight'], branches: ['krebs', 'blood/rbc', 'mito-ros'],
+    pacemaker: ['muscle-tissues', 'rest', 'spike', 'junc-gap'], 'muscle-tissues': ['pacemaker'], petprep: ['cancer-pet', 'liver-cyp'],
   };
   const allIds = new Set(run('MANIFEST').flatMap(x => x.ids));
   const seen = new Set();
@@ -175,6 +194,35 @@ async function main() {
     ['gut-portal', 'gut-route', 'iv', 'gutRouteCaption', /100%/, 'oral'],
     ['gut-portal', 'gut-route', 'oral', 'gutRouteCaption', /first pass/, 'oral'],
     ['pacemaker', 'heart-rate', 'fast', 'pacemakerCaption', /120 beats per minute/, 'normal'],
+    ['sig-gpcr', 'sig-gpcr', 'gs', 'sigGpcrCaption', /adenylyl cyclase/, 'rest'],
+    ['sig-gpcr', 'sig-gpcr', 'gi', 'sigGpcrCaption', /cAMP falls/, 'rest'],
+    ['sig-gpcr', 'sig-gpcr', 'cholera', 'sigGpcrCaption', /CFTR/, 'rest'],
+    ['sig-mapk', 'sig-mapk', 'egf', 'sigMapkCaption', /MEK phosphorylates ERK/, 'off'],
+    ['sig-mapk', 'sig-mapk', 'ras', 'sigMapkCaption', /KRAS G12/, 'off'],
+    ['sig-mapk', 'sig-mapk', 'drug', 'sigMapkCaption', /sotorasib/, 'off'],
+    ['sig-calcium', 'sig-ca', 'puff', 'sigCaCaption', /PIP₂/, 'rest'],
+    ['sig-calcium', 'sig-ca', 'wave', 'sigCaCaption', /ryanodine/, 'rest'],
+    ['sig-calcium', 'sig-ca', 'blocked', 'sigCaCaption', /thapsigargin/, 'rest'],
+    ['junc-tight', 'junc-tight', 'leaky', 'juncTightCaption', /claudin-2/, 'sealed'],
+    ['junc-tight', 'junc-tight', 'lost', 'juncTightCaption', /fence fails/, 'sealed'],
+    ['junc-anchor', 'junc-anchor', 'weld', 'juncAnchorCaption', /desmoglein/, 'belt'],
+    ['junc-anchor', 'junc-anchor', 'shear', 'juncAnchorCaption', /intermediate filament/, 'belt'],
+    ['junc-anchor', 'junc-anchor', 'pemphigus', 'juncAnchorCaption', /acantholysis/, 'belt'],
+    ['junc-gap', 'junc-gap', 'closed', 'juncGapCaption', /arrhythmias/, 'open'],
+    ['lipid-ldl', 'lipid-ldl', 'statin', 'lipidLdlCaption', /HMG-CoA reductase/, 'normal'],
+    ['lipid-ldl', 'lipid-ldl', 'pcsk9', 'lipidLdlCaption', /inclisiran/, 'normal'],
+    ['lipid-ldl', 'lipid-ldl', 'fh', 'lipidLdlCaption', /1 in 250/, 'normal'],
+    ['lipid-plaque', 'lipid-plaque', 'stable', 'lipidPlaqueCaption', /fibrous cap/, 'streak'],
+    ['lipid-plaque', 'lipid-plaque', 'vulnerable', 'lipidPlaqueCaption', /ruptures/, 'streak'],
+    ['lipid-plaque', 'lipid-plaque', 'ct', 'lipidPlaqueCaption', /Agatston/, 'streak'],
+    ['lipid-steroid', 'lipid-steroid', 'aldosterone', 'lipidSteroidCaption', /CYP11B2/, 'cortisol'],
+    ['lipid-steroid', 'lipid-steroid', 'sex', 'lipidSteroidCaption', /aromatase/, 'cortisol'],
+    ['lipid-steroid', 'lipid-steroid', 'star', 'lipidSteroidCaption', /lipoid/, 'cortisol'],
+    ['mito-dynamics', 'mito-dyn', 'fission', 'mitoDynCaption', /DRP1/, 'fusion'],
+    ['mito-ros', 'mito-ros', 'overload', 'mitoRosCaption', /reperfusion/, 'balanced'],
+    ['mito-ros', 'mito-ros', 'nadph', 'mitoRosCaption', /G6PD/, 'balanced'],
+    ['mito-mitophagy', 'mito-pink', 'damaged', 'mitoPinkCaption', /Parkin coats/, 'healthy'],
+    ['mito-mitophagy', 'mito-pink', 'pd', 'mitoPinkCaption', /Parkinson/, 'healthy'],
     ['pacemaker', 'heart-rate', 'slow', 'pacemakerCaption', /50 beats per minute/, 'normal'],
   ];
   for (const [route, key, value, cap, expected, back] of SWITCHES) {
@@ -190,7 +238,7 @@ async function main() {
   run('goHome()');
   assert.equal(context.location.hash, '#home');
   assert.equal(element('#scopeTitle').textContent, 'Hormones & endocrine', 'returning home puts the last module back on the stage');
-  console.log(seen.size + ' chapter routes in ' + run('MANIFEST').length + ' modules, text-mode navigation, cross-links, US spelling, lesson controls, the red-cell exercise, blood card deep links, the merged-module redirect, ' + SWITCHES.length + ' new lesson switches and the 18-slide microscope bench passed.');
+  console.log(seen.size + ' chapter routes in ' + run('MANIFEST').length + ' modules, text-mode navigation, cross-links, US spelling, lesson controls, the red-cell exercise, blood card deep links, the merged-module redirect, ' + SWITCHES.length + ' lesson switches and the 22-slide microscope bench (10 Cell mechanisms + 12 Cells in tissues) passed.');
 }
 main().catch(err => { console.error(err); process.exitCode = 1; });
 

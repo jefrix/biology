@@ -14,6 +14,10 @@ An interactive 3D atlas of human cell biology, with links to radiology and clini
 | Membranes & transport | `modules/transport.js` | Passive crossing routes, red cell osmosis, the sodium–potassium pump, channels versus carriers (with saturation kinetics), secondary active transport (SGLT1/SGLT2, NCX), polarized epithelia and tight junctions |
 | Division & radiation | `modules/division.js` | Cell cycle, mitosis, DNA damage and repair, cell fate, apoptosis versus necrosis, survival curves, fractionation and dose |
 | Cytoskeleton | `modules/cytoskeleton.js` | Actin, microtubules (dynamic instability, taxane and colchicine effects) and intermediate filaments; kinesin, dynein and myosin V stepping on ATP; a neutrophil rolling, crawling and squeezing out of a vessel |
+| Signal transduction | `modules/signaling.js` | GPCRs with Gs, Gi and cholera toxin driving adenylyl cyclase, cAMP, PKA and phosphodiesterase; receptor tyrosine kinase dimerization and the RAS–RAF–MEK–ERK cascade (with oncogenic RAS and a KRAS G12C inhibitor); PLCβ, IP₃ and DAG, calcium puffs, waves and sparks, calmodulin and SERCA |
+| Cell junctions | `modules/junctions.js` | Claudin and occludin tight junctions as gate and fence (sealed, leaky claudin-2, lost); E-cadherin adherens belts and desmosomes with keratin under shear and in pemphigus; connexin gap junctions open and closed |
+| Lipid & cholesterol | `modules/lipids.js` | LDL receptor uptake, SREBP-2 feedback, statins, PCSK9 inhibitors and familial hypercholesterolemia; fatty streak to stable and vulnerable plaque with coronary calcium scoring and CT angiography; StAR and CYP11A1 making pregnenolone for cortisol, aldosterone and sex steroids (with StAR deficiency) |
+| Mitochondrial dynamics | `modules/mitochondria.js` | DRP1 fission at ER contacts and MFN1/2 and OPA1 fusion; superoxide leak at complexes I and III, SOD2, glutathione peroxidase and NADPH recharging (balanced, overwhelmed, low NADPH); PINK1/Parkin mitophagy in healthy, depolarized and PINK1/Parkin-deficient mitochondria |
 
 **Cells in tissues**
 
@@ -32,7 +36,7 @@ An interactive 3D atlas of human cell biology, with links to radiology and clini
 | Blood–brain barrier | `modules/bbb.js` | The neurovascular unit (endothelium, tight junctions, pericytes, astrocyte endfeet), diffusion, GLUT1 and P-glycoprotein efflux, gadolinium leakage on MRI in stroke, tumor and MS |
 | Enterocyte | `modules/enterocyte.js` | Brush border and SGLT1/GLUT2 glucose uptake, fat absorption into chylomicrons and lacteals, the portal vein and first-pass metabolism by route of dosing |
 
-The module list, glass slides (6 in Cell mechanisms, 12 in Cells in tissues) and chapter order live in the `MANIFEST` in `shared/core.js`, with each slide's specimen drawing in `MOTIFS` and prep label in `SLIDE_PREP`. The tissue modules added last build their scenes with `sceneKit()` in `shared/core.js`, a small toolkit of materials, primitives, labeled stages and looping particle streams. A module can list `pills` to give its slide deep links instead of one link per chapter, as Blood does.
+The module list, glass slides (10 in Cell mechanisms, 12 in Cells in tissues) and chapter order live in the `MANIFEST` in `shared/core.js`, with each slide's specimen drawing in `MOTIFS` and prep label in `SLIDE_PREP`. The tissue and cross-cutting mechanism modules added last build their scenes with `sceneKit()` in `shared/core.js`, a small toolkit of materials, primitives, labeled stages and looping particle streams. A module can list `pills` to give its slide deep links instead of one link per chapter, as Blood does.
 
 ## Run locally
 
@@ -52,7 +56,7 @@ Requires Node.js 18 or later. No dependencies need to be installed.
 node check-chapters.cjs         # or: npm test
 ```
 
-The check loads `shared/core.js` and every module in a minimal text-mode browser stub. It confirms that each module registers exactly the chapters listed in `MANIFEST`, that every chapter route opens with no duplicates, that the bench shows 18 slides (6 + 12) with their slide numbers, prep labels, motifs and a distinct color token each, that every in-app link points at a real chapter and the promised cross-links are present, that chapter text uses US spelling, and that the ATP-ledger, red-cell osmosis and every lesson switch caption (including all switches in the six tissue modules and the pacemaker chapter) respond correctly. It does not render WebGL, so also open changed chapters in a browser.
+The check loads `shared/core.js` and every module in a minimal text-mode browser stub. It confirms that each module registers exactly the chapters listed in `MANIFEST`, that every chapter route opens with no duplicates, that the bench shows 22 slides (10 + 12) with their slide numbers, prep labels, motifs and a distinct color token each, that every in-app link points at a real chapter and the promised cross-links are present, that chapter text uses US spelling, and that the ATP-ledger, red-cell osmosis and every lesson switch caption (including all switches in the six tissue modules, the four cross-cutting mechanism modules and the pacemaker chapter) respond correctly. It does not render WebGL, so also open changed chapters in a browser.
 
 ## Add a chapter
 

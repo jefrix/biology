@@ -56,7 +56,7 @@ const CHAPTERS = [
         <li><b>Intermediate filaments</b> have no polarity and no motors. They are the cell’s ropes. Mutations in skin keratins cause epidermolysis bullosa simplex, in which the skin blisters after minor friction.</li>
         <li>Drugs that freeze microtubules (taxanes) or prevent their assembly (vinca alkaloids) are used in chemotherapy because a cell cannot finish <a href="#mitosis">mitosis</a> without a working spindle. Colchicine, used for gout, blocks neutrophil microtubules.</li>
       </ul>
-      <p><a href="#cell">See the cytoskeleton in the cell city tour</a> · <a href="#cyto-motors">Watch motors walk on these tracks</a></p>
+      <p><a href="#cell">See the cytoskeleton in the cell city tour</a> · <a href="#cyto-motors">Watch motors walk on these tracks</a> · <a href="#junc-anchor">Junctions that anchor actin and keratin</a></p>
       ${sources([SRC.osCyto, SRC.mitchison, SRC.alberts], 'Filaments are drawn at their true relative widths (1 scene unit = 5 nm) but far shorter than real ones, which reach many micrometers. Growth and shrinkage are sped up, and intermediate filaments are drawn as a simple twisted rope.')}`,
   },
   {

@@ -162,6 +162,7 @@ const CHAPTERS = [
         <li>As endosomes mature they grow more acidic and take on the features of lysosomes.</li>
         <li>Some bacteria, including the one that causes tuberculosis, survive after being swallowed by interfering with this system.</li>
       </ul>
+      <p><a href="#lipid-ldl">Follow LDL cholesterol on to statins and PCSK9</a></p>
       ${sources([SRC.fcb, SRC.bol, SRC.fh], 'The 3D scene is schematic, not to scale and much slower than life. Clathrin cages are drawn as dots.')}`,
   },
   {
@@ -207,6 +208,7 @@ const CHAPTERS = [
         <li>It mainly protects the cell, helping it through shortages and clearing damage.</li>
         <li>Problems with autophagy are studied in cancer and in diseases where nerve cells degenerate.</li>
       </ul>
+      <p><a href="#mito-mitophagy">PINK1 and Parkin mitophagy up close</a> · <a href="#mito-dynamics">How fission separates a damaged mitochondrion</a></p>
       ${sources([SRC.auto, SRC.ulk, SRC.pink, SRC.bol], 'Control of autophagy involves many more signals than the two switches shown.')}`,
   },
   {

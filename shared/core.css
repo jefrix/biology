@@ -136,6 +136,29 @@
   --chylo: #fff0b3;
   --drug: #b18cff;
   --sa: #ffe45e;
+  /* cross-cutting cell mechanisms added with the 22-slide bench */
+  --signal: #ff8ce6;
+  --junction: #2ee6a6;
+  --lipid: #ffe9a8;
+  --mitodyn: #ff4d8d;
+  --gprot: #7fb2ff;
+  --camp: #ffe45e;
+  --pka: #ff9b52;
+  --kinase: #ff6ad5;
+  --ras: #ff4d5e;
+  --ip3: #46e8ff;
+  --er: #6fa8dc;
+  --claudin: #2ee6a6;
+  --cadherin: #ffb347;
+  --connexin: #7fe8ff;
+  --ldl: #ffcf70;
+  --ldlr: #5fb4ff;
+  --foam: #fff3c4;
+  --steroid: #ff9be0;
+  --drp1: #ff4d5e;
+  --mfn: #6ee7a0;
+  --ros: #ffe45e;
+  --ubiq: #ff79c6;
 
   --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --f-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;

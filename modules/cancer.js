@@ -56,7 +56,7 @@ const CHAPTERS = [
         <li><b>RB</b> holds the transcription factor E2F until cyclin D–CDK4/6 phosphorylates it. CDK4/6 inhibitors used in breast cancer restore this brake.</li>
         <li>No single mutation is enough. Most cancers accumulate several driver mutations over years, which is why risk climbs with age and with exposures such as smoking or <a href="#damage">radiation damage</a>.</li>
       </ul>
-      <p><a href="#cancer-spread">How a tumor spreads</a> · <a href="#fate">What a normal cell does with damage</a></p>
+      <p><a href="#cancer-spread">How a tumor spreads</a> · <a href="#fate">What a normal cell does with damage</a> · <a href="#sig-mapk">The RAS–MAPK relay step by step</a></p>
       ${sources([SRC.osCancer, SRC.osControl, SRC.hanahan2011], 'The cycle is drawn as a ring with two gates and a handful of cells. Real checkpoint control involves many more proteins, and the spindle checkpoint inside M is not drawn. Speeds and division counts are illustrative.')}`,
   },
   {

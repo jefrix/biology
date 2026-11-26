@@ -19,7 +19,7 @@
       </ol>
       <p>Farther downstream in the proximal tubule, SGLT1 recovers glucose that remains. This cutaway focuses on early proximal tubule SGLT2.</p>
       <p>The meter and motion illustrate relative driving force. They represent neither measured concentrations nor biological times.</p>
-      <p><a href="#pump">Watch the sodium–potassium pump cycle</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5886707/">Source: Probing SGLT2 as a therapeutic target for diabetes</a></p>`,
+      <p><a href="#pump">Watch the sodium–potassium pump cycle</a> · <a href="#junc-tight">Leaky claudin-2 tight junctions</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5886707/">Source: Probing SGLT2 as a therapeutic target for diabetes</a></p>`,
   };
 
   const anatomySource = '<p><a href="https://openstax.org/books/anatomy-and-physiology-2e/pages/25-4-microscopic-anatomy-of-the-kidney">OpenStax · Microscopic anatomy of the kidney</a></p>';

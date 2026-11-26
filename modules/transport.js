@@ -89,7 +89,7 @@
         '<ul class="facts"><li><b>Tight junctions</b> seal the space between neighboring cells near the apical surface. They limit leakage between cells (the paracellular route) and act as a fence that keeps apical and basolateral proteins apart, which is what makes one-way transport possible.</li>' +
         '<li>Tightness varies. The proximal tubule is leaky, so water and some ions follow the absorbed solutes between cells. The collecting duct and the blood–brain barrier are tight, so what crosses is controlled by transporters and channels.</li>' +
         '<li>Hormones adjust the transporters: aldosterone adds sodium channels on the apical side and pumps on the basolateral side of collecting duct cells, and ADH inserts water channels.</li></ul>' +
-        '<p><a href="#proximal-tubule">Watch glucose recovery in the proximal tubule</a> · <a href="#collecting-duct">See hormones tune the collecting duct</a> · <a href="#endocrine-receptors">How steroid hormones like aldosterone act</a></p>' +
+        '<p><a href="#proximal-tubule">Watch glucose recovery in the proximal tubule</a> · <a href="#collecting-duct">See hormones tune the collecting duct</a> · <a href="#endocrine-receptors">How steroid hormones like aldosterone act</a> · <a href="#junc-tight">Tight junctions as gate and fence</a></p>' +
         credit([OS.epith, OS.membrane, OS.reab], 'Cells, microvilli and junctions are schematic and not to scale. Only one pathway is drawn per cell; real absorbing cells carry many more transporters and channels.') },
   ];
   function build({scene, addLabel, textSprite, glow}) {

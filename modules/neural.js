@@ -292,6 +292,7 @@ const CHAPTERS = [
         <li><b>Curare</b> and the snake toxin α-bungarotoxin block the acetylcholine receptor where nerve meets muscle.</li>
         <li>Some synapses are <b>electrical</b>, passing current directly through gap junctions.</li>
       </ul>
+      <p><a href="#sig-gpcr">How metabotropic receptors signal through G proteins</a> · <a href="#junc-gap">Gap junctions up close</a></p>
       ${sources([luo('pp. 75, 77, 93 and 96')], 'Simplified. Not a guide to any drug’s effects or use.')}`,
   },
   {
