@@ -542,7 +542,7 @@ function initWorld() {
 
 /* ---------- loading a module the first time it is opened ---------- */
 // Bump with the ?v= in index.html on each deploy so GitHub Pages visitors never mix cached and new files.
-const ASSET_VERSION = 9;
+const ASSET_VERSION = 10;
 const loading = {};
 const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
 const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';

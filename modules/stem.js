@@ -458,47 +458,180 @@ CellCity.register('stem', {
       tag('ipsc', 'iPSC colony: pluripotent', 'stem', V(4.6, 3.6, 0), u => u >= 0.66);
       tag('ipsc', 'Risk: teratoma, c-Myc oncogene', 'cancer', V(4.6, -1.6, 0), u => u >= 0.74);
 
-      // --- marrow on MRI and PET: three schematic panels
+      // --- marrow on MRI and PET: simulated scans, not patient images
+      // PET: a coarse 3D uptake volume of one body, shown the way scanners display whole-body PET, as a rotating
+      // maximum intensity projection (MIP) in inverted grey. The two PET panels use the same body; only marrow and spleen change.
       const Pq = subs.pet;
-      const mri = k.panel(Pq, 5, 8, 256), petA = k.panel(Pq, 5, 8, 256), petB = k.panel(Pq, 5, 8, 256);
-      mri.mesh.position.set(-6.2, 0, 0); petA.mesh.position.set(0, 0, 0); petB.mesh.position.set(6.2, 0, 0);
-      mri.draw((c, w, hh) => {
-        c.fillStyle = '#050505'; c.fillRect(0, 0, w, hh);
-        [[0.3, '#8f8f8f'], [0.7, '#e6e6e6']].forEach(([fx, fill]) => {
-          for (let i = 0; i < 7; i++) {
-            const y = 30 + i * 50;
-            c.fillStyle = fill; c.fillRect(w * fx - 30, y, 60, 38);
-            c.fillStyle = '#4a4a4a'; c.fillRect(w * fx - 28, y + 39, 56, 10);
+      const NX = 52, NY = 120, NZ = 34, NA = 36;                 // volume size (left-right, head-feet, back-front) and cine angles
+      const rnd = mulberry32(4242);
+      function buildVolume(gcsf) {
+        const vol = new Float32Array(NX * NY * NZ);
+        const put = (cx, cy, cz, rx, ry, rz, v, mode = 'max') => {            // a soft-edged ellipsoid of uptake v
+          const x0 = Math.max(0, Math.floor(cx - rx - 1)), x1 = Math.min(NX - 1, Math.ceil(cx + rx + 1));
+          const y0 = Math.max(0, Math.floor(cy - ry - 1)), y1 = Math.min(NY - 1, Math.ceil(cy + ry + 1));
+          const z0 = Math.max(0, Math.floor(cz - rz - 1)), z1 = Math.min(NZ - 1, Math.ceil(cz + rz + 1));
+          for (let z = z0; z <= z1; z++) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+            const d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 + ((z - cz) / rz) ** 2;
+            if (d > 1.6) continue;
+            const s = v * Math.min(1, Math.max(0, (1.6 - d) / 0.9)), i = (z * NY + y) * NX + x;
+            vol[i] = mode === 'add' ? vol[i] + s : Math.max(vol[i], s);
           }
+        };
+        const C = NX / 2, F = NZ / 2;
+        // soft tissue: the faint body outline every MIP shows
+        put(C, 9, F, 7, 9, 8, 0.15); put(C, 19, F, 4, 4, 4, 0.15);
+        put(C, 44, F, 15, 23, 10, 0.14); put(C, 70, F, 15, 8, 9, 0.14);
+        [-1, 1].forEach(s => { put(C + s * 19.5, 42, F, 3.2, 20, 3.2, 0.13); put(C + s * 6.5, 96, F, 5, 25, 5, 0.13); });
+        // muscle, bowel and other normal uptake
+        for (let i = 0; i < 14; i++) put(C + (rnd() - 0.5) * 18, 56 + rnd() * 12, F + 2 + rnd() * 5, 1.6 + rnd() * 1.5, 1.4 + rnd(), 1.6, 0.16 + rnd() * 0.12);
+        put(C, 9, F, 6, 7.5, 6.8, 1.15);                                   // brain gray matter
+        [-1, 1].forEach(s => put(C + s * 4, 16, F + 3, 1.3, 1.2, 1.3, 0.42));   // tonsils / salivary glands
+        put(C + 3, 35, F + 3.5, 4.4, 5, 4, 0.7); put(C + 3, 35, F + 3.5, 2.4, 3, 2.2, 0.15, 'max');   // heart (variable)
+        put(C - 7, 46, F, 8, 5.5, 7, 0.36);                                // liver
+        const sp = gcsf ? 1.25 : 1;
+        put(C + 10, 45, F - 3, 2.7 * sp, 4 * sp, 3 * sp, gcsf ? 0.62 : 0.26);  // spleen
+        [-1, 1].forEach(s => { put(C + s * 6, 51, F - 6, 2.2, 4, 2.2, 0.55); for (let y = 55; y < 70; y += 1.5) put(C + s * (6 - (y - 55) * 0.25), y, F - 4, 0.6, 0.9, 0.6, 0.45); });   // kidneys, ureters
+        put(C, 74, F + 3, 3.6, 3, 3.2, 1.3);                               // bladder
+        // bone marrow: low and patchy at baseline, high and even after G-CSF
+        const m = gcsf ? 0.78 : 0.22, mv = () => m * (gcsf ? 0.96 + rnd() * 0.06 : 0.85 + rnd() * 0.3);
+        for (let y = 21; y <= 66; y += 2.6) put(C, y, F - 6.5, 1.9, 1.55, 1.9, mv());           // vertebral bodies
+        for (let k = 0; k < 9; k++) [-1, 1].forEach(s => { for (let a = 0; a < 1; a += 0.07) put(C + s * (3 + a * 11), 26 + k * 3.2 + a * 2.5, F - 7 + a * 6, 0.85, 0.7, 0.85, mv() * 0.55); });   // ribs
+        put(C, 35, F + 8.5, 1, 5.5, 0.8, mv());                            // sternum
+        [-1, 1].forEach(s => {
+          put(C + s * 8, 64, F - 4, 4.6, 3.6, 1.8, mv()); put(C + s * 3.2, 68, F - 6, 2, 3.5, 1.6, mv());   // iliac wings, sacrum
+          put(C + s * 16.5, 25, F, 2, 2, 2, mv());                         // humeral heads
+          put(C + s * 9, 75, F, 2, 2, 2, mv());                            // femoral heads
+          for (let y = 78; y < (gcsf ? 98 : 84); y += 1.1) put(C + s * (9 - (y - 78) * 0.1), y, F, 1.15, 1.2, 1.15, mv() * 0.9);   // femoral shafts fill in
+          if (gcsf) for (let y = 28; y < 40; y += 1.1) put(C + s * 18.5, y, F, 1, 1.2, 1, mv() * 0.8);   // and the humeral shafts
         });
-        c.fillStyle = '#bfbfbf'; c.font = '600 14px sans-serif'; c.textAlign = 'center';
-        c.fillText('Red', w * 0.3, hh - 34); c.fillText('Yellow', w * 0.7, hh - 34);
-        c.fillStyle = '#8a8a8a'; c.font = '13px sans-serif'; c.fillText('child', w * 0.3, hh - 16); c.fillText('adult', w * 0.7, hh - 16);
-      });
-      function petDraw(c, w, hh, gcsf) {
-        c.fillStyle = '#f2f2f2'; c.fillRect(0, 0, w, hh);
-        c.strokeStyle = '#b5b5b5'; c.lineWidth = 3;
-        c.beginPath(); c.ellipse(w / 2, 44, 24, 30, 0, 0, Math.PI * 2); c.stroke();
-        c.beginPath(); c.moveTo(w / 2 - 22, 76); c.lineTo(w / 2 - 70, 96); c.lineTo(w / 2 - 66, 260); c.lineTo(w / 2 - 50, 400); c.moveTo(w / 2 + 22, 76); c.lineTo(w / 2 + 70, 96); c.lineTo(w / 2 + 66, 260); c.lineTo(w / 2 + 50, 400); c.stroke();
-        const dot = (x, y, rx, ry, v) => { c.fillStyle = `rgb(${v},${v},${v})`; c.beginPath(); c.ellipse(x, y, rx, ry, 0, 0, Math.PI * 2); c.fill(); };
-        dot(w / 2, 44, 20, 25, 40);                         // brain
-        dot(w / 2 + 10, 130, 18, 15, 150);                  // heart (variable)
-        dot(w / 2 - 28, 180, 26, 20, 185);                  // liver
-        dot(w / 2 + 34, 178, gcsf ? 18 : 13, gcsf ? 15 : 11, gcsf ? 90 : 200);  // spleen
-        dot(w / 2 - 22, 205, 7, 11, 120); dot(w / 2 + 22, 205, 7, 11, 120);    // kidneys
-        dot(w / 2, 300, 14, 11, 30);                        // bladder
-        const mv = gcsf ? 55 : 205;
-        for (let i = 0; i < 17; i++) dot(w / 2, 92 + i * 11, 7, 4.6, mv);       // spine
-        dot(w / 2 - 30, 272, 20, 16, mv); dot(w / 2 + 30, 272, 20, 16, mv);    // pelvis
-        c.fillStyle = `rgb(${mv},${mv},${mv})`; c.fillRect(w / 2 - 44, 296, 10, 60); c.fillRect(w / 2 + 34, 296, 10, 60);   // femurs
-        c.fillRect(w / 2 - 3, 100, 6, 40);                  // sternum
+        put(C, 4, F - 1, 6, 2, 6, mv() * 0.5);                             // skull marrow under the brain
+        return vol;
       }
-      petA.draw((c, w, hh) => petDraw(c, w, hh, false));
-      petB.draw((c, w, hh) => petDraw(c, w, hh, true));
-      tag('pet', 'T1 MRI spine', 'electron', V(-6.2, 4.7, 0));
-      tag('pet', 'FDG-PET baseline', 'electron', V(0, 4.7, 0));
-      tag('pet', 'FDG-PET after G-CSF', 'fdg', V(6.2, 4.7, 0));
-      tag('pet', 'Diffuse marrow + spleen uptake', 'fdg', V(6.2, -4.7, 0));
+      function mipFrames(vol) {
+        const frames = [];
+        for (let a = 0; a < NA; a++) {
+          const th = a / NA * Math.PI * 2, c = Math.cos(th), s = Math.sin(th), img = new Float32Array(NX * NY);
+          for (let y = 0; y < NY; y++) for (let u = 0; u < NX; u++) {
+            let best = 0;
+            const du = u - NX / 2;
+            for (let d = -NZ / 2 - 9; d < NZ / 2 + 9; d += 0.8) {
+              const x = Math.round(NX / 2 + du * c - d * s), z = Math.round(NZ / 2 + du * s + d * c);
+              if (x < 0 || x >= NX || z < 0 || z >= NZ) continue;
+              const v = vol[(z * NY + y) * NX + x];
+              if (v > best) best = v;
+            }
+            img[y * NX + u] = best;
+          }
+          frames.push(img);
+        }
+        return frames;
+      }
+      // turns a projection into an inverted grey image with a little counting noise, like a reading monitor
+      const small = document.createElement('canvas'); small.width = NX; small.height = NY;
+      const sctx = small.getContext('2d'), simg = sctx.createImageData(NX, NY);
+      const noise = Array.from({ length: NA }, () => Float32Array.from({ length: NX * NY }, () => rnd() * 2 - 1));
+      function paintPet(panel, frames, a, title, note) {
+        const img = frames[a], nz = noise[a];
+        for (let i = 0; i < NX * NY; i++) {
+          const v = img[i] * (1 + nz[i] * 0.22 / Math.sqrt(0.2 + img[i])), g = Math.round(255 * (1 - Math.min(1, Math.max(0, v / 0.95))));
+          simg.data.set([g, g, g, 255], i * 4);
+        }
+        sctx.putImageData(simg, 0, 0);
+        panel.draw((c, w, hh) => {
+          c.fillStyle = '#fff'; c.fillRect(0, 0, w, hh);
+          c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
+          const sc = Math.min((w - 10) / NX, (hh - 52) / NY), dw = NX * sc, dh = NY * sc;
+          c.drawImage(small, (w - dw) / 2, 26, dw, dh);
+          c.fillStyle = '#222'; c.font = '600 13px sans-serif'; c.textAlign = 'left'; c.fillText(title, 8, 17);
+          c.fillStyle = '#666'; c.font = '11px sans-serif'; c.fillText(note, 8, hh - 10);
+          c.textAlign = 'right'; c.fillText('MIP · simulated', w - 8, 17);
+        });
+      }
+      let petFrames = null;                                          // built the first time the PET view is opened
+      const petA = k.panel(Pq, 4.3, 8, 256), petB = k.panel(Pq, 4.3, 8, 256);
+      petA.mesh.position.set(0.4, 0, 0); petB.mesh.position.set(5.5, 0, 0);
+      let petAngle = -1;
+      function showPet(a) {
+        if (a === petAngle) return; petAngle = a;
+        if (!petFrames) petFrames = [mipFrames(buildVolume(false)), mipFrames(buildVolume(true))];
+        paintPet(petA, petFrames[0], a, 'FDG-PET · baseline', 'Brain, heart, kidneys, bladder hot; marrow faint');
+        paintPet(petB, petFrames[1], a, 'FDG-PET · after G-CSF', 'Even marrow uptake, larger hotter spleen');
+      }
+
+      // MRI: a simulated midline sagittal T1 slice of the lumbar spine, young (red marrow) beside older (yellow marrow)
+      const mri = k.panel(Pq, 5.6, 8, 384);
+      mri.mesh.position.set(-5.9, 0, 0);
+      function sagittal(c, ox, w, hh, fatty) {
+        const r = mulberry32(fatty ? 77 : 33), g = v => { const q = Math.round(255 * Math.max(0, Math.min(1, v))); return `rgb(${q},${q},${q})`; };
+        const lord = y => 14 * Math.sin((y / hh) * Math.PI) - 7;        // a gentle lumbar curve, front to the left
+        const X = f => ox + w * f;
+        c.save(); c.beginPath(); c.rect(ox, 0, w, hh); c.clip();
+        c.fillStyle = g(0.04); c.fillRect(ox, 0, w, hh);
+        // in front of the spine: bowel and fat, then the aorta as a dark flow void
+        c.fillStyle = g(0.3); c.fillRect(ox, 0, w * 0.3, hh);
+        for (let i = 0; i < 9; i++) {
+          const x = X(0.03 + r() * 0.24), y = r() * hh, rad = 8 + r() * 14, gr = c.createRadialGradient(x, y, 1, x, y, rad);
+          const v = r() < 0.4 ? 0.06 : 0.38 + r() * 0.12;
+          gr.addColorStop(0, g(v)); gr.addColorStop(1, 'rgba(77,77,77,0)'); c.fillStyle = gr; c.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+        }
+        const strip = (f0, f1, v, until = hh) => { c.fillStyle = g(v); c.beginPath(); for (let y = 0; y <= until; y += 8) c.lineTo(X(f0) + lord(y), y); for (let y = until; y >= 0; y -= 8) c.lineTo(X(f1) + lord(y), y); c.fill(); };
+        strip(0.25, 0.33, fatty ? 0.72 : 0.5);                            // fat in front of the spine
+        strip(0.29, 0.345, 0.05, hh * 0.68);                              // aorta, ending at its split near L4
+        // behind the spine: muscle with fat streaks, then subcutaneous fat and skin
+        strip(0.76, 0.93, 0.3);
+        for (let i = 0; i < 8; i++) { const y = r() * hh; c.fillStyle = g(0.55); c.fillRect(X(0.78 + r() * 0.12), y, 2, 26 + r() * 30); }
+        strip(0.92, 1.02, 0.86); strip(0.985, 1.02, 0.45);
+        // vertebral bodies and discs
+        const vx = 0.35, vw = 0.29, H = 58, gap = 16, base = fatty ? 0.78 : 0.4;
+        for (let k2 = 0; k2 < 7; k2++) {
+          const y = 4 + k2 * (H + gap), off = lord(y + H / 2), x0 = X(vx) + off, x1 = X(vx + vw) + off;
+          // disc below: darker fibrous ring around a slightly brighter centre
+          c.fillStyle = g(0.24); c.beginPath(); c.ellipse((x0 + x1) / 2, y + H + gap / 2, (x1 - x0) / 2 + 1, gap / 2 + 3, 0, 0, 7); c.fill();
+          c.fillStyle = g(0.36); c.beginPath(); c.ellipse((x0 + x1) / 2 + 2, y + H + gap / 2, (x1 - x0) * 0.3, gap / 2 - 1, 0, 0, 7); c.fill();
+          // body outline with slightly concave end plates
+          const path = new Path2D(); const sag = 3;
+          path.moveTo(x0 + 3, y); path.quadraticCurveTo((x0 + x1) / 2, y + sag, x1 - 3, y); path.quadraticCurveTo(x1 + 1, y + H / 2, x1 - 3, y + H);
+          path.quadraticCurveTo((x0 + x1) / 2, y + H - sag, x0 + 3, y + H); path.quadraticCurveTo(x0 - 3, y + H / 2, x0 + 3, y); path.closePath();
+          const gr = c.createLinearGradient(x0, y, x1, y + H);
+          gr.addColorStop(0, g(base - 0.04)); gr.addColorStop(0.5, g(base + 0.03)); gr.addColorStop(1, g(base - 0.05));
+          c.fillStyle = gr; c.fill(path);
+          if (fatty) for (let p = 0; p < 5; p++) {                      // patchy fat islands in older marrow
+            const fx = x0 + 8 + r() * (x1 - x0 - 16), fy = y + 8 + r() * (H - 16), rad = 5 + r() * 8, rg = c.createRadialGradient(fx, fy, 0, fx, fy, rad);
+            rg.addColorStop(0, g(0.92)); rg.addColorStop(1, 'rgba(199,199,199,0)'); c.fillStyle = rg; c.fillRect(fx - rad, fy - rad, rad * 2, rad * 2);
+          }
+          c.strokeStyle = g(0.06); c.lineWidth = 2.2; c.stroke(path);                         // cortical bone is dark on T1
+          c.fillStyle = g(0.1); c.beginPath(); c.ellipse(x1 - 4, y + H / 2, 6, 2, 0, 0, 7); c.fill();   // basivertebral vein
+          // lamina and spinous process behind the canal carry the same marrow signal
+          const px = X(0.81) + off, py = y + H * 0.5, pg = c.createRadialGradient(px, py, 1, px, py, H * 0.42);
+          pg.addColorStop(0, g(base * 0.9)); pg.addColorStop(0.75, g(base * 0.75)); pg.addColorStop(1, 'rgba(77,77,77,0)');
+          c.fillStyle = pg; c.beginPath(); c.ellipse(px, py, w * 0.06, H * 0.42, 0.35, 0, 7); c.fill();
+        }
+        strip(0.645, 0.735, 0.1);                                          // spinal canal: CSF is dark on T1
+        c.strokeStyle = g(0.4); c.lineWidth = 4; c.beginPath(); for (let y = 0; y <= hh * 0.42; y += 8) c.lineTo(X(0.69) + lord(y), y); c.stroke();   // conus
+        c.strokeStyle = g(0.24); c.lineWidth = 1; for (let n = 0; n < 4; n++) { c.beginPath(); for (let y = hh * 0.4; y <= hh; y += 8) c.lineTo(X(0.665 + n * 0.016) + lord(y), y); c.stroke(); }   // cauda equina
+        c.restore();
+      }
+      mri.draw((c, w, hh) => {
+        const half = w / 2;
+        sagittal(c, 0, half - 2, hh, false); sagittal(c, half + 2, half - 2, hh, true);
+        // a soft blur and grain so the slices read like an image rather than a drawing
+        const tmp = document.createElement('canvas'); tmp.width = w / 2; tmp.height = hh / 2;
+        const t2 = tmp.getContext('2d'); t2.imageSmoothingEnabled = true; t2.drawImage(c.canvas, 0, 0, w / 2, hh / 2);
+        c.imageSmoothingEnabled = true; c.drawImage(tmp, 0, 0, w, hh);
+        const id2 = c.getImageData(0, 0, w, hh), r3 = mulberry32(9);
+        for (let i = 0; i < id2.data.length; i += 4) { const n = (r3() - 0.5) * 18; id2.data[i] += n; id2.data[i + 1] += n; id2.data[i + 2] += n; }
+        c.putImageData(id2, 0, 0);
+        c.fillStyle = 'rgba(0,0,0,.55)'; c.fillRect(0, hh - 40, w, 40);
+        c.fillStyle = '#e6e6e6'; c.font = '600 14px sans-serif'; c.textAlign = 'center';
+        c.fillText('Child: red marrow', half / 2, hh - 23); c.fillText('Older adult: yellow marrow', half * 1.5, hh - 23);
+        c.fillStyle = '#9a9a9a'; c.font = '12px sans-serif';
+        c.fillText('about as dark as disc', half / 2, hh - 8); c.fillText('bright, like fat', half * 1.5, hh - 8);
+        c.fillStyle = '#cfcfcf'; c.font = '600 13px sans-serif'; c.textAlign = 'left'; c.fillText('T1 MRI · sagittal · simulated', 8, 18);
+      });
+      tag('pet', 'T1 MRI, lumbar spine', 'electron', V(-5.9, 4.7, 0));
+      tag('pet', 'FDG-PET baseline', 'electron', V(0.4, 4.7, 0));
+      tag('pet', 'FDG-PET after G-CSF', 'fdg', V(5.5, 4.7, 0));
+      tag('pet', 'Diffuse marrow + spleen uptake', 'fdg', V(5.5, -4.7, 0));
 
       let el = 0;
       function draw(dt) {
@@ -527,7 +660,7 @@ CellCity.register('stem', {
           fib.visible = u < 0.7;
           col.forEach((c, i) => { const s = seg(u, 0.66 + i * 0.02, 0.7 + i * 0.02); c.visible = s > 0; c.scale.setScalar(Math.max(0.001, 0.42 * s)); });
         }
-        if (v === 'pet') { petA.mesh.rotation.y = petB.mesh.rotation.y = mri.mesh.rotation.y = Math.sin(el * 0.3) * 0.06; }
+        if (v === 'pet') showPet(reduceMotion ? 0 : Math.floor(el * 4) % NA);   // the PET cine turns once every 9 seconds
         tag.update(v, u);
       }
       behaviors[id] = { enter() { draw(0); }, tick(t, dt) { draw(dt); } };
