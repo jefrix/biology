@@ -31,17 +31,23 @@ async function main() {
   run(read('shared/core.js'));
   assert.equal(run('G3'), null);
   assert.match(read('index.html'), new RegExp('shared/core\\.js\\?v=' + run('ASSET_VERSION') + '"'), 'index.html cache-busts core.js with ASSET_VERSION');
-  // The home screen is a microscope bench: 23 glass slides, 11 in Cell mechanisms and 12 in Cells in tissues, with Energy loaded on the stage.
+  // The home screen is a microscope bench: 24 glass slides, 11 in Cell mechanisms and 13 in Cells in tissues, with Energy loaded on the stage.
   const keys = Array.from(run('MANIFEST'), x => x.key);
   const trays = element('#slideTrays').innerHTML;
-  assert.equal(keys.length, 23, '23 modules');
+  assert.equal(keys.length, 24, '24 modules');
   assert.deepEqual(Array.from(trays.matchAll(/data-key="([^"]+)"/g), x => x[1]), keys, 'one slide per module, in curriculum order');
   assert.match(trays, /Cell mechanisms[\s\S]*data-key="division"[\s\S]*data-key="cytoskeleton"[\s\S]*data-key="mitochondria"[\s\S]*data-key="stem"[\s\S]*Cells in tissues[\s\S]*data-key="neural"/);
   const [mech, tissue] = trays.split('<section').slice(1);
   assert.equal((mech.match(/data-key=/g) || []).length, 11, 'Cell mechanisms tray holds 11 slides');
-  assert.equal((tissue.match(/data-key=/g) || []).length, 12, 'Cells in tissues tray holds 12 slides');
+  assert.equal((tissue.match(/data-key=/g) || []).length, 13, 'Cells in tissues tray holds 13 slides');
   assert.equal((mech.match(/slot-empty/g) || []).length, 1, 'the 11-slide mechanisms tray pads its second row of 6 with one empty slot');
-  assert(!/slot-empty/.test(tissue), 'the 12-slide tissue tray fills two rows exactly');
+  assert.equal((tissue.match(/slot-empty/g) || []).length, 5, 'the 13-slide tissue tray pads its third row of 6 with five empty slots');
+  // Sensory cells follow the enterocyte as CT-13, with a prep label, a motif and four chapters.
+  assert.match(trays, /data-key="senses"[^>]*>\s*<span class="slide-label"><span class="slide-no">CT-13<\/span><span class="slide-name">Sensory cells</, 'Sensory cells is slide CT-13');
+  assert.equal(keys[23], 'senses', 'senses sits at position 24');
+  assert(run('SLIDE_PREP.senses'), 'senses has a prep label');
+  assert(run('MOTIFS.senses').length > 100, 'senses has a specimen motif');
+  assert.deepEqual(Array.from(run('MANIFEST')[23].ids), ['sense-rod', 'sense-color', 'sense-hair', 'sense-smell'], 'senses has its four chapters');
   assert.match(trays, /CM-06<\/span><span class="slide-name">Cyto(&shy;)?skeleton</, 'Cytoskeleton is slide CM-06');
   assert.equal(run('SLIDE_PREP.cytoskeleton'), 'Phalloidin + anti-tubulin');
   // The six tissue slides added after reproduction, in order, each with a prep label and a specimen motif.
@@ -246,6 +252,16 @@ async function main() {
     ['stem-niches', 'stem-niche', 'ipsc', 'stemNicheCaption', /Oct4, Sox2, Klf4 and c-Myc/, 'niche'],
     ['stem-niches', 'stem-niche', 'pet', 'stemNicheCaption', /G-CSF/, 'niche'],
     ['stem-niches', 'stem-niche', 'niche', 'stemNicheCaption', /CXCL12/, 'niche'],
+    ['sense-rod', 'sense-light', 'bright', 'senseLightCaption', /−65 mV/, 'dark'],
+    ['sense-rod', 'sense-light', 'dim', 'senseLightCaption', /transducin/, 'dark'],
+    ['sense-color', 'sense-hue', '450', 'senseColorCaption', /450 nm: S \d+%/, '540'],
+    ['sense-color', 'sense-vision', 'deutan', 'senseColorCaption', /M missing/, 'normal'],
+    ['sense-color', 'sense-vision', 'protan', 'senseColorCaption', /L missing/, 'normal'],
+    ['sense-hair', 'sense-pitch', 'high', 'senseHairCaption', /base/, 'mid'],
+    ['sense-hair', 'sense-pitch', 'low', 'senseHairCaption', /apex/, 'mid'],
+    ['sense-hair', 'sense-bundle', 'damaged', 'senseHairCaption', /tip links broken/, 'healthy'],
+    ['sense-smell', 'sense-odor', 'a', 'senseOdorCaption', /types 1 and 3/, 'none'],
+    ['sense-smell', 'sense-odor', 'ab', 'senseOdorCaption', /combination code/, 'none'],
   ];
   for (const [route, key, value, cap, expected, back] of SWITCHES) {
     run('go(' + JSON.stringify(route) + ')'); await new Promise(resolve => setImmediate(resolve));
@@ -260,7 +276,7 @@ async function main() {
   run('goHome()');
   assert.equal(context.location.hash, '#home');
   assert.equal(element('#scopeTitle').textContent, 'Hormones & endocrine', 'returning home puts the last module back on the stage');
-  console.log(seen.size + ' chapter routes in ' + run('MANIFEST').length + ' modules, text-mode navigation, cross-links, US spelling, lesson controls, the red-cell exercise, blood card deep links, the merged-module redirect, ' + SWITCHES.length + ' lesson switches and the 23-slide microscope bench (11 Cell mechanisms + 12 Cells in tissues) passed.');
+  console.log(seen.size + ' chapter routes in ' + run('MANIFEST').length + ' modules, text-mode navigation, cross-links, US spelling, lesson controls, the red-cell exercise, blood card deep links, the merged-module redirect, ' + SWITCHES.length + ' lesson switches and the 24-slide microscope bench (11 Cell mechanisms + 13 Cells in tissues) passed.');
 }
 main().catch(err => { console.error(err); process.exitCode = 1; });
 

@@ -110,6 +110,9 @@ const MANIFEST = [
   { key: 'enterocyte', name: 'Enterocyte', slideName: 'Entero&shy;cyte', c: 'gut', eyebrow: 'The intestinal absorptive cell', title: 'Where your plate enters the body',
     blurb: 'Pull glucose in through the brush border with SGLT1, package fats into chylomicrons for the lymph, then follow nutrients and an oral drug through the portal vein to the liver and its first-pass effect.',
     ids: ['gut-sglt1', 'gut-fat', 'gut-portal'], names: ['Brush border & SGLT1', 'Fat & chylomicrons', 'Portal vein & first pass'] },
+  { key: 'senses', name: 'Sensory cells', slideName: 'Sensory cells', c: 'sense', eyebrow: 'Sensory cells', title: 'How cells sense light, sound and smell',
+    blurb: 'Watch a rod catch a photon and go quiet, mix three cones into color and see color blindness, bend a hair cell’s bundle to open its channels along the cochlea, and follow odorants to their glomeruli.',
+    ids: ['sense-rod', 'sense-color', 'sense-hair', 'sense-smell'], names: ['Rods & light', 'Cones & color', 'Hair cells', 'Smell'] },
 ];
 const registry = {};
 const CellCity = { register(key, def) { registry[key] = def; } };
@@ -542,7 +545,7 @@ function initWorld() {
 
 /* ---------- loading a module the first time it is opened ---------- */
 // Bump with the ?v= in index.html on each deploy so GitHub Pages visitors never mix cached and new files.
-const ASSET_VERSION = 10;
+const ASSET_VERSION = 11;
 const loading = {};
 const threeAddons='https://cdn.jsdelivr.net/npm/three@0.147.0/examples/jsm/';
 const avatarBase='https://cdn.jsdelivr.net/npm/open-anatomy-3d@0.1.0/models/';
@@ -803,6 +806,7 @@ const MOTIFS = {
   mitochondria: '<path class="thick" d="M8 34c10-8 20 2 30-2s14-14 24-10 10 16 18 18 10 0 12 0"/><path class="thick" d="M14 70c8-6 18 4 28 0s12-12 22-8"/><path class="thick" d="M72 66c4-2 10-4 18 2"/><path d="M38 32c2 10 4 18 2 28M62 24c-2 12 0 26 2 38" opacity=".6"/><path d="M18 32l2 4M28 31l1 4M48 24l2 4M58 21l1 4M74 38l2 3M24 68l1 4M34 70l1 4M50 64l2 4" opacity=".7"/><ellipse class="d" cx="66" cy="65" rx="2" ry="5"/><circle class="d" cx="30" cy="32" r="1.6"/><circle class="d" cx="56" cy="22" r="1.6"/><circle class="d" cx="40" cy="70" r="1.6"/>',
   stem: '<circle class="f" cx="24" cy="50" r="15"/><circle class="d" cx="24" cy="50" r="5.5"/><path d="M39 44L56 26M40 50h18M39 56l17 18" opacity=".7"/><circle class="f" cx="68" cy="20" r="7"/><circle class="d" cx="68" cy="20" r="2.6"/><path d="M74 15l10-7M75 21l12 2M68 13V3M63 25l-7 6M74 26l14 8"/><circle class="f" cx="74" cy="50" r="9"/><circle cx="74" cy="50" r="3.6" opacity=".6"/><rect class="f" x="60" y="72" width="34" height="14" rx="7"/><path class="thick" d="M66 72v14M72 72v14M78 72v14M84 72v14M90 73v12"/>',
   enterocyte: '<path class="f" d="M10 92V40c0-18 20-18 20 0v52M38 92V28c0-18 22-18 22 0v64M68 92V44c0-18 22-18 22 0v48" opacity=".55"/><path d="M10 40c0-18 20-18 20 0M38 28c0-18 22-18 22 0M68 44c0-18 22-18 22 0" class="thick"/><path d="M20 30v62M49 18v74M79 34v58" opacity=".5"/><circle class="d" cx="15" cy="60" r="2"/><circle class="d" cx="25" cy="70" r="2"/><circle class="d" cx="44" cy="52" r="2"/><circle class="d" cx="54" cy="64" r="2"/><circle class="d" cx="74" cy="66" r="2"/><circle class="d" cx="84" cy="76" r="2"/>',
+  senses: '<rect class="f" x="14" y="16" width="12" height="40" rx="6"/><path d="M20 20v32M14 26h12M14 32h12M14 38h12M14 44h12" opacity=".5"/><path d="M20 56v18" class="thick"/><circle class="d" cx="20" cy="80" r="4"/><path class="f" d="M44 58L50 18 56 58Z"/><path d="M50 58v16" class="thick"/><circle class="d" cx="50" cy="80" r="4"/><path class="f" d="M70 62h22v24H70z" opacity=".6"/><path class="thick" d="M73 62V48M78 62V40M83 62V32M88 62V26"/><path d="M73 48l5-6M78 40l5-6M83 32l5-5" opacity=".7"/>',
 };
 const SLIDE_PREP = {
   energy: 'Mitochondrial fluorescence', protein: 'Anti-insulin immunostain', cleanup: 'Lysosome fluorescence',
@@ -810,7 +814,7 @@ const SLIDE_PREP = {
   signaling: 'FRET cAMP biosensor', junctions: 'ZO-1 + E-cadherin immunostain', lipids: 'Oil Red O, arterial plaque', mitochondria: 'MitoTracker live imaging', stem: 'Oct4 + lineage immunostain', neural: 'Golgi silver stain', muscle: 'Striated muscle, H&E',
   blood: 'Wright–Giemsa smear', hormones: 'Islet immunostain', nephron: 'PAS, kidney cortex', reproduction: 'Phase contrast',
   hepatocyte: 'PAS, liver lobule', bone: 'Ground bone, osteon', cancer: 'Ki-67 immunostain, carcinoma', immune: 'CD4/CD8 immunofluorescence',
-  bbb: 'GFAP + claudin-5 immunostain', enterocyte: 'PAS, jejunal villi',
+  bbb: 'GFAP + claudin-5 immunostain', enterocyte: 'PAS, jejunal villi', senses: 'Toluidine blue, retina and organ of Corti',
 };
 const TRAYS = [
   { id: 'mechanisms', name: 'Cell mechanisms', tag: 'CM', note: 'What happens inside one cell', from: 0, to: 11 },

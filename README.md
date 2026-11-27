@@ -38,8 +38,9 @@ Two ways to get around without clicking through: the **search box** on the home 
 | Immune activation | `modules/immune.js` | MHC class I to CD8⁺ and class II to CD4⁺ T cells, complement opsonization, membrane attack and acute inflammation, antibodies and cytotoxic T-cell killing |
 | Blood–brain barrier | `modules/bbb.js` | The neurovascular unit (endothelium, tight junctions, pericytes, astrocyte endfeet), diffusion, GLUT1 and P-glycoprotein efflux, gadolinium leakage on MRI in stroke, tumor and MS |
 | Enterocyte | `modules/enterocyte.js` | Brush border and SGLT1/GLUT2 glucose uptake, fat absorption into chylomicrons and lacteals, the portal vein and first-pass metabolism by route of dosing |
+| Sensory cells | `modules/senses.js` | A rod catching a photon and the cGMP cascade closing its channels, three cones and color with red-green deficiency, a cochlear hair cell's tip links opening channels at its place on the basilar membrane, and odorant receptors sorting smells into glomeruli |
 
-The module list, glass slides (11 in Cell mechanisms, 12 in Cells in tissues) and chapter order live in the `MANIFEST` in `shared/core.js`, with each slide's specimen drawing in `MOTIFS` and prep label in `SLIDE_PREP`. The tissue and cross-cutting mechanism modules added last build their scenes with `sceneKit()` in `shared/core.js`, a small toolkit of materials, primitives, labeled stages and looping particle streams. A module can list `pills` to give its slide deep links instead of one link per chapter, as Blood does.
+The module list, glass slides (11 in Cell mechanisms, 13 in Cells in tissues) and chapter order live in the `MANIFEST` in `shared/core.js`, with each slide's specimen drawing in `MOTIFS` and prep label in `SLIDE_PREP`. The tissue and cross-cutting mechanism modules added last build their scenes with `sceneKit()` in `shared/core.js`, a small toolkit of materials, primitives, labeled stages and looping particle streams. A module can list `pills` to give its slide deep links instead of one link per chapter, as Blood does.
 
 ## Run locally
 
@@ -59,7 +60,7 @@ Requires Node.js 18 or later. No dependencies need to be installed.
 node check-chapters.cjs         # or: npm test
 ```
 
-The check loads `shared/core.js` and every module in a minimal text-mode browser stub. It confirms that each module registers exactly the chapters listed in `MANIFEST`, that every chapter route opens with no duplicates, that the bench shows 23 slides (11 + 12) with their slide numbers, prep labels, motifs and a distinct color token each, that every in-app link points at a real chapter and the promised cross-links are present, that chapter text uses US spelling, and that the ATP-ledger, red-cell osmosis and every lesson switch caption (including all switches in the six tissue modules, the four cross-cutting mechanism modules, the stem cell module and the pacemaker chapter) respond correctly. It does not render WebGL, so also open changed chapters in a browser.
+The check loads `shared/core.js` and every module in a minimal text-mode browser stub. It confirms that each module registers exactly the chapters listed in `MANIFEST`, that every chapter route opens with no duplicates, that the bench shows 24 slides (11 + 13) with their slide numbers, prep labels, motifs and a distinct color token each, that every in-app link points at a real chapter and the promised cross-links are present, that chapter text uses US spelling, and that the ATP-ledger, red-cell osmosis and every lesson switch caption (including all switches in the six tissue modules, the four cross-cutting mechanism modules, the stem cell module, the sensory cells module and the pacemaker chapter) respond correctly. It does not render WebGL, so also open changed chapters in a browser.
 
 ### Real-time playback check
 
